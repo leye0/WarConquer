@@ -18,6 +18,12 @@ aside { display:grid; gap:16px } .card {border:1px solid #30465c; border-radius:
 .label {color:#8fa8bb;font-size:12px;letter-spacing:.12em}.num {font-size:39px;font-weight:850;margin:9px 0;color:#8ef2d6}
 button {background:#6be5c4;border:0;padding:14px 24px;border-radius:9px;font-weight:800;margin-top:32px;color:#10273a}
 @media(max-width:760px){.grid{grid-template-columns:1fr}h1{font-size:45px}}
+
+.controls { margin-top:28px; padding:23px 26px; border:1px solid #315c64; border-radius:18px; background:#182d40; display:flex; align-items:center; flex-wrap:wrap; gap:16px }
+.controls label { color:#9ec3ce; font-weight:700; font-size:12px; letter-spacing:.11em }
+.controls input { margin-left:13px; border:1px solid #558b8f; border-radius:8px; background:#0d1b2a; color:#e8f7ff; padding:13px; font:inherit; font-size:16px; width:210px }
+.controls button { margin:0 }
+#fleet-status { font-weight:800; color:#8cf1d1; min-width:230px }
 </style>
 </head>
 <body><main><header><span>WARCONQUER / RADAR</span><span>● TRANSMISSION ACTIVE</span></header>
@@ -25,4 +31,12 @@ button {background:#6be5c4;border:0;padding:14px 24px;border-radius:9px;font-wei
 <div class="grid"><div class="radar"><span>SECTOR SCAN // 07</span></div><aside>
 <div class="card"><div class="label">VISIBLE SECTORS</div><div class="num">128</div><div>↗ 7 new signals</div></div>
 <div class="card"><div class="label">SCAN COMPLETENESS</div><div class="num">94.2%</div><div>All systems nominal</div></div>
-</aside></div><button>Open mission control →</button></main></body></html>
+</aside></div><section class="controls"><label for="fleet-code">FLEET CODE<input id="fleet-code" value="" placeholder="Enter designation"></label><button id="dispatch-fleet">Dispatch fleet →</button><div id="fleet-status" aria-live="polite">AWAITING COMMAND</div></section>
+<script>
+const fleetCode = document.querySelector('#fleet-code');
+const status = document.querySelector('#fleet-status');
+document.querySelector('#dispatch-fleet').addEventListener('click', () => { status.textContent = 'FLEET DISPATCHED'; });
+fleetCode.addEventListener('keydown', event => {
+  if (event.key === 'Enter') status.textContent = 'CONFIRMED: ' + fleetCode.value.toUpperCase();
+});
+</script></main></body></html>
