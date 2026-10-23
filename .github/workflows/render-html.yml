@@ -1,6 +1,10 @@
 name: Render HTML screenshot
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/render-html.yml'
   workflow_dispatch:
     inputs:
       html_path:
