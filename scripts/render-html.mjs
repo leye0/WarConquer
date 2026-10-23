@@ -1,21 +1,28 @@
 #!/usr/bin/env node
 // Zero-dependency, full-page HTML screenshots using Chrome DevTools Protocol.
 import { spawn } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { performance } from 'node:perf_hooks';
 
 const started = performance.now();
 const workspace = realpathSync(process.env.GITHUB_WORKSPACE || process.cwd());
-const input = process.argv[2] || 'patate.html';
-const output = resolve(process.argv[3] || 'render.png');
-const html = realpathSync(resolve(workspace, input));
-const rel = relative(workspace, html);
-if (rel === '..' || rel.startsWith('..' + sep) || isAbsolute(rel) || !/\.html?$/i.test(html)) {
-  throw new Error('HTML path must be a .html file inside the repository');
-}
+const batch = process.argv[2] === '--nul-list';
+const sources = batch
+  ? readFileSync(process.argv[3]).toString('utf8').split('\0').filter(Boolean)
+  : [process.argv[2] || 'patate.html'];
+if (!sources.length) throw new Error('No HTML files to render');
+const destination = resolve(process.argv[batch ? 4 : 3] || (batch ? 'renders' : 'render.png'));
+const pages = [...new Set(sources)].map(source => {
+  const html = realpathSync(resolve(workspace, source));
+  const rel = relative(workspace, html);
+  if (rel === '..' || rel.startsWith('..' + sep) || isAbsolute(rel) || !/\.html?$/i.test(html)) {
+    throw new Error('HTML path must be a .html file inside the repository: ' + source);
+  }
+  return { html, rel };
+});
 const chrome = process.env.CHROME_BIN || '/usr/bin/google-chrome';
 if (!existsSync(chrome)) throw new Error('Chrome is unavailable: ' + chrome);
 const profile = mkdtempSync(join(tmpdir(), 'warconquer-cdp-'));
@@ -107,28 +114,48 @@ try {
   await client.send('Emulation.setDeviceMetricsOverride', {
     width: 1280, height: 800, deviceScaleFactor: 1, mobile: false
   });
-  const loaded = client.once('Page.loadEventFired');
-  const nav = await client.send('Page.navigate', { url: pathToFileURL(html).href });
-  if (nav.errorText) throw new Error('Navigation failed: ' + nav.errorText);
-  await loaded;
-  await client.send('Runtime.evaluate', {
-    expression: "(async()=>{await document.fonts.ready;await Promise.all([...document.images].map(img=>img.complete?null:new Promise(done=>{img.addEventListener('load',done,{once:true});img.addEventListener('error',done,{once:true});})));await new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done)));})()",
-    awaitPromise: true
-  });
-  const metrics = await client.send('Page.getLayoutMetrics');
-  const size = metrics.cssContentSize || metrics.contentSize;
-  const width = Math.ceil(Math.max(size.width, 1280));
-  const height = Math.ceil(Math.max(size.height, 800));
-  const shot = await client.send('Page.captureScreenshot', {
-    format: 'png', fromSurface: true, captureBeyondViewport: true,
-    clip: { x: 0, y: 0, width, height, scale: 1 }
-  });
-  writeFileSync(output, Buffer.from(shot.data, 'base64'));
+  const entries = [];
+  for (const { html, rel } of pages) {
+    const pageStarted = performance.now();
+    const loaded = client.once('Page.loadEventFired');
+    const nav = await client.send('Page.navigate', { url: pathToFileURL(html).href });
+    if (nav.errorText) throw new Error('Navigation failed: ' + nav.errorText);
+    await loaded;
+    await client.send('Runtime.evaluate', {
+      expression: "(async()=>{await document.fonts.ready;await Promise.all([...document.images].map(img=>img.complete?null:new Promise(done=>{img.addEventListener('load',done,{once:true});img.addEventListener('error',done,{once:true});})));await new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done)));})()",
+      awaitPromise: true
+    });
+    const metrics = await client.send('Page.getLayoutMetrics');
+    const size = metrics.cssContentSize || metrics.contentSize;
+    const width = Math.ceil(Math.max(size.width, 1280));
+    const height = Math.ceil(Math.max(size.height, 800));
+    const shot = await client.send('Page.captureScreenshot', {
+      format: 'png', fromSurface: true, captureBeyondViewport: true,
+      clip: { x: 0, y: 0, width, height, scale: 1 }
+    });
+    const output = batch ? resolve(destination, rel + '.png') : destination;
+    mkdirSync(dirname(output), { recursive: true });
+    writeFileSync(output, Buffer.from(shot.data, 'base64'));
+    const entry = {
+      source: rel, png: batch ? rel + '.png' : output,
+      width, height, elapsedMs: Math.round(performance.now() - pageStarted)
+    };
+    entries.push(entry);
+    console.log('PAGE_RENDER ' + JSON.stringify(entry));
+  }
+  if (batch) {
+    writeFileSync(join(destination, 'manifest.json'), JSON.stringify({
+      engine: 'chrome-cdp',
+      chromeStarts: 1,
+      chromeStartupMs: Math.round(readyAt - started),
+      pages: entries
+    }, null, 2) + '\n');
+  }
   console.log('RENDER_METRICS ' + JSON.stringify({
     chromeStartupMs: Math.round(readyAt - started),
     browserWorkMs: Math.round(performance.now() - readyAt),
     totalMs: Math.round(performance.now() - started),
-    width, height, output
+    pagesRendered: entries.length
   }));
 } finally {
   client?.close();

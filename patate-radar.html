@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WarConquer — Tactical Radar</title>
+<style>
+* { box-sizing:border-box } body { margin:0; background: #101d2e; color:#e8f7ff; font-family:system-ui,sans-serif }
+main { max-width:1050px; margin:0 auto; padding:56px 44px }
+header { display:flex; justify-content:space-between; align-items:center; color:#6be5c4; letter-spacing:.19em; font-weight:800; font-size:13px }
+h1 { margin:52px 0 13px; font-size:64px; letter-spacing:-.045em }
+p { color:#9aafc3; max-width:650px; font-size:17px; line-height:1.6 }
+.grid { display:grid; grid-template-columns:2fr 1fr; gap:22px; margin-top:38px }
+.radar { height:420px; border:1px solid #32605f; border-radius:24px; background:repeating-radial-gradient(circle at center,transparent 0 50px,#4cbba832 51px 52px),conic-gradient(from -25deg,#57e6b72a 0deg,#142b39 38deg,#142b39 320deg,#57e6b72a 360deg); display:grid; place-items:center; position:relative; overflow:hidden }
+.radar:before,.radar:after { content:""; height:18px;width:18px;border-radius:50%;background:#ffb96c;box-shadow:0 0 0 10px #ffb96c24;position:absolute;left:32%;top:29% }
+.radar:after {left:67%;top:67%;background:#56e5bc;box-shadow:0 0 0 10px #56e5bc24}
+.radar span { color:#77f1d4; font-size:13px; letter-spacing:.2em; opacity:.7 }
+aside { display:grid; gap:16px } .card {border:1px solid #30465c; border-radius:18px; padding:28px; background:#1a3043}
+.label {color:#8fa8bb;font-size:12px;letter-spacing:.12em}.num {font-size:39px;font-weight:850;margin:9px 0;color:#8ef2d6}
+button {background:#6be5c4;border:0;padding:14px 24px;border-radius:9px;font-weight:800;margin-top:32px;color:#10273a}
+@media(max-width:760px){.grid{grid-template-columns:1fr}h1{font-size:45px}}
+</style>
+</head>
+<body><main><header><span>WARCONQUER / RADAR</span><span>● TRANSMISSION ACTIVE</span></header>
+<h1>Tactical Overview</h1><p>Second HTML page to verify that one Chromium process can render multiple independent layouts in a single GitHub Actions run.</p>
+<div class="grid"><div class="radar"><span>SECTOR SCAN // 07</span></div><aside>
+<div class="card"><div class="label">VISIBLE SECTORS</div><div class="num">128</div><div>↗ 7 new signals</div></div>
+<div class="card"><div class="label">SCAN COMPLETENESS</div><div class="num">94.2%</div><div>All systems nominal</div></div>
+</aside></div><button>Open mission control →</button></main></body></html>

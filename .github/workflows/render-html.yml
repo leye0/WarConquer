@@ -27,33 +27,37 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
-      - name: Select HTML source
-        id: source
-        env:
-          REQUESTED: ${{ inputs.html_path || 'patate.html' }}
+      - name: Render changed HTML pages via one Chrome instance
         shell: bash
-        run: |
-          set -euo pipefail
-          if [[ "$GITHUB_EVENT_NAME" == "push" ]] && git rev-parse HEAD^ >/dev/null 2>&1; then
-            changed="$(git diff --name-only --diff-filter=ACMR HEAD^ HEAD -- '*.html' '*.htm' | sed -n '1p')"
-            if [[ -n "$changed" ]]; then REQUESTED="$changed"; fi
-          fi
-          printf 'path=%s\n' "$REQUESTED" >> "$GITHUB_OUTPUT"
-          echo "Selected HTML: $REQUESTED"
-      - name: Render HTML via native Chrome CDP
         env:
-          HTML_PATH: ${{ steps.source.outputs.path }}
+          HTML_PATH: ${{ inputs.html_path || 'patate.html' }}
+          BEFORE_SHA: ${{ github.event.before }}
         run: |
           set -euo pipefail
-          node scripts/render-html.mjs "$HTML_PATH" render.png
-          printf '%s\n' "$HTML_PATH" > render-source.txt
-          file render.png
-          echo "Rendered \`$HTML_PATH\` to render.png" >> "$GITHUB_STEP_SUMMARY"
+          if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+            targets="$RUNNER_TEMP/render-targets.bin"
+            if [[ "$BEFORE_SHA" =~ ^[0-9a-f]{40}$ ]] && [[ "$BEFORE_SHA" != 0000000000000000000000000000000000000000 ]]; then
+              if ! git cat-file -e "$BEFORE_SHA^{commit}" 2>/dev/null; then
+                git fetch --no-tags --depth=1 origin "$BEFORE_SHA"
+              fi
+              git diff --name-only --diff-filter=ACMR -z "$BEFORE_SHA" HEAD -- '*.html' '*.htm' > "$targets"
+            else
+              git ls-files -z '*.html' '*.htm' > "$targets"
+            fi
+            if [[ ! -s "$targets" ]]; then printf '%s\0' 'patate.html' > "$targets"; fi
+            node scripts/render-html.mjs --nul-list "$targets" renders
+            echo "Rendered changed HTML files in a single Chrome session." >> "$GITHUB_STEP_SUMMARY"
+          else
+            node scripts/render-html.mjs "$HTML_PATH" render.png
+            printf '%s\n' "$HTML_PATH" > render-source.txt
+            echo "Rendered \`$HTML_PATH\` to render.png" >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Upload screenshot
         uses: actions/upload-artifact@v4
         with:
           name: html-render
           path: |
+            renders/
             render.png
             render-source.txt
           retention-days: 1
