@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // Zero-dependency, full-page HTML screenshots using Chrome DevTools Protocol.
 import { spawn } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { performance } from 'node:perf_hooks';
 
@@ -125,5 +125,4 @@ try {
 } finally {
   client?.close();
   browser.kill('SIGTERM');
-  rmSync(profile, { recursive: true, force: true });
 }
