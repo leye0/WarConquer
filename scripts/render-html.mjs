@@ -38,17 +38,25 @@ async function withTimeout(promise, ms, what) {
 }
 async function getPageSocket() {
   const portFile = join(profile, 'DevToolsActivePort');
-  for (let attempt = 0; attempt < 160; attempt++) {
+  const deadline = performance.now() + 20000;
+  while (performance.now() < deadline) {
     if (browser.exitCode !== null) throw new Error('Chrome exited before starting CDP');
     if (existsSync(portFile)) {
-      const port = readFileSync(portFile, 'utf8').split('\n')[0].trim();
-      const targets = await fetch('http://127.0.0.1:' + port + '/json/list').then(r => r.json());
-      const page = targets.find(t => t.type === 'page');
-      if (page?.webSocketDebuggerUrl) return page.webSocketDebuggerUrl;
+      try {
+        const port = readFileSync(portFile, 'utf8').split('\\n')[0].trim();
+        const response = await fetch('http://127.0.0.1:' + port + '/json/list', {
+          signal: AbortSignal.timeout(1000)
+        });
+        const targets = await response.json();
+        const page = targets.find(t => t.type === 'page');
+        if (page?.webSocketDebuggerUrl) return page.webSocketDebuggerUrl;
+      } catch {
+        // CDP's HTTP endpoint may not be ready immediately.
+      }
     }
-    await pause(30);
+    await pause(50);
   }
-  throw new Error('Chrome did not expose a CDP page in 5 seconds');
+  throw new Error('Chrome did not expose a CDP page within 20 seconds');
 }
 function connect(url) {
   return new Promise((resolve, reject) => {
