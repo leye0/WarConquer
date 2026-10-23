@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
     paths:
+      - '**/*.html'
+      - '**/*.htm'
       - '.github/workflows/render-html.yml'
       - 'scripts/render-html.mjs'
   workflow_dispatch:
@@ -23,16 +25,36 @@ jobs:
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Select HTML source
+        id: source
+        env:
+          REQUESTED: ${{ inputs.html_path || 'patate.html' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_EVENT_NAME" == "push" ]] && git rev-parse HEAD^ >/dev/null 2>&1; then
+            changed="$(git diff --name-only --diff-filter=ACMR HEAD^ HEAD -- '*.html' '*.htm' | sed -n '1p')"
+            if [[ -n "$changed" ]]; then REQUESTED="$changed"; fi
+          fi
+          printf 'path=%s\n' "$REQUESTED" >> "$GITHUB_OUTPUT"
+          echo "Selected HTML: $REQUESTED"
       - name: Render HTML via native Chrome CDP
         env:
-          HTML_PATH: ${{ inputs.html_path || 'patate.html' }}
+          HTML_PATH: ${{ steps.source.outputs.path }}
         run: |
+          set -euo pipefail
           node scripts/render-html.mjs "$HTML_PATH" render.png
+          printf '%s\n' "$HTML_PATH" > render-source.txt
           file render.png
+          echo "Rendered \`$HTML_PATH\` to render.png" >> "$GITHUB_STEP_SUMMARY"
       - name: Upload screenshot
         uses: actions/upload-artifact@v4
         with:
           name: html-render
-          path: render.png
+          path: |
+            render.png
+            render-source.txt
           retention-days: 1
           if-no-files-found: error
