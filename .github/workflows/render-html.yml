@@ -19,38 +19,14 @@ permissions:
 jobs:
   screenshot:
     runs-on: ubuntu-24.04
-    timeout-minutes: 6
+    timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
-      - name: Restore Playwright cache
-        id: playwright-cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/ms-playwright
-            ~/.npm/_npx
-          key: playwright-chromium-shell-1.56.1-${{ runner.os }}-${{ runner.arch }}
-      - name: Install Chromium only on cache miss
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx --yes playwright@1.56.1 install --with-deps --only-shell chromium
-      - name: Capture entire HTML page
+      - name: Render HTML via native Chrome CDP
         env:
           HTML_PATH: ${{ inputs.html_path || 'patate.html' }}
-        shell: bash
         run: |
-          set -euo pipefail
-          target="$(realpath "$HTML_PATH")"
-          case "$target" in
-            "$GITHUB_WORKSPACE"/*) ;;
-            *) echo "::error::HTML path must stay inside the repository"; exit 1 ;;
-          esac
-          test -f "$target" || { echo "::error::File not found: $HTML_PATH"; exit 1; }
-          npx --yes playwright@1.56.1 screenshot \
-            --browser chromium \
-            --full-page \
-            --viewport-size "1280,800" \
-            --wait-for-timeout 350 \
-            "file://$target" render.png
+          node scripts/render-html.mjs "$HTML_PATH" render.png
           file render.png
       - name: Upload screenshot
         uses: actions/upload-artifact@v4
