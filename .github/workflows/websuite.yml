@@ -1,4 +1,4 @@
-name: Render HTML and UI interactions
+name: WebSuite · Visual browser automation
 
 on:
   push:
@@ -6,8 +6,8 @@ on:
     paths:
       - '**/*.html'
       - '**/*.htm'
-      - '.github/workflows/render-html.yml'
-      - 'scripts/render-html.mjs'
+      - '.github/workflows/websuite.yml'
+      - 'scripts/websuite.mjs'
       - 'examples/render-interaction.json'
   workflow_dispatch:
     inputs:
@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
-      - name: Render pages or interaction scenario
+      - name: WebSuite render or interact
         shell: bash
         env:
           HTML_PATH: ${{ inputs.html_path || 'patate.html' }}
@@ -49,8 +49,8 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "$GITHUB_EVENT_NAME" == "push" ]] && [[ "$DEMO_ON_COMMIT" == "true" ]]; then
-            node scripts/render-html.mjs --scenario examples/render-interaction.json renders
-            echo "Interactive CDP smoke test passed." >> "$GITHUB_STEP_SUMMARY"
+            node scripts/websuite.mjs --scenario examples/render-interaction.json renders
+            echo "WebSuite interactive CDP smoke test passed." >> "$GITHUB_STEP_SUMMARY"
           elif [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
             targets="$RUNNER_TEMP/render-targets.bin"
             if [[ "$BEFORE_SHA" =~ ^[0-9a-f]{40}$ ]] && [[ "$BEFORE_SHA" != 0000000000000000000000000000000000000000 ]]; then
@@ -62,23 +62,23 @@ jobs:
               git ls-files -z '*.html' '*.htm' > "$targets"
             fi
             if [[ ! -s "$targets" ]]; then printf '%s\0' 'patate.html' > "$targets"; fi
-            node scripts/render-html.mjs --nul-list "$targets" renders
+            node scripts/websuite.mjs --nul-list "$targets" renders
             echo "Rendered changed HTML files in a single Chrome session." >> "$GITHUB_STEP_SUMMARY"
           elif [[ -n "$SCENARIO_PATH" ]]; then
-            node scripts/render-html.mjs --scenario "$SCENARIO_PATH" renders
+            node scripts/websuite.mjs --scenario "$SCENARIO_PATH" renders
             echo "Interactive scenario: $SCENARIO_PATH" >> "$GITHUB_STEP_SUMMARY"
           elif [[ "$ACTIONS_JSON" != "[]" ]]; then
-            RENDER_ACTIONS_JSON="$ACTIONS_JSON" node scripts/render-html.mjs --interactive "$HTML_PATH" renders
+            RENDER_ACTIONS_JSON="$ACTIONS_JSON" node scripts/websuite.mjs --interactive "$HTML_PATH" renders
             echo "Interactive actions on $HTML_PATH" >> "$GITHUB_STEP_SUMMARY"
           else
-            node scripts/render-html.mjs "$HTML_PATH" render.png
+            node scripts/websuite.mjs "$HTML_PATH" render.png
             printf '%s\n' "$HTML_PATH" > render-source.txt
             echo "Rendered \`$HTML_PATH\` to render.png" >> "$GITHUB_STEP_SUMMARY"
           fi
-      - name: Upload screenshot
+      - name: Upload WebSuite captures
         uses: actions/upload-artifact@v4
         with:
-          name: html-render
+          name: websuite
           path: |
             renders/
             render.png
