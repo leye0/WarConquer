@@ -43,7 +43,7 @@ async function getPageSocket() {
     if (browser.exitCode !== null) throw new Error('Chrome exited before starting CDP');
     if (existsSync(portFile)) {
       try {
-        const port = readFileSync(portFile, 'utf8').split('\\n')[0].trim();
+        const port = readFileSync(portFile, 'utf8').split(String.fromCharCode(10))[0].trim();
         const response = await fetch('http://127.0.0.1:' + port + '/json/list', {
           signal: AbortSignal.timeout(1000)
         });
