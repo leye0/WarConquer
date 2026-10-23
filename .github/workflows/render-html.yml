@@ -8,21 +8,26 @@ on:
         required: true
         default: patate.html
         type: string
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/render-html.yml'
 
 permissions:
   contents: read
 
 jobs:
   screenshot:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
-      - name: Install headless Chromium
+      - name: Restore Playwright cache
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/ms-playwright
+            ~/.npm/_npx
+          key: playwright-chromium-shell-1.56.1-${{ runner.os }}-${{ runner.arch }}
+      - name: Install Chromium only on cache miss
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx --yes playwright@1.56.1 install --with-deps --only-shell chromium
       - name: Capture entire HTML page
         env:
