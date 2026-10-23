@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WarConquer — Command Center</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 80% 0%, #243a56 0, transparent 38%), #0a1220; color: #eff5fc; }
+    .app { max-width: 1180px; margin: auto; padding: 36px 38px 54px; }
+    header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 34px; border-bottom: 1px solid #304258; }
+    .brand { font-size: 22px; font-weight: 900; letter-spacing: .13em; } .brand span { color: #fb9b55; }
+    .nav { color: #91a3bb; font-size: 13px; letter-spacing: .1em; }
+    .live { border: 1px solid #395b51; background: #18332f; color: #7fe5b7; padding: 9px 15px; border-radius: 999px; font-size: 12px; }
+    .dot { display: inline-block; height: 7px; width: 7px; margin-right: 8px; border-radius: 50%; background: #75e3b3; }
+    .hero { display: grid; grid-template-columns: 1.35fr 1fr; gap: 40px; align-items: center; padding: 47px 0 42px; }
+    .eyebrow { color: #ffae71; font-size: 12px; font-weight: 800; letter-spacing: .23em; }
+    h1 { margin: 16px 0; font-size: 54px; line-height: 1.08; letter-spacing: -.045em; }
+    h1 em { color: #ffac6e; font-style: normal; }
+    p { max-width: 540px; color: #9eb0c5; font-size: 16px; line-height: 1.65; }
+    .actions { display: flex; gap: 12px; margin-top: 28px; }
+    button { cursor: pointer; padding: 13px 21px; border-radius: 9px; border: 1px solid #4c5b6e; color: #e6edf7; font-weight: 800; background: #1c2b3f; }
+    button.primary { border: 0; color: #16202b; background: linear-gradient(120deg, #ffb26c, #f27759); box-shadow: 0 10px 28px #e4764730; }
+    .planet-wrap { display: grid; place-items: center; min-height: 300px; position: relative; }
+    .planet { width: 250px; height: 250px; border-radius: 50%; background: radial-gradient(circle at 28% 25%, #ffd3a0 0%, #f28d59 27%, #c45550 52%, #593957 76%, #182a42 100%); box-shadow: inset -30px -24px 45px #15203990, 0 0 60px #ff946d31; }
+    .ring { width: 336px; height: 90px; border: 2px solid #82b5dc88; border-radius: 50%; position: absolute; transform: rotate(-24deg); box-shadow: 0 0 10px #8ec9ef55; }
+    .tiny { position: absolute; right: 4%; bottom: 8%; color: #9fb5ce; font-size: 11px; letter-spacing: .15em; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .stat, .panel { background: linear-gradient(145deg, #17283b, #111d2e); border: 1px solid #30445c; border-radius: 15px; }
+    .stat { padding: 24px; }
+    .label { color: #95a9c1; font-size: 11px; font-weight: 800; letter-spacing: .15em; }
+    .value { font-size: 31px; font-weight: 900; margin-top: 9px; }
+    .change { color: #80ddaa; font-size: 12px; margin-top: 8px; }
+    .bottom { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; margin-top: 18px; }
+    .panel { min-height: 262px; padding: 26px; overflow: hidden; }
+    .panel-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 23px; font-weight: 800; }
+    .tag { font-size: 11px; color: #ffb477; border: 1px solid #6d4c42; border-radius: 6px; padding: 6px 9px; }
+    .map { height: 154px; border: 1px solid #34576b; border-radius: 9px; background: radial-gradient(ellipse at 60% 20%, #285d64 0, transparent 30%), repeating-linear-gradient(20deg, transparent 0 26px, #35536855 27px 28px), repeating-linear-gradient(105deg, #173341 0 31px, #2b4d5844 32px 33px); position: relative; }
+    .map:before, .map:after { content: ""; position: absolute; width: 14px; height: 14px; border: 3px solid #ffba70; background: #e77f4d; border-radius: 50%; top: 38%; left: 30%; box-shadow: 0 0 0 9px #fb985320; }
+    .map:after { top: 67%; left: 73%; border-color: #9fe2c2; background: #52bf9a; box-shadow: 0 0 0 9px #52bf9a24; }
+    .mission { display: flex; align-items: center; justify-content: space-between; margin: 18px 0; font-size: 13px; color: #bccbda; }
+    .bar { height: 8px; background: #304259; border-radius: 20px; overflow: hidden; margin-top: 21px; }
+    .bar i { display: block; width: 68%; height: 100%; background: linear-gradient(90deg,#eb7c59,#ffbb73); border-radius: 20px; }
+    footer { margin-top: 32px; color: #5d718a; font-size: 12px; text-align: center; letter-spacing: .13em; }
+    @media (max-width: 760px) { .app { padding: 24px; } .hero, .bottom { grid-template-columns: 1fr; } .stats { grid-template-columns: 1fr; } h1 { font-size: 42px; } .nav { display:none; } }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header><div class="brand">WAR<span>CONQUER</span></div><div class="nav">COMMAND CENTER &nbsp; / &nbsp; SECTOR 07</div><div class="live"><i class="dot"></i> SYSTEM ONLINE</div></header>
+    <section class="hero">
+      <div><div class="eyebrow">STRATEGY • TERRITORY • VICTORY</div><h1>Conquer the<br><em>unknown.</em></h1><p>Your empire awaits. Scout new territories, command your fleet, and reshape the galaxy from one beautiful interface.</p><div class="actions"><button class="primary">Launch campaign →</button><button>View intelligence</button></div></div>
+      <div class="planet-wrap"><div class="planet"></div><div class="ring"></div><div class="tiny">ORBITAL SCAN // ACTIVE</div></div>
+    </section>
+    <section class="stats"><div class="stat"><div class="label">TERRITORIES CONTROLLED</div><div class="value">24 <span style="color:#7690a8;font-size:17px">/ 36</span></div><div class="change">↗ +3 this cycle</div></div><div class="stat"><div class="label">ACTIVE FLEETS</div><div class="value">1,284</div><div class="change">↗ +12.8% capacity</div></div><div class="stat"><div class="label">GALACTIC INFLUENCE</div><div class="value">87.6%</div><div class="change">↗ Growing steadily</div></div></section>
+    <section class="bottom"><div class="panel"><div class="panel-title">Territory overview <span class="tag">LIVE MAP</span></div><div class="map"></div></div><div class="panel"><div class="panel-title">Operation Phoenix <span class="tag">IN PROGRESS</span></div><div class="mission"><span>Reconnaissance</span><span style="color:#8ee0b6">COMPLETE</span></div><div class="mission"><span>Fleet deployment</span><span style="color:#ffb679">68%</span></div><div class="bar"><i></i></div><div class="mission"><span>Estimated readiness</span><strong>02:14:38</strong></div></div></section>
+    <footer>WARCONQUER // VISUAL RENDER TEST // PLAYWRIGHT</footer>
+  </main>
+</body>
+</html>
