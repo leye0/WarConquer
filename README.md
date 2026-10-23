@@ -1,3 +1,19 @@
+# WarConquer — conception du jeu
+
+**WarConquer** est un projet de jeu de stratégie en temps réel médiéval-fantastique, avec une boucle de conquête classique et un univers original où les royaumes se disputent le pouvoir de réécrire l'histoire.
+
+## Bibles de conception (documents littéraires et métier)
+
+- **[Bible du jeu](docs/game-bible.md)** — vision, règles, économie, unités, bâtiments, technologie, magie, modes et structure des campagnes.
+- **[Univers et personnages](docs/world-lore.md)** — Trame, Corrections, régions, sociétés, chronologie, personnages et révélations.
+- **[Campagne de la Couronne](docs/campaign-crown.md)** — traitement narratif et objectifs jouables des dix missions C1 à C10.
+- **[Campagne des Marches](docs/campaign-marches.md)** — traitement narratif et objectifs jouables des dix missions M1 à M10.
+- **[Codex des unités et bâtiments](docs/unit-building-codex.md)** — identité de chaque famille militaire, bâtiments, évolutions, sorts et descriptions en jeu.
+
+Ces documents constituent une **proposition de conception en cours de discussion** ; ils ne définissent pas encore une implémentation technique. Le gameplay et les contenus originaux seront développés ensuite.
+
+---
+
 # WebSuite — visual browser automation for development agents
 
 This repository is the initial demonstration of **WebSuite**: a lightweight,
