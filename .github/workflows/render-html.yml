@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/render-html.yml'
+      - 'scripts/render-html.mjs'
   workflow_dispatch:
     inputs:
       html_path:
