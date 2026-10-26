@@ -1,0 +1,39 @@
+{
+  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nSubject: Edit the attached reference image with maximum fidelity. Preserve the SAME crouching human infiltrator, carved dark half-mask, clothing, blade, anatomy, painterly style and faction palette. Make the small rectangular name tablet entirely blank aged wood with simple abstract scratches, NO letters, NO digits, NO readable text anywhere. Complete isolated figure, clean transparent background.\nCRITICAL FRAMING: wide shot zoomed far out, the ENTIRE figure from head to both soles, or ALL wings from tip to tip, fully inside a square canvas with at least 15 percent empty margin on EVERY side. Subject occupies only 65 percent of canvas. Not a portrait, not a close-up. Match reference STYLE ONLY, NEVER their tight crop. No atmospheric haze. Background must be uniform white if alpha unavailable.",
+  "output": "assets/concepts/marches/units/passe_nom_clean.png",
+  "references": [
+    "assets/concepts/marches/units/passe_nom.png"
+  ],
+  "concurrency": 1,
+  "status": "generated-awaiting-visual-review",
+  "model": "meta/muse-image",
+  "reference_sha256": {
+    "assets/concepts/marches/units/passe_nom.png": "96b774dddc3c65a0de763803dc7b08503a26004d649998712ef507fc819c4df5"
+  },
+  "background_removed": true,
+  "size": [
+    1600,
+    1600
+  ],
+  "transparent_fraction": 0.733157421875,
+  "sha256": "bf7d881201dc64f43152f61e58da849504370f84a2390a067f33ac3c6353bccf",
+  "usage": {
+    "prompt_tokens": 364,
+    "completion_tokens": 1848,
+    "total_tokens": 2212,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 1848
+    }
+  }
+}
