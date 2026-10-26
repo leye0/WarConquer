@@ -38,6 +38,12 @@ jobs:
           key: rembg-u2netp-v1
       - name: Install image utilities
         run: python -m pip install 'Pillow==11.3.0' 'rembg[cpu]==2.0.67'
+      - name: Validate selected catalog targets without paid API calls
+        env:
+          IMAGE_PROMPT: ${{ inputs.prompt }}
+          IMAGE_OUTPUT: ${{ inputs.output }}
+          IMAGE_REFERENCES: ${{ inputs.references }}
+        run: python scripts/generate-image.py --dry-run > /dev/null
       - name: Generate with style references
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
