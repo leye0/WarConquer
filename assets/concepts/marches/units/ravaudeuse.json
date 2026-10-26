@@ -18,7 +18,7 @@
     1472
   ],
   "transparent_fraction": 0.7094239246232708,
-  "sha256": "faf30e6ff5f87900f4841a9a89c4abf509fea2b829145e910fdff645d5a92006",
+  "sha256": "06c8bccb5e13cfcbff6ad70a4f0837088be05518189980ecd6192904fdfd6ccf",
   "usage": {
     "prompt_tokens": 246,
     "completion_tokens": 2438,
@@ -37,5 +37,6 @@
       "reasoning_tokens": 0,
       "image_tokens": 2438
     }
-  }
+  },
+  "cutout_model": "isnet-general-use"
 }
