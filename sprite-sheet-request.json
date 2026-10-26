@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "notes": "First Muse pilot from authenticated GitHub-readable public image mirror (source copyrighted by Blizzard, ephemeral and not committed). No pixel art; character and costume belong to WarConquer. One paid call maximum.",
+  "notes": "Verified GitHub-source Warcraft II Grunt guide: first five walk frames × five facing angles. One-shot Muse proof of concept; no automatic paid retries. Output high-definition illustrated WarConquer PNG.",
   "jobs": [
     {
       "source_name": "Grunt",
@@ -9,7 +9,7 @@
         380,
         631
       ],
-      "source_top_px": 287,
+      "source_top_px": 274,
       "reference_rows": 5,
       "grid": [
         5,
@@ -17,7 +17,7 @@
       ],
       "unit_reference": "assets/concepts/marches/units/hache.png",
       "unit_description": "Original WarConquer Marches axe infantryman, HUMAN ex-woodsman of the border, large repaired haft of his axe; patched oxblood wool, soot-dark armor, weathered leather straps, dark oak, patinated copper and memory-ribbons. Never resemble a Warcraft orc; preserve our exact WarConquer concept design.",
-      "pose_notes": "The first reference is an approximately 5 by 5 arrangement from the top of a classic Grunt animation sheet: follow its cell order, head/body orientation, weight shifts and arm/leg movement, but substitute an original human Marches axe warrior. Carefully keep weapon in the same anatomical hand and maintain a stable ground anchor. No illustration tiles are allowed to resemble the original Warcraft character.",
+      "pose_notes": "The source Grunt sprite sheet has 5 columns of facing directions and 5 full rows of walking poses at the top. Read TIME VERTICALLY down each column: rows 1-5 are walk cycle frames, columns 1-5 are five real facing directions. Preserve that exact structure and position mapping in the new WarConquer human axe-fighter, fully replacing the visual character. Anchor feet at the same baseline in every image.",
       "output": "assets/spritesheets/drafts/marches_hache_walk_pilot.png",
       "expected_source_blob_sha": "6ce7fdfb4d68c401782149df83d02414389736c5"
     }

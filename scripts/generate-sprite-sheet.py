@@ -45,7 +45,13 @@ def source(job):
     top.save(TMP/"source-layout-crop.png")
     return top,hashlib.sha256(raw).hexdigest(),img.size
 
-PROMPT="""Generate an ORIGINAL high-definition, hand-painted 2D RTS ANIMATION SPRITE SHEET with EXACTLY FIVE COLUMNS AND FIVE ROWS, 25 distinct full-body images in a precise regular grid. IMAGE REFERENCE ONE is a classic Warcraft II sprite-sheet EXCERPT: extract ONLY functional poses, view angles, timing, gesture and cell arrangement. DO NOT COPY artwork, pixels, costumes, faces, species, palettes or graphic style from it. IMAGE REFERENCE TWO is the original WarConquer unit concept: render that exact distinct character, weapon, outfit, materials, anatomy and color palette IN ALL TWENTY FIVE CELLS. Convert every pose of the 5x5 guide to the WarConquer character, one-for-one, in row-major order. Same subject identity, exact same camera tilt, stable feet and weapon scale throughout. Modern beautifully detailed, anti-aliased illustration, NOT PIXEL ART, no chunky low-resolution pixels. Complete figure in every cell; evenly spaced cells, no missing figures, no extra subjects, no overlap. Transparent RGBA background (or plain pure-white background), no environment, no shadows, no typography, no borders, no labels, no grid lines. Output one entire coherent sheet, not a single full-size portrait.
+PROMPT="""Create ONE original WarConquer 2D sprite animation sheet in modern HIGH-DEFINITION, smooth antialiased hand-painted fantasy RTS art. The first input reference is an archival Warcraft II sprite-sheet excerpt for MOTION STRUCTURE ONLY; the second input reference is the visual identity of our WarConquer unit.
+
+EXACT REGULAR GRID: 5 COLUMNS by 5 ROWS, 25 full-body sprites. There are FIVE CAMERA DIRECTIONS across columns: frontal three-quarter, diagonal toward camera, side, diagonal away, back three-quarter, following their precise angles in reference 1. There are FIVE SUCCESSIVE WALKING PHASES DOWN EACH COLUMN (not across rows). Each column must keep its own direction and animate the same walking cycle from the top cell to the bottom cell. Same feet baseline, same body size, same weapon side, matching directional foreshortening.
+
+Use reference 2 as an exclusive CHARACTER DESIGN guide: identical WarConquer clothing, distinct humanoid identity, equipment, weapons, palette and painting treatment in ALL 25 cells. No Warcraft II species, helmets, colors, paintings, pixels, decals, identifiable costumes or figures. Do not pixelate. No game UI, text, captions, white squares, blue backgrounds, shadows or tile borders.
+
+Transparent single composite PNG. Five rows x five columns, all separated with uniform gaps. Nothing clipped or missing, no overlapping tiles. Professional attractive crisp detailed RTS sprites. No alternate characters or poses invented outside the walk-cycle geometry.
 """
 
 def run(job, ref, crop):
