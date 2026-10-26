@@ -1,0 +1,50 @@
+{
+  "status": "completed-reviewed-not-approved",
+  "approved": false,
+  "model": "x-ai/grok-imagine-video-1.5-lite",
+  "id": "gen-vid-1793042057-h6Wt3xTWUAVNFx4af6sn",
+  "prompt": "Make a single continuous eight-second image-to-video animation of THIS EXACT ORIGINAL WARCONQUER AXE WARRIOR, preserving his identity, handmade axe, crimson textile, dark leather armor, copper components, body proportions and all equipment. Hand-painted high-definition 2D RTS illustration, NOT pixel art.\n\nHIGHEST PRIORITY: NEVER CROP THE CHARACTER OR HIS AXE. The provided FIRST FRAME is deliberately very WIDE FRAMED: the entire character is SMALL, occupying approximately 35 percent of the image height, located in the center-right lower half. ALL EMPTY BACKGROUND IS INTENTIONAL PROTECTED ACTION SPACE, NOT AN ERROR TO CORRECT. Keep EXACTLY the same static wide camera and image scale for the entire clip. Never zoom in, punch in, pan, track, recenter, upscale the character to fill the frame, crop, rotate the camera, or change lens. ALL parts of the character and weapon must remain at least ten percent of total frame width/height INSIDE the video edges on EVERY SINGLE FRAME, including the highest axe upswing and widest horizontal swing. The complete swinging-axe silhouette must be fully visible from handle to blade tip at all times. When the axe rises, there must still be abundant blank background above it.\n\nFacing is SOUTHWEST (SW), i.e. diagonally toward the BOTTOM-LEFT CORNER of the image. Lock the actor's body orientation 45 degrees between screen-down and screen-left. Not due south. Not due west. Not sideways toward the camera. No body spin, no turn, no camera rotation. View camera fixed at a moderately elevated 2D RTS orthographic three-quarter perspective for the complete clip.\n\nEXACT MOTION TIMING:\n0.0-4.0s: WALKING ONLY. Walk smoothly SW with clear alternating legs and contact of feet on the ground. Travel a SHORT, controlled distance, no more than six percent of the FRAME width leftward and five percent of the FRAME height downward. Keep the same heading SW. The figure must NEVER approach the left or lower edges.\n4.0-8.0s: ATTACKING ONLY. Come to a FULL STOP with feet planted, then make one or two CLEAR HEAVY AXE STRIKES into open space SW (screen bottom-left). Attack is an intentional wind-up and strike; the body remains facing SW. Swing the axe diagonally forward and downward with a LIMITED COMPACT ARC, arms and weapon contained inside the generous canvas at all times. Absolutely NO towering overhead wind-up that exits the image; no cropped axe head, no disappearing handle. Return to ready position between strikes.\n\nFull body and full axe always visible with lots of blank space around them throughout. Keep fixed subject scale and clean white / very pale neutral featureless background. No scenery, obstacles, other actors, motion blur, cinematic camera, UI, captions, or sound. Readable game animation. Direction SW, two distinct phases and complete uncropped axe take precedence over cinematic flair.\n",
+  "duration_seconds": 8,
+  "reference_sha256": "9cd1c91f0a0c97e45a2faa896135bf751207f23ecfb3d8739350d8daf7e5b5de",
+  "reference_framing": {
+    "input_dimensions": [
+      1024,
+      1024
+    ],
+    "source_bbox": [
+      303,
+      162,
+      720,
+      899
+    ],
+    "new_dimensions": [
+      768,
+      768
+    ],
+    "character_fraction_height": 0.3503,
+    "subject_box": [
+      392,
+      330,
+      544,
+      599
+    ]
+  },
+  "usage": {
+    "cost": 0.17,
+    "is_byok": false
+  },
+  "warning": "No automatic second model or paid attempt.",
+  "video_path": "assets/experiments/video-sw-v2/SW-walk-then-attack-framed.mp4",
+  "video_sha256": "4fbac40455a2644847d0eb99a8ab925c4e2aca1d7a588e208da506550af17ce3",
+  "video_bytes": 1127189,
+  "qa": {
+    "decoded_frames": 32,
+    "dimensions": [
+      544,
+      544
+    ],
+    "edge_contact_flags": [],
+    "possible_clipping": false,
+    "visual_approval": false
+  }
+}
