@@ -64,7 +64,12 @@ def catalog():
             continue
         name, desc, path = m.groups()
         faction = path.split('/')[2]
-        if '/huissiers/' in path:
+        if path.endswith('/autel_coeur_cousu.png'):
+            # The old monument reference encouraged Muse to draw a sealed stone chest.
+            # Use an actual open table for structural silhouette and a memory relay for materials.
+            refs = ['assets/concepts/marches/objects/table_places_vides.png', 'assets/concepts/neutral/sites/relais_intact.png']
+            palette = 'pale Crown limestone and bronze on the left, dark Marches slate and black oak with red memory cords on the right, restrained ivory-blue Echo stitching'
+        elif '/huissiers/' in path:
             refs = ['assets/concepts/neutral/objects/masque_signataire.png', 'assets/concepts/couronne/units/garde_lourd.png']
             palette = 'charcoal forged iron, weathered dark steel and restrained aged bronze, neutral to the two factions'
         elif '/sites/' in path:
