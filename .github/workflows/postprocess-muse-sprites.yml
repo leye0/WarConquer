@@ -1,0 +1,44 @@
+name: Recover Muse WarConquer sprite-sheet PNG
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/postprocess-muse-sprites.py'
+      - '.github/workflows/postprocess-muse-sprites.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: sprite-png-recovery
+  cancel-in-progress: false
+jobs:
+  recover:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install image processing libraries
+        run: python -m pip install 'Pillow==11.3.0' 'numpy==2.2.6' 'scipy==1.16.2'
+      - name: Retrieve Muse source from our previous GitHub Actions run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download 40358268004 --repo leye0/WarConquer --name sprite-sheet-debug --dir sprite-output-raw
+      - name: Normalize source PNG, recover alpha, assemble real sprites
+        run: python scripts/postprocess-muse-sprites.py
+      - name: Commit fixed draft PNG and transparent atlas directly to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/spritesheets/drafts/marches_hache_walk_pilot*
+          if ! git diff --cached --quiet; then
+            git commit -m 'fix: recover Muse sprite pilot transparently with correct 5x4 atlas'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
