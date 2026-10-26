@@ -1,10 +1,5 @@
 name: Recover Muse WarConquer sprite-sheet PNG
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'scripts/postprocess-muse-sprites.py'
-      - '.github/workflows/postprocess-muse-sprites.yml'
   workflow_dispatch:
 permissions:
   contents: write
