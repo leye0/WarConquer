@@ -1,0 +1,41 @@
+{
+  "name": "Table des places vides",
+  "output": "assets/concepts/marches/objects/table_places_vides.png",
+  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nFaction/material palette: oxblood red, soot-black oak, patinated copper, repaired linen, memory threads.\nSubject: One modest old wooden memorial feast table, three deliberately empty places marked by small stones, plain bowls and a folded oxblood cloth, a few candles; no diners, no room or floor. This is ONE small narrative prop, not a building, scene or environment. No readable text, no floor, no surrounding scenery.\nCRITICAL FRAMING: wide shot zoomed far out, the ENTIRE figure from head to both soles, or ALL wings from tip to tip, fully inside a square canvas with at least 15 percent empty margin on EVERY side. Subject occupies only 65 percent of canvas. Not a portrait, not a close-up. Match reference STYLE ONLY, NEVER their tight crop. No atmospheric haze. Background must be uniform white if alpha unavailable.",
+  "references": [
+    "assets/concepts/marches/units/archer.png",
+    "assets/concepts/marches/buildings/sanctuaire.png"
+  ],
+  "status": "generated-awaiting-visual-review",
+  "model": "meta/muse-image",
+  "reference_sha256": {
+    "assets/concepts/marches/units/archer.png": "7502ef2b50a41c3fcc9ed1b38259e933f769ad4564aa5e0e310f7e90f80b3037",
+    "assets/concepts/marches/buildings/sanctuaire.png": "f8acfbd3849a7732365bcdbe5fc4b56a7873ff9a9b178a6fd82045698af4ad31"
+  },
+  "background_removed": true,
+  "size": [
+    1600,
+    1600
+  ],
+  "transparent_fraction": 0.71519453125,
+  "sha256": "05c0b76d4d01ec71a021f2e8e9d46de8a4d5db7933dce00124f4349ba26609a0",
+  "usage": {
+    "prompt_tokens": 370,
+    "completion_tokens": 3510,
+    "total_tokens": 3880,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 3510
+    }
+  }
+}

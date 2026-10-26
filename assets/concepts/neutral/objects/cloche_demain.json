@@ -1,0 +1,41 @@
+{
+  "name": "Cloche de demain",
+  "output": "assets/concepts/neutral/objects/cloche_demain.png",
+  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nFaction/material palette: aged ivory stone, old bronze, weathered oak, parchment, midnight blue ink, restrained oxblood accents.\nSubject: One aged bronze bell excavated from stone, strange nine-part rim and fine patina, fragment of broken limestone still attached, impossible future date represented only by abstract chisel notches, no text. This is ONE small narrative prop, not a building, scene or environment. No readable text, no floor, no surrounding scenery.\nCRITICAL FRAMING: wide shot zoomed far out, the ENTIRE figure from head to both soles, or ALL wings from tip to tip, fully inside a square canvas with at least 15 percent empty margin on EVERY side. Subject occupies only 65 percent of canvas. Not a portrait, not a close-up. Match reference STYLE ONLY, NEVER their tight crop. No atmospheric haze. Background must be uniform white if alpha unavailable.",
+  "references": [
+    "assets/concepts/couronne/units/archer.png",
+    "assets/concepts/couronne/buildings/sanctuaire.png"
+  ],
+  "status": "generated-awaiting-visual-review",
+  "model": "meta/muse-image",
+  "reference_sha256": {
+    "assets/concepts/couronne/units/archer.png": "fdc2874eda247643e5fa6f33c460593bc42dee96125a52bb473be8576dee72a2",
+    "assets/concepts/couronne/buildings/sanctuaire.png": "34c624f35b11e57882f439b3948d9d566dfa031407914f61e6c7550fad3a1f2f"
+  },
+  "background_removed": true,
+  "size": [
+    1600,
+    1600
+  ],
+  "transparent_fraction": 0.78880625,
+  "sha256": "f35500b8c796a5053b62d1adf4dc0133efd7759309210f20a9f15e4c528aed77",
+  "usage": {
+    "prompt_tokens": 381,
+    "completion_tokens": 3034,
+    "total_tokens": 3415,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 3034
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "name": "Pierre des trois générations",
+  "output": "assets/concepts/neutral/objects/pierre_temoignage.png",
+  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nFaction/material palette: aged ivory stone, old bronze, weathered oak, parchment, midnight blue ink, restrained oxblood accents.\nSubject: One freestanding weathered limestone witness stone, three horizontal bands of deeply carved abstract family marks, narrow oxblood-red memory cord tied around it, worn chisel edges; no legible writing, no ground. This is ONE small narrative prop, not a building, scene or environment. No readable text, no floor, no surrounding scenery.\nCRITICAL FRAMING: wide shot zoomed far out, the ENTIRE figure from head to both soles, or ALL wings from tip to tip, fully inside a square canvas with at least 15 percent empty margin on EVERY side. Subject occupies only 65 percent of canvas. Not a portrait, not a close-up. Match reference STYLE ONLY, NEVER their tight crop. No atmospheric haze. Background must be uniform white if alpha unavailable.",
+  "references": [
+    "assets/concepts/couronne/units/archer.png",
+    "assets/concepts/couronne/buildings/sanctuaire.png"
+  ],
+  "status": "generated-awaiting-visual-review",
+  "model": "meta/muse-image",
+  "reference_sha256": {
+    "assets/concepts/couronne/units/archer.png": "fdc2874eda247643e5fa6f33c460593bc42dee96125a52bb473be8576dee72a2",
+    "assets/concepts/couronne/buildings/sanctuaire.png": "34c624f35b11e57882f439b3948d9d566dfa031407914f61e6c7550fad3a1f2f"
+  },
+  "background_removed": true,
+  "size": [
+    1600,
+    1600
+  ],
+  "transparent_fraction": 0.630284765625,
+  "sha256": "67507d340061ae7de51c30a4b6a0d0534a08c4325185d86216eca79d689b7738",
+  "usage": {
+    "prompt_tokens": 383,
+    "completion_tokens": 2518,
+    "total_tokens": 2901,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 2518
+    }
+  }
+}
