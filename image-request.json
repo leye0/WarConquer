@@ -1,11 +1,23 @@
 {
   "targets": [
-    "assets/concepts/neutral/objects/masque_signataire.png",
-    "assets/concepts/neutral/objects/eclat_echo.png"
+    "assets/concepts/neutral/huissiers/huissier.png",
+    "assets/concepts/neutral/huissiers/vigile_mandat.png",
+    "assets/concepts/neutral/huissiers/lecteur_clauses.png",
+    "assets/concepts/neutral/huissiers/signataire.png",
+    "assets/concepts/couronne/characters/yselle_ambre.png",
+    "assets/concepts/couronne/characters/oren_vale.png",
+    "assets/concepts/couronne/characters/mael_voss.png",
+    "assets/concepts/marches/characters/nara_sept_noms.png",
+    "assets/concepts/marches/characters/bram_fendracine.png",
+    "assets/concepts/marches/characters/seve_ravaudeuse.png",
+    "assets/concepts/marches/characters/timo.png",
+    "assets/concepts/neutral/characters/ena_capitaine.png",
+    "assets/concepts/neutral/sites/relais_intact.png",
+    "assets/concepts/neutral/sites/relais_brise.png",
+    "assets/concepts/neutral/sites/couture_stable.png",
+    "assets/concepts/neutral/sites/couture_instable.png",
+    "assets/concepts/neutral/sites/steles_plaine_blanche.png",
+    "assets/concepts/neutral/sites/autel_coeur_cousu.png"
   ],
-  "replace_existing": [
-    "assets/concepts/neutral/objects/masque_signataire.png",
-    "assets/concepts/neutral/objects/eclat_echo.png"
-  ],
-  "concurrency": 2
+  "concurrency": 3
 }
