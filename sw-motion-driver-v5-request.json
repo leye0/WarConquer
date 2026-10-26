@@ -1,0 +1,44 @@
+{
+  "version": 5,
+  "experiment": "SW_v5_upright_knee_gait_triple_stride",
+  "character_source": "assets/experiments/standing-turnaround/marches_hache/SW.png",
+  "direction": "SW",
+  "duration_seconds": 8,
+  "fps": 12,
+  "walking_seconds": [
+    0,
+    4
+  ],
+  "attacking_seconds": [
+    4,
+    8
+  ],
+  "step_count": 5,
+  "walk_root_displacement_px": 161.28,
+  "stride_distances_px": [
+    79.136,
+    107.763,
+    57.254,
+    57.254,
+    57.254
+  ],
+  "stride_ratio_vs_v3": 3,
+  "change_vs_v4": "Reduce forward knee projection coefficient from 32px to 14px; knee rise from 17px to 12px. Swing knee angles 112.71 left and 121.15 right, preserving the same 34px foot lift and 0px support-foot slip.",
+  "angle_window_degrees": [
+    105,
+    135
+  ],
+  "swing_foot_lift_px": 34,
+  "planted_foot_slip_allowed_px": 0.01,
+  "safety_border_xyxy": [
+    76,
+    76,
+    692,
+    692
+  ],
+  "weapon": "rigid axe, complete continuous walk and attack",
+  "video_models_called": [],
+  "maximum_paid_calls": 0,
+  "outputs": "assets/experiments/sw-motion-driver-v5",
+  "comparison_baseline": "assets/experiments/sw-motion-driver-v4"
+}
