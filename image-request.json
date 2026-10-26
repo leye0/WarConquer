@@ -1,13 +1,6 @@
 {
   "targets": [
-    "assets/concepts/couronne/ships/transport.png",
-    "assets/concepts/couronne/ships/escorte.png",
-    "assets/concepts/couronne/ships/dragueur.png",
-    "assets/concepts/couronne/ships/artillerie.png",
-    "assets/concepts/marches/ships/transport.png",
-    "assets/concepts/marches/ships/escorte.png",
-    "assets/concepts/marches/ships/dragueur.png",
-    "assets/concepts/marches/ships/artillerie.png"
+    "assets/concepts/couronne/ships/artillerie.png"
   ],
-  "concurrency": 3
+  "concurrency": 1
 }
