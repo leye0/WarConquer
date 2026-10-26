@@ -1,0 +1,39 @@
+name: Reframe building concepts
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/reframe-buildings.py'
+      - '.github/workflows/reframe-buildings.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: building-reframe
+  cancel-in-progress: false
+jobs:
+  reframe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Pillow
+        run: python -m pip install 'Pillow==11.3.0'
+      - name: Fix framing and validate alpha
+        run: python scripts/reframe-buildings.py
+      - name: Commit corrected PNGs and metadata to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/concepts
+          if ! git diff --cached --quiet; then
+            git commit -m 'art: correct four building framings and alpha margins'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
