@@ -1,0 +1,46 @@
+{
+  "direction": "NW",
+  "request_sha256": "3cafc63a38dd91749e3322d95af3aa33d3fce4cc884d5d702b03d3dc5a5f5566",
+  "image_sha256": "c99cac42acd32ca9fd557ac08b99f8e88ee786e3e482ed2138f1f4468da7730f",
+  "approved": false,
+  "status": "generated-unreviewed",
+  "model": "meta/muse-image",
+  "refs": [
+    "assets/experiments/character-motion/marches_hache/full-pipeline-20261026/stills/N.png",
+    "assets/experiments/character-motion/marches_hache/full-pipeline-20261026/stills/W.png",
+    "assets/concepts/marches/units/hache.png"
+  ],
+  "prompt": "ONE ORIGINAL WARCONQUER CHARACTER, visually IDENTICAL to the input concept in costume, body proportions, head, hair, color palette and equipment. Character identity: Original WarConquer adult HUMAN axe warrior of the Marches, ex-border woodsman, rugged dark long hair tied up, full dark beard, soot-black layered leather armor, weathered deep oxblood-red torn shawl and cloth strips, hand-wraps, ornate worn copper medals and buckles, tough worn boots. Maintain the exact asymmetrical costume construction and silhouette seen in the original concept.. Equipment: One and only one large distinctive single-bladed battle axe, aged hammered metal blade with engraved copper/bronze plates and dark repaired wooden shaft wrapped in leather, a short dark red tassel tied near the axe head; identical axe and attachments in every orientation.. Handedness: Axe stays in same ANATOMICAL RIGHT hand, NEVER mirror-switch weapon to opposite hand as camera moves between directions; idle relaxed weapon carried down by side.\n\nRender ONE standing STILL full-body character, feet planted in a neutral stance, arms relaxed, no walking, action or movement. High-detail clean antialiased hand-painted 2D fantasy RTS, NOT pixel art, NOT 3D. Orthographic/slightly elevated RTS camera pitched 25–35 degrees, consistent scale. Entire figure including BOTH boots and full weapon visible with large margins, centered on transparent uniform background; plain black/white acceptable. No scenery, floor, other subjects, labels, arrows, text, effects or shadows.\n\nTHE COMPASS FACING IS A ROTATION OF THE WHOLE BODY, NOT JUST THE HEAD. Head, shoulders, sternum, chest, torso, waist belt, pelvis, BOTH thighs, knees and BOTH toes must ALL point in EXACTLY the same direction. A twisted head looking in the right direction while chest or feet face EAST is a FAILURE. Keep costume asymmetries and weapon attached to the correct same anatomical side. BODY ORIENTATION takes priority over facial gaze. Target NW: three-quarter REAR-LEFT; ENTIRE body and both toes point UPPER-LEFT, away from camera.\nReference image 1 is the existing N direction of the SAME character. Image 2 is W. Image 3 is original character identity. Generate the MIDPOINT 45-degree yaw rotation of the ENTIRE RIGID TORSO AND LOWER BODY between N and W, not an in-place neck rotation. BOTH boots must point NW (including their toe boxes), shoulders and hip line physically rotated halfway between both guides, while the character stands still. The desired output is not merely N or W. NW SPECIAL: true BACK-LEFT three-quarter view: back dominant but distinct LEFT-WARD yaw, both feet aimed UPPER-LEFT. An east-facing torso with NW head, or straight N back with head swiveled left, are BOTH WRONG. ",
+  "cutout": "black-background-matte",
+  "geometry": {
+    "raw_bbox": [
+      491,
+      152,
+      1093,
+      1462
+    ],
+    "source_edge_contact": false,
+    "foreground_fraction": 0.18707,
+    "normalization_scale": 0.56281,
+    "feet_baseline_px": 899
+  },
+  "usage": {
+    "prompt_tokens": 686,
+    "completion_tokens": 3046,
+    "total_tokens": 3732,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 3046
+    }
+  }
+}
