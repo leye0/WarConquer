@@ -1,0 +1,51 @@
+name: Refine concept cutouts
+on:
+  push:
+    branches: [main]
+    paths: ['cutout-request.json']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  refine:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'Pillow==11.3.0' 'rembg[cpu]==2.0.67'
+      - uses: actions/download-artifact@v4
+        with:
+          name: generated-images
+          path: original-runs/01
+          run-id: 40252086255
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: generated-images
+          path: original-runs/02
+          run-id: 40252566023
+          github-token: ${{ github.token }}
+      - name: Refine original renders
+        env:
+          OMP_NUM_THREADS: '1'
+        run: python scripts/refine-cutouts.py
+      - name: Save review branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout -b "art/cutouts-${GITHUB_RUN_ID}"
+          git add assets/concepts
+          git commit -m 'art: refine concept alpha from original renders'
+          git push origin HEAD
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: refined-images
+          path: |
+            assets/concepts/
+            image-output/
+          retention-days: 7
