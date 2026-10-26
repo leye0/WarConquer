@@ -33,5 +33,7 @@
   "video_models_called": [],
   "maximum_paid_calls": 0,
   "outputs": "assets/experiments/sw-motion-driver-v3",
-  "comparison_baseline": "assets/experiments/sw-motion-driver-v2"
+  "comparison_baseline": "assets/experiments/sw-motion-driver-v2",
+  "revision": 2,
+  "knee_fix": "Both knees project forward in swing; measured local minimum knee angles left 97.53 and right 108.83 degrees, with zero planted-foot slide."
 }
