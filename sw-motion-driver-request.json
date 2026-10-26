@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "experiment": "SW_v4_deterministic_pose_driven_animatic",
+  "character_source": "assets/experiments/standing-turnaround/marches_hache/SW.png",
+  "direction": "SW",
+  "fps": 12,
+  "duration_seconds": 8,
+  "walk_time_seconds": [
+    0,
+    4
+  ],
+  "attack_time_seconds": [
+    4,
+    8
+  ],
+  "maximum_root_travel_fraction": 0.05,
+  "foot_ground_contact": true,
+  "attack_feet_immobile": true,
+  "weapon_geometry": "rigid axe attached to left hand",
+  "whole_body_yaw": "SW locked",
+  "reference_canvas_px": [
+    768,
+    768
+  ],
+  "safe_area_xyxy": [
+    76,
+    76,
+    692,
+    692
+  ],
+  "video_models_called": [],
+  "maximum_paid_calls": 0,
+  "outputs": "assets/experiments/sw-motion-driver-v1",
+  "notes": "First phase only: geometry and visual QA before selecting a pose-conditioned video model; no OpenRouter/Muse/paid generation."
+}
