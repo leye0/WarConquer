@@ -1,6 +1,9 @@
 {
   "targets": [
-    "assets/concepts/neutral/sites/relais_brise.png"
+    "assets/concepts/neutral/sites/autel_coeur_cousu.png"
+  ],
+  "replace_existing": [
+    "assets/concepts/neutral/sites/autel_coeur_cousu.png"
   ],
   "concurrency": 1
 }
