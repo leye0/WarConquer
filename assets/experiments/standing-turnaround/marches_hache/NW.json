@@ -1,26 +1,22 @@
 {
   "direction": "NW",
-  "camera_description": "three-quarter REAR view, body directed upper-left of screen; back and character's left side visible, face almost hidden",
-  "reference_sha256": "40596135f14365c2a77258cd34fe8285c2968fc791816023fbe37cdb197982c7",
+  "status": "approved-by-user",
+  "approved": true,
+  "experiment": "physically rotate entire character 45 degrees from N toward W",
+  "other_directions_unchanged": true,
+  "original_NW_sha256": "72a17b723b5321575c17a06b8c972a374b0ddf017b0515f51f490ba9b41d9204",
+  "new_NW_sha256": "2b2bdbc69bab0f3887230a1be5b65cc915772cdda91218efb333f6d3dbd206a5",
+  "reference_sha256": {
+    "N.png": "34d8d1d35362cd4a89fb94c92412b76584cd8894dc58afc037e14187df68971f",
+    "W.png": "e731fa9ffc93f78aa11d9762c85fcbf572a57b3c2929915423073356cea5289d",
+    "hache.png": "40596135f14365c2a77258cd34fe8285c2968fc791816023fbe37cdb197982c7"
+  },
   "model": "meta/muse-image",
-  "stance": "standing_still",
-  "sequence": 8,
-  "prompt": "HIGH-RESOLUTION 2D hand-painted fantasy RTS CHARACTER TURNAROUND: ONE single complete adult human character standing completely STILL in a perfectly neutral idle stance.\n\nImage input reference is the ACTUAL ORIGINAL WarConquer soldier. Reproduce this exact SAME CHARACTER faithfully: identical head shape, hair, costume design, axe head, axe shaft, hands, gear, materials, repairs, accessories, scarf, colors, and body proportions. Show a ROTATED CAMERA VIEW OF THE SAME CHARACTER, NOT a new character. Reconstruct the physically correct back, sides and profile, respecting what is visible and occluded in this camera direction. The axe remains in the SAME anatomical hand across all eight outputs and has the SAME exact construction and blade shape. All other clothing and equipment stay in consistent anatomical positions.\n\nPHYSICAL POSE IS STATIC AND IDENTICAL IN ALL DIRECTIONS: weight centered and evenly supported; feet planted near shoulder width and at the same depth; knees relaxed but straight; pelvis not twisted; torso upright and not leaning; shoulders level; arms down relaxed naturally, axe held low beside the body. NO walking, NO stepping, NO attack pose, NO running, NO swinging, NO floating or dancing. Preserve body scale and uniform orthographic/near-orthographic moderately elevated RTS camera (approximately 25-35 degrees above horizontal), flat consistent light.\n\nMANDATORY FACING FOR THIS ONE IMAGE: three-quarter REAR view, body directed upper-left of screen; back and character's left side visible, face almost hidden. Strictly honor this viewing angle even when the concept reference has a different angle. It must be clear that this is NW in a conventional eight-direction RTS with N away from camera, S toward camera, E toward image-right, W toward image-left.\n\nVisually beautiful detailed HD antialiased hand-painted 2D illustration, NOT pixel art, NOT 3D scene, no blocky low-resolution stylization. Only one isolated full-body warrior centered on square frame. All of boots, head and axe must fit completely with generous margins. Transparent clean background preferred; if alpha cannot be rendered, use a COMPLETELY PLAIN BLACK OR PURE WHITE background for later extraction. No scenery, ground, text, arrows, labels, UI, borders, grids, motion lines, shadow or extra characters.\n",
-  "status": "generated-awaiting-visual-review",
-  "matte_method": "white-background-matte",
-  "raw_dimensions": [
-    1600,
-    1600
-  ],
-  "final_dimensions": [
-    1024,
-    1024
-  ],
-  "output_sha256": "72a17b723b5321575c17a06b8c972a374b0ddf017b0515f51f490ba9b41d9204",
+  "prompt": "Create precisely ONE full-body STILL portrait/sprite-style game character of the EXACT SAME original WarConquer human axeman shown in the three visual references.\n\nCRITICAL FAILURE TO CORRECT: The previous NW drawing has a head that looks Northwest, but the HIPS, CHEST AND FEET still face East. That is WRONG. Do not repeat it.\n\nRECONSTRUCT A REAL 45-DEGREE FULL-BODY ROTATION:\n- Reference image 1 is the existing N (north) BACK VIEW of this exact axeman.\n- Reference image 2 is the existing W (west) LEFT-FACING SIDE VIEW of the SAME axeman.\n- Reference image 3 is the original WarConquer concept, exclusively for identity, materials and weapon details.\n- The required NEW NW view lies HALF-WAY between reference 1's back-facing N orientation and reference 2's side-facing W orientation. Physically rotate the ENTIRE rigid body from N toward W by exactly 45 degrees around its vertical spine. Do not simply swivel the neck, turn the eyes, rotate the arms, or mirror-flip an existing image.\n- In screen coordinates, north is away/up and west is left. NW is UP AND LEFT simultaneously, diagonally away from the camera.\n- THE CHEST/STERNUM must point AWAY-LEFT, NW. So must the navel, belt buckle, sternum axis, pelvis, thighs, both knees, kneecaps and BOTH FOOT TOE DIRECTIONS. The head is centered over the same rotating torso and looks exactly where the toes and sternum point, not elsewhere.\n- The SHOULDER LINE and HIP LINE are correctly foreshortened by the common NW body yaw; the back and red cape are the dominant visible surfaces, with a portion of the character's left flank. The chest/front armor and whole face are mostly OCCLUDED, unlike a profile or front view. The character's back and cape must be a little less square-on than N, and much more visible than in W.\n- Both boots are planted in a quiet neutral stance with toes visibly oriented NW in perspective; feet must NOT point screen-right/E or screen-down/S. NO TWIST of neck relative to torso, torso relative to pelvis, or ankles relative to legs.\n- The AXE remains in the original anatomical hand, with exactly the same distinctive hammered metal blade and bindings, held LOW and naturally, no attacking.\n\nShow ONE stationary, perfectly upright warrior with relaxed arms, same proportions, same outfit, same hairstyle, beard, red ragged cape and wrappings, bronze/iron attachments, dark leather armor and boots as these references. No new details, no asymmetry reversal, no new or extra weapon. Exactly one human with a full visible body and full visible axe.\n\nThis is a MODERN detailed high-definition hand-painted 2D RTS character asset, smooth realistic painted detail and edges. NOT pixel art. 25-35 degree elevated orthographic RTS camera, same scale as N and W references. Isolated character on a transparent plain backdrop (or pure WHITE or BLACK for later alpha processing), no scenery, text, arrows, captions, floor, shadows, checkerboard, UI, additional figures, dramatic tilt or action. Full weapon and boots inside frame with large safe margins.\n\nABSOLUTE PRIORITY FOR COMPLIANCE: body yaw NW before face/gaze direction; true three-quarter rear-left silhouette; both feet pointing NW; no east-facing torso.\n",
   "usage": {
-    "prompt_tokens": 580,
-    "completion_tokens": 1547,
-    "total_tokens": 2127,
+    "prompt_tokens": 803,
+    "completion_tokens": 3849,
+    "total_tokens": 4652,
     "cost": 0.01,
     "is_byok": false,
     "prompt_tokens_details": {
@@ -33,17 +29,34 @@
     },
     "completion_tokens_details": {
       "reasoning_tokens": 0,
-      "image_tokens": 1547
+      "image_tokens": 3849
     }
   },
+  "output_px": [
+    1024,
+    1024
+  ],
+  "source_px": [
+    1600,
+    1600
+  ],
+  "matte_method": "black-background-matte",
   "raw_bbox": [
-    382,
-    8,
-    1409,
-    1592
+    334,
+    119,
+    1111,
+    1495
   ],
   "source_edge_contact": false,
-  "foreground_fraction": 0.3121,
-  "normalization_scale": 0.46545,
-  "feet_baseline_px": 899
+  "foreground_fraction": 0.20964,
+  "normalization_scale": 0.53581,
+  "feet_baseline_px": 899,
+  "review_file": "assets/experiments/standing-turnaround/marches_hache/review-NW-before-after.png",
+  "warning": "Neither successful generation nor alpha checks prove correct NW body yaw. Inspect image and compare foot, hip and chest orientation.",
+  "canonical_path": "assets/experiments/standing-turnaround/marches_hache/NW.png",
+  "replaced_blob_sha": "0bde974c9b2d2b742b655b000042860f81168c29",
+  "replaced_NW_sha256": "72a17b723b5321575c17a06b8c972a374b0ddf017b0515f51f490ba9b41d9204",
+  "file_sha256": "2b2bdbc69bab0f3887230a1be5b65cc915772cdda91218efb333f6d3dbd206a5",
+  "approved_at_context": "2026-10-26; user explicitly confirmed NW-v2 was good",
+  "note": "NW-v2 PNG was installed into canonical NW.png, with all other directions unchanged. Historical before/after comparison remains in repo."
 }
