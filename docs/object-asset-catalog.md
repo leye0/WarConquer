@@ -1,0 +1,18 @@
+# WarConquer — Objets narratifs : catalogue visuel
+
+Concepts autonomes pour l'univers d'Orvéa, d'après `docs/world-lore.md` et les deux campagnes. Chaque illustration est un **objet isolé**, en vue de trois quarts légèrement plongeante, sans personnage, sol, paysage, socle, typographie lisible ni damier. Fond PNG réellement transparent. Style 2D peint à la main, matériaux médiévaux crédibles, silhouettes lisibles, marge de 15 %.
+
+Les objets neutres combinent avec retenue pierre ivoire, bronze patiné, bois ancien, encre bleu nuit et quelques rubans rouge oxyde. Les objets de la Couronne privilégient la pierre claire et le bronze ; ceux des Marches le bois noirci, le cuivre et les fils rouges. Éviter les portails violets génériques, les runes pseudo-lisibles et les effets de science-fiction.
+
+| Nom | Apparence physique à respecter | Fichier cible |
+| --- | --- | --- |
+| Pierre des trois générations | One freestanding weathered limestone witness stone, three horizontal bands of deeply carved abstract family marks, narrow oxblood-red memory cord tied around it, worn chisel edges; no legible writing, no ground | `assets/concepts/neutral/objects/pierre_temoignage.png` |
+| Registre des versions | One thick open medieval archival ledger, facing pages with two visibly contradictory hand-inked maps and tiny illegible marks, blue and red cloth page markers, bronze clasps, parchment curling; no readable letters | `assets/concepts/neutral/objects/registre_versions.png` |
+| Cloche de demain | One aged bronze bell excavated from stone, strange nine-part rim and fine patina, fragment of broken limestone still attached, impossible future date represented only by abstract chisel notches, no text | `assets/concepts/neutral/objects/cloche_demain.png` |
+| Éclat d'Écho | One compact cluster of translucent pale ivory-blue salt crystals emerging from a cracked dark stone fragment, subtle inner luminescence and hairline fractures, restrained magical glow, no terrain | `assets/concepts/neutral/objects/eclat_echo.png` |
+| Sceau de la Chambre | One heavy bronze official wax-seal stamp with nine-part geometric insignia, midnight-blue ribbon wrapped around handle, beside one broken ivory wax impression; no readable letters | `assets/concepts/couronne/objects/sceau_chambre.png` |
+| Table des places vides | One modest old wooden memorial feast table, three deliberately empty places marked by small stones, plain bowls and a folded oxblood cloth, a few candles; no diners, no room or floor | `assets/concepts/marches/objects/table_places_vides.png` |
+| Tablette du double nom | One small dark wooden family name tablet with two inset blank copper plaques, one partly hidden under wrapped red thread and linen, handmade and worn; no readable writing | `assets/concepts/marches/objects/tablette_double_nom.png` |
+| Rubans des Témoins | One small bundled set of weathered oxblood-red cloth memory ribbons tied to a broken black oak branch, copper stitching and short abstract embroidered marks, no legible text, no whole tree | `assets/concepts/marches/objects/rubans_temoins.png` |
+| Carte du port absent | One curled medieval nautical parchment map, coastline drawn in midnight-blue ink with an erased ghostly harbor contour, bronze compass and red thread tracing conflicting routes; no legible names | `assets/concepts/neutral/objects/carte_port_absent.png` |
+| Masque du Signataire | One ominous nine-segment ceremonial iron mask with bronze legal clasps and pale worn engravings, completely isolated, no face or body, not demonic, no legible inscriptions | `assets/concepts/neutral/objects/masque_signataire.png` |
