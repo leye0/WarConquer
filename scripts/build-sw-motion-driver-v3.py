@@ -147,7 +147,7 @@ def get_pose(t):
         flex = swing_flexion(name, t) if walking else 0.0
         # Forward-project the knee during swing while the foot lifts.
         # The grounded leg keeps its previous planting coordinate.
-        bias = -8 if name == "left" else 8
+        bias = -8 if name == "left" else -8
         knee = (lerp(hip[0], ankle[0], .50) + bias - 19.0 * flex,
                 lerp(hip[1], ankle[1], .51) - 12.0 * flex)
         joints[name + "_knee"] = knee
