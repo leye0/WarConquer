@@ -48,5 +48,7 @@
   "maximum_paid_calls": 0,
   "outputs": "assets/experiments/sw-motion-driver-v4",
   "comparison_baseline": "assets/experiments/sw-motion-driver-v3",
-  "note": "tripled all five foot-stride displacement magnitudes and root travel versus v3; moved start upward/right to preserve safe area. Single deterministic 8s motion, no video synthesis."
+  "note": "tripled all five foot-stride displacement magnitudes and root travel versus v3; moved start upward/right to preserve safe area. Single deterministic 8s motion, no video synthesis.",
+  "revision": 2,
+  "visual_qa": "control sheet uses 0.5, 1.167, 1.833, 2.583 seconds near alternating swing-foot peaks"
 }
