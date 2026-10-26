@@ -13,8 +13,10 @@ TMP=ROOT/"sprite-output"
 def check(job):
     if job.get("grid")!=[5,5] or job.get("reference_rows")!=5: raise ValueError("Only 5x5 pilot permitted")
     url=urlparse(job["source_url"])
-    if url.scheme!="https" or url.hostname!="www.spriters-resource.com" or not re.fullmatch(r"/media/assets/27/\d+\.png",url.path):
-        raise ValueError("Invalid source URL")
+    # Reuse the original Warcraft II sheet via a public GitHub mirror; the
+    # source image is ephemeral and is never committed to WarConquer.
+    if url.scheme!="https" or url.hostname!="raw.githubusercontent.com" or not url.path.startswith("/DevCrumbs/Warcraft-II/master/docs/Wiki_Files/SpriteSheet/") or not url.path.endswith(".png"):
+        raise ValueError("Source must be a known, permitted Warcraft II sheet in the GitHub mirror")
     ref=(ROOT/job["unit_reference"]).resolve()
     if not ref.is_relative_to(ROOT/"assets/concepts") or ref.suffix!=".png" or not ref.is_file(): raise ValueError("Invalid WarConquer ref")
     target=(ROOT/job["output"]).resolve()
@@ -26,11 +28,15 @@ def encoded(img):
     return {"type":"image_url","image_url":{"url":"data:image/png;base64,"+base64.b64encode(b.getvalue()).decode()}}
 
 def source(job):
-    req=urllib.request.Request(job["source_url"],headers={"User-Agent":"Mozilla/5.0","Referer":"https://www.spriters-resource.com/ms_dos/warcraftii/"})
+    req=urllib.request.Request(job["source_url"],headers={"User-Agent":"WarConquer-SpriteSheet-Reference/1.0"})
     try:
         with urllib.request.urlopen(req,timeout=45) as response: raw=response.read(6000000)
     except urllib.error.HTTPError as e:
         raise RuntimeError(f"Source HTTP {e.code}: Muse NOT called. Reference source unavailable.") from None
+    # Pin the upstream bytes by Git blob hash to avoid silently changing poses.
+    blob_hash=hashlib.sha1(b"blob "+str(len(raw)).encode()+b"\\0"+raw).hexdigest()
+    expected=job.get("expected_source_blob_sha")
+    if expected and blob_hash!=expected: raise ValueError("Source PNG changed; stop before paid call")
     img=Image.open(io.BytesIO(raw)).convert("RGBA")
     if list(img.size)!=job["expected_source_size"]: raise ValueError(f"Source size changed {img.size}")
     TMP.mkdir(exist_ok=True)
