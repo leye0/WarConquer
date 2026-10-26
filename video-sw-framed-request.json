@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "experiment": "SW_walk_then_attack_framing_fix",
+  "direction": "SW",
+  "model": "x-ai/grok-imagine-video-1.5-lite",
+  "duration_seconds": 8,
+  "walk_seconds": 4,
+  "attack_seconds": 4,
+  "reference_size_px": 768,
+  "resolution": "480p",
+  "aspect_ratio": "1:1",
+  "max_accepted_jobs": 1,
+  "first_frame": "assets/experiments/standing-turnaround/marches_hache/SW.png",
+  "output": "assets/experiments/video-sw-v2/SW-walk-then-attack-framed.mp4",
+  "notes": "Image reference physically padded to 35%-height character; keep full actor and entire axe swing visible with 10% border margin during walk 0-4s SW and attack 4-8s SW. One paid request max, compare to v1."
+}
