@@ -1,6 +1,41 @@
 {
   "targets": [
-    "assets/concepts/couronne/ships/artillerie.png"
+    "assets/concepts/couronne/buildings/centre_i.png",
+    "assets/concepts/marches/buildings/centre_i.png",
+    "assets/concepts/couronne/buildings/centre_ii.png",
+    "assets/concepts/marches/buildings/centre_ii.png",
+    "assets/concepts/couronne/buildings/centre_iii.png",
+    "assets/concepts/marches/buildings/centre_iii.png",
+    "assets/concepts/couronne/buildings/maison.png",
+    "assets/concepts/marches/buildings/maison.png",
+    "assets/concepts/couronne/buildings/caserne.png",
+    "assets/concepts/marches/buildings/caserne.png",
+    "assets/concepts/couronne/buildings/scierie.png",
+    "assets/concepts/marches/buildings/scierie.png",
+    "assets/concepts/couronne/buildings/champ_tir.png",
+    "assets/concepts/marches/buildings/champ_tir.png",
+    "assets/concepts/couronne/buildings/depot.png",
+    "assets/concepts/marches/buildings/depot.png",
+    "assets/concepts/couronne/buildings/tour.png",
+    "assets/concepts/marches/buildings/tour.png",
+    "assets/concepts/couronne/buildings/forge.png",
+    "assets/concepts/marches/buildings/forge.png",
+    "assets/concepts/couronne/buildings/ecurie.png",
+    "assets/concepts/marches/buildings/ecurie.png",
+    "assets/concepts/couronne/buildings/atelier_siege.png",
+    "assets/concepts/marches/buildings/atelier_siege.png",
+    "assets/concepts/couronne/buildings/sanctuaire.png",
+    "assets/concepts/marches/buildings/sanctuaire.png",
+    "assets/concepts/couronne/buildings/puits_echo.png",
+    "assets/concepts/marches/buildings/puits_echo.png",
+    "assets/concepts/couronne/buildings/port.png",
+    "assets/concepts/marches/buildings/port.png",
+    "assets/concepts/couronne/buildings/observatoire.png",
+    "assets/concepts/marches/buildings/observatoire.png",
+    "assets/concepts/couronne/buildings/nid_volant.png",
+    "assets/concepts/marches/buildings/nid_volant.png",
+    "assets/concepts/couronne/buildings/remparts.png",
+    "assets/concepts/marches/buildings/remparts.png"
   ],
-  "concurrency": 1
+  "concurrency": 3
 }
