@@ -1,0 +1,60 @@
+{
+  "name": "Stèles de la Plaine Blanche",
+  "output": "assets/concepts/neutral/sites/steles_plaine_blanche.png",
+  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nMaterial palette: aged ivory limestone, weathered bronze, pale white-blue Echo, small touches of old dark wood and red memory thread.\nSubject: ONE isolated clustered funeral memorial of exactly three tall chalk-white limestone steles with intentionally blank smooth faces and eroded name grooves, two narrow weathered bronze bands, austere pale stone fragments at base, emotionally solemn, no figures or writing, monument only with fully transparent surrounding space, no sky or plain landscape. ONE isolated physical stone-and-metal site structure; no terrain or environment. Match style references for brushwork and MATERIAL ONLY, never copy their subject. No readable text, no added people, no painted ground.\nCRITICAL FRAMING: show the ENTIRE isolated subject, 15 percent empty margin on all four sides, about 65 percent of square canvas occupied. Preserve the exact SUBJECT SHAPE specified above, use references for PAINTING STYLE only and do NOT imitate their geometry. No atmospheric haze. Background must be uniform white if alpha unavailable.",
+  "references": [
+    "assets/concepts/neutral/objects/pierre_temoignage.png",
+    "assets/concepts/couronne/buildings/observatoire.png"
+  ],
+  "replace_existing": false,
+  "replaced_previous": false,
+  "status": "generated-awaiting-visual-review",
+  "model": "meta/muse-image",
+  "reference_sha256": {
+    "assets/concepts/neutral/objects/pierre_temoignage.png": "67507d340061ae7de51c30a4b6a0d0534a08c4325185d86216eca79d689b7738",
+    "assets/concepts/couronne/buildings/observatoire.png": "c7de15acf3f40b76d450744ec16b8dcd11599b2ce7f39db5fc875517cafc62db"
+  },
+  "background_removed": true,
+  "framing_adjustment": {
+    "scale": 0.77616,
+    "margin": 0.15,
+    "original_bbox": [
+      227,
+      80,
+      1368,
+      1523
+    ],
+    "final_bbox": [
+      357,
+      240,
+      1243,
+      1360
+    ],
+    "source_edge_contact": false
+  },
+  "size": [
+    1600,
+    1600
+  ],
+  "transparent_fraction": 0.633240625,
+  "sha256": "ee3c9064fcef66d179552cccd8093e5071e589b20b642dcc51199def8270c40f",
+  "usage": {
+    "prompt_tokens": 427,
+    "completion_tokens": 2565,
+    "total_tokens": 2992,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 2565
+    }
+  }
+}

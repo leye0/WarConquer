@@ -1,0 +1,60 @@
+{
+  "name": "Ena la capitaine libre",
+  "output": "assets/concepts/neutral/characters/ena_capitaine.png",
+  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nMaterial palette: weathered medieval linen, leather, muted slate blue and oxblood, maritime brass, faction-neutral.\nSubject: ONE full-body adult human woman captain of a free island port, sun-weathered capable face, dark tied-back hair, practical sea-gray canvas coat with muted slate-blue and oxblood-red patchwork, brass maritime clasps, worn leather boots, simple sailor rope coil on belt, one small unlettered navigation chart held in hand; an independent experienced navigator belonging to neither army, NO pirate skull imagery, no tricorn cliché, no ship or shoreline. ONE isolated full-body humanoid with feet, hands and any props fully in frame. Match style references for brushwork and MATERIAL ONLY, never copy their subject. No readable text, no added people, no painted ground.\nCRITICAL FRAMING: show the ENTIRE isolated subject, 15 percent empty margin on all four sides, about 65 percent of square canvas occupied. Preserve the exact SUBJECT SHAPE specified above, use references for PAINTING STYLE only and do NOT imitate their geometry. No atmospheric haze. Background must be uniform white if alpha unavailable.",
+  "references": [
+    "assets/concepts/couronne/units/paysan.png",
+    "assets/concepts/marches/units/paysan.png"
+  ],
+  "replace_existing": false,
+  "replaced_previous": false,
+  "status": "generated-awaiting-visual-review",
+  "model": "meta/muse-image",
+  "reference_sha256": {
+    "assets/concepts/couronne/units/paysan.png": "a32e78ea89651f20a626dda2e40b4989ff1e47de67f4969fcdb3330c63a482a2",
+    "assets/concepts/marches/units/paysan.png": "4319d7adefc166dba4809f4a8b95e9a930c32f59d43797d15e93f14e1abf0183"
+  },
+  "background_removed": true,
+  "framing_adjustment": {
+    "scale": 0.73976,
+    "margin": 0.15,
+    "original_bbox": [
+      490,
+      49,
+      1062,
+      1563
+    ],
+    "final_bbox": [
+      589,
+      241,
+      1012,
+      1361
+    ],
+    "source_edge_contact": false
+  },
+  "size": [
+    1600,
+    1600
+  ],
+  "transparent_fraction": 0.800184765625,
+  "sha256": "c9cbf17ae7e9cf0d603a8a29fb2bb407e70bca65e35f69bd2552e484501d8db7",
+  "usage": {
+    "prompt_tokens": 446,
+    "completion_tokens": 1511,
+    "total_tokens": 1957,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 1511
+    }
+  }
+}

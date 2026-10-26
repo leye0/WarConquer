@@ -1,0 +1,60 @@
+{
+  "name": "Maël Voss",
+  "output": "assets/concepts/couronne/characters/mael_voss.png",
+  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nMaterial palette: midnight blue, ivory, bronze, practical medieval tailoring and maintained materials.\nSubject: ONE full-body 43-year-old human male seasoned military captain of the Order of Bells, sober conscientious face, short dark graying hair, midnight-blue war cloak, used ivory-and-steel brigandine with bronze fasteners, compact practical longsword in scabbard, small bronze bell insignia, sturdy boots, soldier's command stance; more experienced and less ornamental than a royal knight, no aggressive shouting. ONE isolated full-body humanoid with feet, hands and any props fully in frame. Match style references for brushwork and MATERIAL ONLY, never copy their subject. No readable text, no added people, no painted ground.\nCRITICAL FRAMING: show the ENTIRE isolated subject, 15 percent empty margin on all four sides, about 65 percent of square canvas occupied. Preserve the exact SUBJECT SHAPE specified above, use references for PAINTING STYLE only and do NOT imitate their geometry. No atmospheric haze. Background must be uniform white if alpha unavailable.",
+  "references": [
+    "assets/concepts/couronne/units/archiviste.png",
+    "assets/concepts/couronne/units/garde_lourd.png"
+  ],
+  "replace_existing": false,
+  "replaced_previous": false,
+  "status": "generated-awaiting-visual-review",
+  "model": "meta/muse-image",
+  "reference_sha256": {
+    "assets/concepts/couronne/units/archiviste.png": "6abeb4c11ad3a55f97fdf59af6ba21487263ed9abd8036f93d7dcad6627855e7",
+    "assets/concepts/couronne/units/garde_lourd.png": "1d12ff3c71e1ebbb0f177df86501554e658c00a706624e1d218b8338967c1ea3"
+  },
+  "background_removed": true,
+  "framing_adjustment": {
+    "scale": 0.72351,
+    "margin": 0.15,
+    "original_bbox": [
+      361,
+      29,
+      1170,
+      1577
+    ],
+    "final_bbox": [
+      507,
+      241,
+      1092,
+      1361
+    ],
+    "source_edge_contact": false
+  },
+  "size": [
+    1600,
+    1600
+  ],
+  "transparent_fraction": 0.70030078125,
+  "sha256": "5c43bf7f437c09a6a98909fc597df345dc2f494ca32c224aeb9189d843223558",
+  "usage": {
+    "prompt_tokens": 432,
+    "completion_tokens": 2505,
+    "total_tokens": 2937,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 2505
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "name": "Autel du Cœur Cousu",
+  "output": "assets/concepts/neutral/sites/autel_coeur_cousu.png",
+  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nMaterial palette: aged ivory limestone, weathered bronze, pale white-blue Echo, small touches of old dark wood and red memory thread.\nSubject: ONE ancient large stone-and-bronze witness altar made of two visibly different adjoining historical styles: one half tidy pale Crown limestone with bronze inlays, other half rough black oak and dark stone bound by oxblood-red memory cords, both joined with fine pale Echo stitches rather than energy portals, a pair of empty witness-tablet recesses, compact isolated ritual structure without ground or scenery, no readable inscriptions. ONE isolated physical stone-and-metal site structure; no terrain or environment. Match style references for brushwork and MATERIAL ONLY, never copy their subject. No readable text, no added people, no painted ground.\nCRITICAL FRAMING: show the ENTIRE isolated subject, 15 percent empty margin on all four sides, about 65 percent of square canvas occupied. Preserve the exact SUBJECT SHAPE specified above, use references for PAINTING STYLE only and do NOT imitate their geometry. No atmospheric haze. Background must be uniform white if alpha unavailable.",
+  "references": [
+    "assets/concepts/neutral/objects/pierre_temoignage.png",
+    "assets/concepts/couronne/buildings/observatoire.png"
+  ],
+  "replace_existing": false,
+  "replaced_previous": false,
+  "status": "generated-awaiting-visual-review",
+  "model": "meta/muse-image",
+  "reference_sha256": {
+    "assets/concepts/neutral/objects/pierre_temoignage.png": "67507d340061ae7de51c30a4b6a0d0534a08c4325185d86216eca79d689b7738",
+    "assets/concepts/couronne/buildings/observatoire.png": "c7de15acf3f40b76d450744ec16b8dcd11599b2ce7f39db5fc875517cafc62db"
+  },
+  "background_removed": true,
+  "framing_adjustment": {
+    "scale": 0.8046,
+    "margin": 0.15,
+    "original_bbox": [
+      96,
+      171,
+      1488,
+      1480
+    ],
+    "final_bbox": [
+      241,
+      274,
+      1360,
+      1326
+    ],
+    "source_edge_contact": false
+  },
+  "size": [
+    1600,
+    1600
+  ],
+  "transparent_fraction": 0.422596484375,
+  "sha256": "198381d1319fbae184a380dfe0b030fd14f926bcd6efc8a8b6f0adfb3b123790",
+  "usage": {
+    "prompt_tokens": 448,
+    "completion_tokens": 2456,
+    "total_tokens": 2904,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 2456
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "name": "Sève la Ravaudeuse",
+  "output": "assets/concepts/marches/characters/seve_ravaudeuse.png",
+  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nMaterial palette: oxblood red, charcoal wool, weathered leather, patinated copper and memory ribbons.\nSubject: ONE full-body elderly human woman mystic healer of the Marches, compassionate deeply lined face, gray braided hair held with small copper thimbles, modest black-brown patched robe, oxblood-red memory threads tied around wrist, bone sewing needles and linen medicine satchel, weathered careful hands holding ONE tiny pale Echo shard, delicate exhausted expression; no staff, no pointed witch hat, no combat weapon, believable village healer. ONE isolated full-body humanoid with feet, hands and any props fully in frame. Match style references for brushwork and MATERIAL ONLY, never copy their subject. No readable text, no added people, no painted ground.\nCRITICAL FRAMING: show the ENTIRE isolated subject, 15 percent empty margin on all four sides, about 65 percent of square canvas occupied. Preserve the exact SUBJECT SHAPE specified above, use references for PAINTING STYLE only and do NOT imitate their geometry. No atmospheric haze. Background must be uniform white if alpha unavailable.",
+  "references": [
+    "assets/concepts/marches/units/paysan.png",
+    "assets/concepts/marches/units/ravaudeuse.png"
+  ],
+  "replace_existing": false,
+  "replaced_previous": false,
+  "status": "generated-awaiting-visual-review",
+  "model": "meta/muse-image",
+  "reference_sha256": {
+    "assets/concepts/marches/units/paysan.png": "4319d7adefc166dba4809f4a8b95e9a930c32f59d43797d15e93f14e1abf0183",
+    "assets/concepts/marches/units/ravaudeuse.png": "faf30e6ff5f87900f4841a9a89c4abf509fea2b829145e910fdff645d5a92006"
+  },
+  "background_removed": true,
+  "framing_adjustment": {
+    "scale": 0.71703,
+    "margin": 0.15,
+    "original_bbox": [
+      480,
+      15,
+      1064,
+      1577
+    ],
+    "final_bbox": [
+      590,
+      240,
+      1009,
+      1360
+    ],
+    "source_edge_contact": false
+  },
+  "size": [
+    1600,
+    1600
+  ],
+  "transparent_fraction": 0.748775,
+  "sha256": "b6f26424823c61f14c31fb8d75b3921dc117650a52b40112646a5b4cf62f9df9",
+  "usage": {
+    "prompt_tokens": 440,
+    "completion_tokens": 1655,
+    "total_tokens": 2095,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 1655
+    }
+  }
+}

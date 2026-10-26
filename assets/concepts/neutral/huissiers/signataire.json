@@ -1,0 +1,60 @@
+{
+  "name": "Le Signataire",
+  "output": "assets/concepts/neutral/huissiers/signataire.png",
+  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nMaterial palette: charcoal forged iron, weathered dark steel and restrained aged bronze, neutral to the two factions.\nSubject: ONE tall full-body humanoid leader of the Midnight Bailiffs, imposing but anatomically realistic medieval figure in weathered charcoal segmented iron armor with nine deliberately spaced bronze fastening points. Wears EXACTLY an anthropomorphic nine-piece metal FACE MASK with unmistakable eye apertures, human nose, cheeks, closed mouth and chin (not a cubic helmet, not a box). One long dark iron staff bearing a small sealed bronze tablet; elegant motionless magistrate silhouette, non-demonic, no sword, no readable lettering, feet fully visible. ONE isolated full-body humanoid with feet, hands and any props fully in frame. Match style references for brushwork and MATERIAL ONLY, never copy their subject. No readable text, no added people, no painted ground.\nCRITICAL FRAMING: show the ENTIRE isolated subject, 15 percent empty margin on all four sides, about 65 percent of square canvas occupied. Preserve the exact SUBJECT SHAPE specified above, use references for PAINTING STYLE only and do NOT imitate their geometry. No atmospheric haze. Background must be uniform white if alpha unavailable.",
+  "references": [
+    "assets/concepts/neutral/objects/masque_signataire.png",
+    "assets/concepts/couronne/units/garde_lourd.png"
+  ],
+  "replace_existing": false,
+  "replaced_previous": false,
+  "status": "generated-awaiting-visual-review",
+  "model": "meta/muse-image",
+  "reference_sha256": {
+    "assets/concepts/neutral/objects/masque_signataire.png": "fdb5dafa4b8149e24064046bed731260c5eb494e3b7eee3c75932ebf13a1dfe5",
+    "assets/concepts/couronne/units/garde_lourd.png": "1d12ff3c71e1ebbb0f177df86501554e658c00a706624e1d218b8338967c1ea3"
+  },
+  "background_removed": true,
+  "framing_adjustment": {
+    "scale": 0.72305,
+    "margin": 0.15,
+    "original_bbox": [
+      335,
+      28,
+      1139,
+      1577
+    ],
+    "final_bbox": [
+      510,
+      240,
+      1088,
+      1360
+    ],
+    "source_edge_contact": false
+  },
+  "size": [
+    1600,
+    1600
+  ],
+  "transparent_fraction": 0.783753515625,
+  "sha256": "208b853d59415e884b58a6671a7703136cebc086cfc1f2404fe705bd441270cf",
+  "usage": {
+    "prompt_tokens": 471,
+    "completion_tokens": 2845,
+    "total_tokens": 3316,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 2845
+    }
+  }
+}
