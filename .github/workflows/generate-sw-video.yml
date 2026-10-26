@@ -1,0 +1,60 @@
+name: SW walk then attack · OpenRouter video
+on:
+  push:
+    branches: [main]
+    paths: ['video-sw-request.json']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: video-sw-experiment
+  cancel-in-progress: false
+jobs:
+  generate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check FFmpeg
+        run: |
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+      - name: Install still-image dependency
+        run: python -m pip install 'Pillow==11.3.0'
+      - name: Validate request and prepare 256px SW image without charge
+        run: |
+          python -m py_compile scripts/generate-sw-video.py
+          python scripts/generate-sw-video.py --dry-run
+      - name: Submit one video job on OpenRouter, poll and download
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python scripts/generate-sw-video.py
+      - name: Save video, previews and job ID on main (including partial failures)
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if [[ -d assets/experiments/video-sw ]]; then
+            git add assets/experiments/video-sw
+            if ! git diff --cached --quiet; then
+              git commit -m 'art: SW walking and attacking video experiment via OpenRouter'
+              git fetch origin main
+              git rebase origin/main
+              git push origin HEAD:main
+            fi
+          fi
+      - name: Print video experiment report
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          echo '## SW video experiment' >> "$GITHUB_STEP_SUMMARY"
+          if [[ -f assets/experiments/video-sw/job.json ]]; then
+            python -c 'import json; d=json.load(open("assets/experiments/video-sw/job.json")); print("Model:", d.get("model"), "Status:", d.get("status"), "Usage:", d.get("usage"))' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'Preflight failed; no video submitted.' >> "$GITHUB_STEP_SUMMARY"
+          fi
