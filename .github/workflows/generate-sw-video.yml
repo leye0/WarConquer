@@ -18,10 +18,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Check FFmpeg
+      - name: Ensure FFmpeg and FFprobe installed
         run: |
-          ffmpeg -version | head -n 1
-          ffprobe -version | head -n 1
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          command -v ffmpeg
+          command -v ffprobe
       - name: Install still-image dependency
         run: python -m pip install 'Pillow==11.3.0'
       - name: Validate request and prepare 256px SW image without charge
