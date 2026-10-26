@@ -1,6 +1,15 @@
 {
   "targets": [
-    "assets/concepts/couronne/buildings/observatoire.png"
+    "assets/concepts/neutral/objects/pierre_temoignage.png",
+    "assets/concepts/neutral/objects/registre_versions.png",
+    "assets/concepts/neutral/objects/cloche_demain.png",
+    "assets/concepts/neutral/objects/eclat_echo.png",
+    "assets/concepts/couronne/objects/sceau_chambre.png",
+    "assets/concepts/marches/objects/table_places_vides.png",
+    "assets/concepts/marches/objects/tablette_double_nom.png",
+    "assets/concepts/marches/objects/rubans_temoins.png",
+    "assets/concepts/neutral/objects/carte_port_absent.png",
+    "assets/concepts/neutral/objects/masque_signataire.png"
   ],
-  "concurrency": 1
+  "concurrency": 2
 }
