@@ -1,0 +1,41 @@
+{
+  "name": "Forge des Cendres",
+  "output": "assets/concepts/marches/buildings/forge.png",
+  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nFaction palette: oxblood red, soot black, patinated copper, repaired leather, blackened timber, memory ribbons.\nSubject: low black stone and dark timber smithy, glowing ember hearth, rough copper forge bellows, heavy anvil, red ropes binding roof timbers. Complete isolated building, readable function, no terrain tile.\nCRITICAL FRAMING: wide shot zoomed far out, the ENTIRE figure from head to both soles, or ALL wings from tip to tip, fully inside a square canvas with at least 15 percent empty margin on EVERY side. Subject occupies only 65 percent of canvas. Not a portrait, not a close-up. Match reference STYLE ONLY, NEVER their tight crop. No atmospheric haze. Background must be uniform white if alpha unavailable.",
+  "references": [
+    "assets/concepts/marches/units/archer.png",
+    "assets/concepts/marches/units/garde_lourd.png"
+  ],
+  "status": "generated-awaiting-visual-review",
+  "model": "meta/muse-image",
+  "reference_sha256": {
+    "assets/concepts/marches/units/archer.png": "7502ef2b50a41c3fcc9ed1b38259e933f769ad4564aa5e0e310f7e90f80b3037",
+    "assets/concepts/marches/units/garde_lourd.png": "1cf8557742e5edc77b01580f1f7d084866f22fc549af780c5e20bdbf6db8c27e"
+  },
+  "background_removed": true,
+  "size": [
+    1600,
+    1600
+  ],
+  "transparent_fraction": 0.565970703125,
+  "sha256": "922c27acf3eaf2ab93758bca7882bb5e8433b1474059059a9ec8356220867d76",
+  "usage": {
+    "prompt_tokens": 344,
+    "completion_tokens": 3681,
+    "total_tokens": 4025,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 3681
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "name": "Maison de pierre",
+  "output": "assets/concepts/couronne/buildings/maison.png",
+  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nFaction palette: midnight blue, ivory, bronze, pale limestone, structured maintained materials.\nSubject: small lived-in medieval stone cottage with ivory lime plaster, blue fabric shutters, short chimney, brown shingle roof, stack of firewood by entry. Complete isolated building, readable function, no terrain tile.\nCRITICAL FRAMING: wide shot zoomed far out, the ENTIRE figure from head to both soles, or ALL wings from tip to tip, fully inside a square canvas with at least 15 percent empty margin on EVERY side. Subject occupies only 65 percent of canvas. Not a portrait, not a close-up. Match reference STYLE ONLY, NEVER their tight crop. No atmospheric haze. Background must be uniform white if alpha unavailable.",
+  "references": [
+    "assets/concepts/couronne/units/archer.png",
+    "assets/concepts/couronne/units/garde_lourd.png"
+  ],
+  "status": "generated-awaiting-visual-review",
+  "model": "meta/muse-image",
+  "reference_sha256": {
+    "assets/concepts/couronne/units/archer.png": "fdc2874eda247643e5fa6f33c460593bc42dee96125a52bb473be8576dee72a2",
+    "assets/concepts/couronne/units/garde_lourd.png": "1d12ff3c71e1ebbb0f177df86501554e658c00a706624e1d218b8338967c1ea3"
+  },
+  "background_removed": true,
+  "size": [
+    1600,
+    1600
+  ],
+  "transparent_fraction": 0.641688671875,
+  "sha256": "dbd6f50ec47c14135c81609d24a70afcbf54f808c2bac16e7e44e350042ab925",
+  "usage": {
+    "prompt_tokens": 344,
+    "completion_tokens": 2516,
+    "total_tokens": 2860,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 2516
+    }
+  }
+}
