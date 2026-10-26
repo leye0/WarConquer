@@ -401,7 +401,7 @@ def check(states):
 
 
 def make_sheet(states):
-    picks=[6,18,30,42,54,66,78,90]
+    picks=[6,14,22,31,54,66,78,90]
     out=Image.new("RGB",(4*330,2*350+62),"#e9edf1")
     d=ImageDraw.Draw(out)
     d.rectangle((0,0,out.width,61),fill="#25394b")
