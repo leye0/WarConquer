@@ -20,7 +20,7 @@
     1600
   ],
   "transparent_fraction": 0.728393359375,
-  "sha256": "05eb6a66bf61cdbdcf4f13ad86ca5a0e34b21e8a056179ba9aac0eb5c5df56a7",
+  "sha256": "4dcc0dc8949c8115420c2c6dc5aed7a8e088c52ac3bfae6e31799e1db1da59c6",
   "usage": {
     "prompt_tokens": 456,
     "completion_tokens": 2007,
@@ -39,5 +39,23 @@
       "reasoning_tokens": 0,
       "image_tokens": 2007
     }
+  },
+  "framing_adjustment": {
+    "method": "RGBA Lanczos rescale and recenter, no generative edit",
+    "source_sha256": "05eb6a66bf61cdbdcf4f13ad86ca5a0e34b21e8a056179ba9aac0eb5c5df56a7",
+    "margin": 0.15,
+    "scale": 0.80344,
+    "original_bbox": [
+      399,
+      102,
+      1188,
+      1496
+    ],
+    "new_bbox": [
+      483,
+      240,
+      1117,
+      1360
+    ]
   }
 }
