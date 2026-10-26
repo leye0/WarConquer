@@ -1,0 +1,41 @@
+{
+  "name": "Passe-Nom",
+  "output": "assets/concepts/marches/units/passe_nom.png",
+  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nFaction palette: oxblood red, soot black, patinated copper, repaired leather, blackened timber, memory ribbons.\nSubject: lean elite infantry infiltrator clad in charcoal leather and red woven cloth strips, dark half-mask of carved wood, compact recurved blade and small engraved name tablet, stealthy cautious crouch, visibly mortal. ",
+  "references": [
+    "assets/concepts/marches/units/archer.png",
+    "assets/concepts/marches/units/garde_lourd.png"
+  ],
+  "status": "generated-awaiting-visual-review",
+  "model": "meta/muse-image",
+  "reference_sha256": {
+    "assets/concepts/marches/units/archer.png": "7502ef2b50a41c3fcc9ed1b38259e933f769ad4564aa5e0e310f7e90f80b3037",
+    "assets/concepts/marches/units/garde_lourd.png": "1cf8557742e5edc77b01580f1f7d084866f22fc549af780c5e20bdbf6db8c27e"
+  },
+  "background_removed": true,
+  "size": [
+    1408,
+    1472
+  ],
+  "transparent_fraction": 0.5650195698493083,
+  "sha256": "96b774dddc3c65a0de763803dc7b08503a26004d649998712ef507fc819c4df5",
+  "usage": {
+    "prompt_tokens": 246,
+    "completion_tokens": 2669,
+    "total_tokens": 2915,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 2669
+    }
+  }
+}

@@ -49,7 +49,8 @@ def generate(job):
         refs.append({'type': 'image_url', 'image_url': {'url': 'data:image/png;base64,' + base64.b64encode(raw).decode()}})
     if not refs:
         raise ValueError('At least one reference is required for visual consistency')
-    result = api(dict(model=os.environ['OPENROUTER_IMAGE_MODEL'], prompt=job['prompt'], input_references=refs, n=1, output_format='png', background='transparent'))
+    job = dict(job, prompt=job['prompt'] + '\nCRITICAL FRAMING: wide shot zoomed far out, the ENTIRE figure from head to both soles, or ALL wings from tip to tip, fully inside a square canvas with at least 15 percent empty margin on EVERY side. Subject occupies only 65 percent of canvas. Not a portrait, not a close-up. Match reference STYLE ONLY, NEVER their tight crop. No atmospheric haze. Background must be uniform white if alpha unavailable.')
+    result = api(dict(model=os.environ['OPENROUTER_IMAGE_MODEL'], prompt=job['prompt'], input_references=refs, n=1, output_format='png', background='transparent', aspect_ratio='1:1'))
     raw = base64.b64decode(result['data'][0]['b64_json'], validate=True)
     im = Image.open(io.BytesIO(raw)).convert('RGBA')
     raw_dir = ROOT / 'image-output/raw'

@@ -1,0 +1,41 @@
+{
+  "name": "Chapelain des Preuves",
+  "output": "assets/concepts/couronne/units/chapelain.png",
+  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nFaction palette: midnight blue, ivory, bronze, pale limestone, structured maintained materials.\nSubject: male human battlefield cleric-healer in ivory robe with midnight blue mantle, leather surgeon satchel, bronze medical bell and sealed parchment roll, no weapons, calm face. ",
+  "references": [
+    "assets/concepts/couronne/units/archer.png",
+    "assets/concepts/couronne/units/garde_lourd.png"
+  ],
+  "status": "generated-awaiting-visual-review",
+  "model": "meta/muse-image",
+  "reference_sha256": {
+    "assets/concepts/couronne/units/archer.png": "fdc2874eda247643e5fa6f33c460593bc42dee96125a52bb473be8576dee72a2",
+    "assets/concepts/couronne/units/garde_lourd.png": "1d12ff3c71e1ebbb0f177df86501554e658c00a706624e1d218b8338967c1ea3"
+  },
+  "background_removed": true,
+  "size": [
+    1280,
+    1920
+  ],
+  "transparent_fraction": 0.5581876627604166,
+  "sha256": "d2c3595599a1459b49ca66c97b58ddfdb936f016c95ae1452a0b90c118373e6c",
+  "usage": {
+    "prompt_tokens": 232,
+    "completion_tokens": 2368,
+    "total_tokens": 2600,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 2368
+    }
+  }
+}
