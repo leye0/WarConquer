@@ -34,7 +34,7 @@ def source(job):
     except urllib.error.HTTPError as e:
         raise RuntimeError(f"Source HTTP {e.code}: Muse NOT called. Reference source unavailable.") from None
     # Pin the upstream bytes by Git blob hash to avoid silently changing poses.
-    blob_hash=hashlib.sha1(b"blob "+str(len(raw)).encode()+b"\\0"+raw).hexdigest()
+    blob_hash=hashlib.sha1(b"blob "+str(len(raw)).encode()+b"\0"+raw).hexdigest()
     expected=job.get("expected_source_blob_sha")
     if expected and blob_hash!=expected: raise ValueError("Source PNG changed; stop before paid call")
     img=Image.open(io.BytesIO(raw)).convert("RGBA")
