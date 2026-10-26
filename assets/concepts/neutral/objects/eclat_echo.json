@@ -1,28 +1,30 @@
 {
   "name": "Éclat d'Écho",
   "output": "assets/concepts/neutral/objects/eclat_echo.png",
-  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nFaction/material palette: aged ivory stone, old bronze, weathered oak, parchment, midnight blue ink, restrained oxblood accents.\nSubject: One compact cluster of translucent pale ivory-blue salt crystals emerging from a cracked dark stone fragment, subtle inner luminescence and hairline fractures, restrained magical glow, no terrain. This is ONE small narrative prop, not a building, scene or environment. No readable text, no floor, no surrounding scenery.\nCRITICAL FRAMING: wide shot zoomed far out, the ENTIRE figure from head to both soles, or ALL wings from tip to tip, fully inside a square canvas with at least 15 percent empty margin on EVERY side. Subject occupies only 65 percent of canvas. Not a portrait, not a close-up. Match reference STYLE ONLY, NEVER their tight crop. No atmospheric haze. Background must be uniform white if alpha unavailable.",
+  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nFaction/material palette: aged ivory stone, old bronze, weathered oak, parchment, midnight blue ink, restrained oxblood accents.\nSubject: ONE SMALL HANDHELD ECHO SHARD, a single thumb-sized broken translucent pale ivory-blue salt crystal with one or two tiny splinters attached; slim asymmetric faceted shape, fractured edge and softly luminous cloudy interior, only a tiny dark mineral inclusion along one edge. It is a loose portable collectible artifact, NOT a crystal deposit. Crystal occupies nearly all visible object; ABSOLUTELY NO large cluster, rock base, boulders, ore vein, mining equipment, pedestal, ground, or landscape. Complete object centered, at least 15 percent empty transparent margin. This is ONE small narrative prop, not a building, scene or environment. No readable text, no floor, no surrounding scenery.\nCRITICAL FRAMING: show the ENTIRE isolated subject, 15 percent empty margin on all four sides, about 65 percent of square canvas occupied. Preserve the exact SUBJECT SHAPE specified above, use references for PAINTING STYLE only and do NOT imitate their geometry. No atmospheric haze. Background must be uniform white if alpha unavailable.",
   "references": [
-    "assets/concepts/couronne/units/archer.png",
-    "assets/concepts/couronne/buildings/sanctuaire.png"
+    "assets/concepts/neutral/objects/cloche_demain.png",
+    "assets/concepts/neutral/objects/pierre_temoignage.png"
   ],
+  "replace_existing": true,
+  "replaced_previous": true,
   "status": "generated-awaiting-visual-review",
   "model": "meta/muse-image",
   "reference_sha256": {
-    "assets/concepts/couronne/units/archer.png": "fdc2874eda247643e5fa6f33c460593bc42dee96125a52bb473be8576dee72a2",
-    "assets/concepts/couronne/buildings/sanctuaire.png": "34c624f35b11e57882f439b3948d9d566dfa031407914f61e6c7550fad3a1f2f"
+    "assets/concepts/neutral/objects/cloche_demain.png": "f35500b8c796a5053b62d1adf4dc0133efd7759309210f20a9f15e4c528aed77",
+    "assets/concepts/neutral/objects/pierre_temoignage.png": "67507d340061ae7de51c30a4b6a0d0534a08c4325185d86216eca79d689b7738"
   },
   "background_removed": true,
   "size": [
     1600,
     1600
   ],
-  "transparent_fraction": 0.67164140625,
-  "sha256": "e1d8b2f98f608f4a906e54b25f5e2dbb350724a80797474f11d8dfbc3165817f",
+  "transparent_fraction": 0.728393359375,
+  "sha256": "05eb6a66bf61cdbdcf4f13ad86ca5a0e34b21e8a056179ba9aac0eb5c5df56a7",
   "usage": {
-    "prompt_tokens": 379,
-    "completion_tokens": 2395,
-    "total_tokens": 2774,
+    "prompt_tokens": 456,
+    "completion_tokens": 2007,
+    "total_tokens": 2463,
     "cost": 0.01,
     "is_byok": false,
     "prompt_tokens_details": {
@@ -35,7 +37,7 @@
     },
     "completion_tokens_details": {
       "reasoning_tokens": 0,
-      "image_tokens": 2395
+      "image_tokens": 2007
     }
   }
 }

@@ -1,28 +1,30 @@
 {
   "name": "Masque du Signataire",
   "output": "assets/concepts/neutral/objects/masque_signataire.png",
-  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nFaction/material palette: aged ivory stone, old bronze, weathered oak, parchment, midnight blue ink, restrained oxblood accents.\nSubject: One ominous nine-segment ceremonial iron mask with bronze legal clasps and pale worn engravings, completely isolated, no face or body, not demonic, no legible inscriptions. This is ONE small narrative prop, not a building, scene or environment. No readable text, no floor, no surrounding scenery.\nCRITICAL FRAMING: wide shot zoomed far out, the ENTIRE figure from head to both soles, or ALL wings from tip to tip, fully inside a square canvas with at least 15 percent empty margin on EVERY side. Subject occupies only 65 percent of canvas. Not a portrait, not a close-up. Match reference STYLE ONLY, NEVER their tight crop. No atmospheric haze. Background must be uniform white if alpha unavailable.",
+  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nFaction/material palette: aged ivory stone, old bronze, weathered oak, parchment, midnight blue ink, restrained oxblood accents.\nSubject: ONE WEARABLE ANTHROPOMORPHIC FACE MASK, unmistakably shaped like a human face and ONLY a mask, viewed straight on or slight three-quarter front. Two DARK EMPTY EYE HOLES clearly open through the metal, raised anatomical nose bridge and nose tip, sculpted cheekbones, small stern closed mouth, chin, nine distinct irregular fitted iron face plates joined with small aged bronze hinges at their seams; nine visibly separate segments forming ONE continuous FACE (not a cube or chest). Weathered charcoal steel, restrained patinated bronze fasteners, subtle nearly illegible engravings. Top forehead, cheeks and pointed chin fully visible; hollow interior behind eye openings. NO head, no person, no helmet dome, no treasure chest, no box, no cubic object, no face covering without nose/mouth, no lettering, no stand. Strictly one vertically elongated human face mask, isolated with generous transparent margin. This is ONE small narrative prop, not a building, scene or environment. No readable text, no floor, no surrounding scenery.\nCRITICAL FRAMING: show the ENTIRE isolated subject, 15 percent empty margin on all four sides, about 65 percent of square canvas occupied. Preserve the exact SUBJECT SHAPE specified above, use references for PAINTING STYLE only and do NOT imitate their geometry. No atmospheric haze. Background must be uniform white if alpha unavailable.",
   "references": [
-    "assets/concepts/couronne/units/archer.png",
-    "assets/concepts/couronne/buildings/sanctuaire.png"
+    "assets/concepts/neutral/objects/cloche_demain.png",
+    "assets/concepts/neutral/objects/pierre_temoignage.png"
   ],
+  "replace_existing": true,
+  "replaced_previous": true,
   "status": "generated-awaiting-visual-review",
   "model": "meta/muse-image",
   "reference_sha256": {
-    "assets/concepts/couronne/units/archer.png": "fdc2874eda247643e5fa6f33c460593bc42dee96125a52bb473be8576dee72a2",
-    "assets/concepts/couronne/buildings/sanctuaire.png": "34c624f35b11e57882f439b3948d9d566dfa031407914f61e6c7550fad3a1f2f"
+    "assets/concepts/neutral/objects/cloche_demain.png": "f35500b8c796a5053b62d1adf4dc0133efd7759309210f20a9f15e4c528aed77",
+    "assets/concepts/neutral/objects/pierre_temoignage.png": "67507d340061ae7de51c30a4b6a0d0534a08c4325185d86216eca79d689b7738"
   },
   "background_removed": true,
   "size": [
     1600,
     1600
   ],
-  "transparent_fraction": 0.585776953125,
-  "sha256": "ad5b72d44e29b4a26cb75fcc74c698f997320ca4c8027efbf433af3b35d5dd55",
+  "transparent_fraction": 0.58978359375,
+  "sha256": "710d3b0381b1d01428d8a72e40a7a6aedce61618320d150295534828e13462c6",
   "usage": {
-    "prompt_tokens": 373,
-    "completion_tokens": 3623,
-    "total_tokens": 3996,
+    "prompt_tokens": 541,
+    "completion_tokens": 2913,
+    "total_tokens": 3454,
     "cost": 0.01,
     "is_byok": false,
     "prompt_tokens_details": {
@@ -35,7 +37,7 @@
     },
     "completion_tokens_details": {
       "reasoning_tokens": 0,
-      "image_tokens": 3623
+      "image_tokens": 2913
     }
   }
 }
