@@ -1,43 +1,80 @@
 #!/usr/bin/env python3
-"""Review an already generated MP4: no API calls, no video generation credits."""
+"""Build visual evidence from a *previously completed* OpenRouter MP4.
+
+Uses imageio-ffmpeg's bundled FFmpeg binary; does NOT call OpenRouter,
+does NOT submit a new job, and needs no apt or system ffprobe.
+"""
 import hashlib
 import json
-import runpy
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "assets/experiments/video-sw"
-source = OUT / "SW-walk-then-attack.mp4"
-statefile = OUT / "job.json"
+import imageio_ffmpeg
+from PIL import Image, ImageDraw
+
+ROOT=Path(__file__).resolve().parents[1]
+OUT=ROOT/"assets/experiments/video-sw"
+MP4=OUT/"SW-walk-then-attack.mp4"
+JOB=OUT/"job.json"
+TIMES=[.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5]
 
 def main():
-    if not source.is_file() or source.stat().st_size < 2000:
-        raise RuntimeError("Expected existing SW MP4 in main, refusing to generate anything")
-    if not statefile.is_file():
-        raise RuntimeError("Missing pre-existing video job metadata")
-    state = json.loads(statefile.read_text(encoding="utf-8"))
-    if state.get("model") != "x-ai/grok-imagine-video-1.5-lite" or not state.get("job_id"):
-        raise RuntimeError("No verified previous accepted video job")
-    module = runpy.run_path(str(ROOT / "scripts/generate-sw-video.py"))
-    metrics = module["probe_video"](source)
-    overview = module["contact_sheet"](source, metrics)
+    if not MP4.is_file() or MP4.stat().st_size<2000:
+        raise ValueError("Previously generated MP4 missing; do not generate a new video")
+    state=json.loads(JOB.read_text(encoding="utf-8"))
+    if state.get("model")!="x-ai/grok-imagine-video-1.5-lite" or not state.get("job_id"):
+        raise ValueError("Missing verified successful OpenRouter job ID")
+    width,height=310,247
+    canvas=Image.new("RGB",(width*4,height*2+63),"#e4eaf0")
+    painter=ImageDraw.Draw(canvas)
+    painter.rectangle((0,0,width*4,62),fill="#1e3447")
+    painter.text((18,13),"SW VIDEO / 0-4s WALK SOUTHWEST / 4-8s AXE ATTACK SOUTHWEST",fill="#ffffff")
+    painter.text((18,38),"One existing OpenRouter video. Inspect facing and both timed phases.",fill="#c4d3df")
+    frames=imageio_ffmpeg.read_frames(str(MP4),pix_fmt="rgb24",output_params=["-vf","fps=1"])
+    try:
+        metadata=next(frames)
+        dims=metadata["size"]
+        count=0
+        for i,frame in enumerate(frames):
+            if i>=8:break
+            picture=Image.frombytes("RGB",dims,frame)
+            picture.thumbnail((width-12,height-34),Image.Resampling.LANCZOS)
+            x=(i%4)*width+(width-picture.width)//2
+            y=63+(i//4)*height+29
+            canvas.paste(picture,(x,y))
+            text="WALK" if i<4 else "ATTACK"
+            painter.text(((i%4)*width+12,63+(i//4)*height+8),f"{TIMES[i]:.1f}s   {text}",fill="#273f53")
+            count+=1
+    finally:
+        try: frames.close()
+        except Exception:pass
+    if count!=8:
+        raise ValueError(f"Decoded only {count} of 8 required video review frames")
+    overview=OUT/"contact-sheet.jpg"
+    canvas.save(overview,quality=90,optimize=True)
     state.update({
-        "status":"completed-downloaded", "approved":False,
-        "video_path":str(source.relative_to(ROOT)),
-        "video_sha256":hashlib.sha256(source.read_bytes()).hexdigest(),
-        "video_properties":metrics,
+        "status":"completed-downloaded","approved":False,
+        "video_path":str(MP4.relative_to(ROOT)),
+        "video_sha256":hashlib.sha256(MP4.read_bytes()).hexdigest(),
+        "video_properties":{
+            "width":dims[0],"height":dims[1],
+            "duration_seconds":metadata.get("duration"),
+            "source_fps":metadata.get("fps"),
+            "bytes":MP4.stat().st_size,
+        },
         "visual_review_path":str(overview.relative_to(ROOT)),
-        "review_status":"contact-sheet-ready-requires-human-review",
+        "review_status":"eight-sampled-frames-require-human-inspection",
     })
     state.pop("pipeline_error",None)
     state.pop("pipeline_error_type",None)
-    statefile.write_text(json.dumps(state,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
-    print(json.dumps({"video":str(source.relative_to(ROOT)),
-        "contact_sheet":str(overview.relative_to(ROOT)),
-        "duration":metrics["duration"],
-        "size_bytes":metrics["size_bytes"],
+    JOB.write_text(json.dumps(state,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
+    print(json.dumps({
+        "video":str(MP4.relative_to(ROOT)),
+        "sampled_frames":count,
+        "review":str(overview.relative_to(ROOT)),
         "model":state["model"],
-        "cost_reported":state.get("usage",{}).get("cost"),
-        "video_generation_calls":0},ensure_ascii=False))
+        "usage":state.get("usage"),
+        "new_video_jobs":0,
+    }))
 
-if __name__=="__main__":main()
+if __name__=="__main__":
+    main()
