@@ -3,7 +3,7 @@
   "model": "x-ai/grok-imagine-video-1.5-lite",
   "request_sha256": "3cafc63a38dd91749e3322d95af3aa33d3fce4cc884d5d702b03d3dc5a5f5566",
   "source_image_sha256": "c99cac42acd32ca9fd557ac08b99f8e88ee786e3e482ed2138f1f4468da7730f",
-  "status": "submitted",
+  "status": "completed-reviewed-unapproved",
   "approved": false,
   "framing": {
     "figure_bbox": [
@@ -23,5 +23,18 @@
   "prompt": "IMAGE-TO-VIDEO of this EXACT original WarConquer game character. Preserve identical costume, head, hair, body proportions, armor, equipment and anatomical weapon hand from the given first-frame reference. Highly detailed painted 2D RTS, NOT pixel art.\n\nCOMPASS-LOCK NW. ALL body parts (HEAD, sternum, shoulder line, PELVIS, KNEES AND BOTH BOOT TOES) face NW for the entire eight seconds. Screen travel vector is x=-1, y=-1, x RIGHT-positive and y DOWN-positive. Move and strike only in this direction. No turning, twisting, spin, new camera angle or flipping.\n\nCRITICAL FIXED CAMERA AND SAFE MARGINS. The supplied image is intentionally an EXTRA-WIDE camera framing with character occupying only 35% of frame height. The surrounding empty pale background is PRESERVED ARTISTIC ACTION SPACE for full weapon reach. NEVER zoom, track, recenter, change subject scale, enlarge character or crop. Full body and COMPLETE EQUIPMENT including extreme tip at top of wind-up must remain at least 10% inside video boundaries on EVERY frame. Compact axe swing/attack arc, not a huge theatrical swing that hits the top of frame. Whole figure always visible.\n\nTIMING STRICT:\n0–4 SECONDS: WALK ONLY, controlled natural alternating leg gait in exact NW (three-quarter REAR-LEFT; ENTIRE body and both toes point UPPER-LEFT, away from camera), traveling no more than 5% of frame along (dx=-1,dy=-1). No attack, no zoom.\n4–8 SECONDS: STOP WALKING COMPLETELY and plant both feet. ATTACK in exact NW: One or two deliberate human woodcutter-style powerful axe swings into open space in that same precise compass direction, with a contained diagonal down-and-forward arc, readable preparation, impact, recovery, and no spin or exaggerated overhead motion. . Distinct wind-up, strike, follow-through and reset; do not turn the body, do not keep walking, no camera movement. Keep the entire weapon visible throughout the complete swing.\n\nCharacter identity: Original WarConquer adult HUMAN axe warrior of the Marches, ex-border woodsman, rugged dark long hair tied up, full dark beard, soot-black layered leather armor, weathered deep oxblood-red torn shawl and cloth strips, hand-wraps, ornate worn copper medals and buckles, tough worn boots. Maintain the exact asymmetrical costume construction and silhouette seen in the original concept.. Equipment: One and only one large distinctive single-bladed battle axe, aged hammered metal blade with engraved copper/bronze plates and dark repaired wooden shaft wrapped in leather, a short dark red tassel tied near the axe head; identical axe and attachments in every orientation..\nVisual intent: readable for game sprite extraction, fixed elevated orthographic RTS viewpoint, neutral flat off-white background, full character, no scenery, UI, lettering, cinematic cuts, camera tricks, new subjects, blur or effects. Priority: CORRECT FULL-BODY NW yaw, UNCROPPED WEAPON, walk THEN attack, CONSTANT SIZE.",
   "estimated_cost_reserve": 0.22,
   "job_id": "gen-vid-1793044747-lP2h5gEW62nhs0SgFbBC",
-  "usage": {}
+  "usage": {
+    "cost": 0.17,
+    "is_byok": false
+  },
+  "video_sha256": "40dc5f826cb73f657e11f55a4ea3fa8090addb67e9d123fbaae7ceef66c569a3",
+  "video_bytes": 2485693,
+  "qa": {
+    "samples": 8,
+    "edge_contact_frames": 5,
+    "potential_weapon_clipping": true,
+    "height_drift_ratio": 1.267,
+    "potential_scale_drift": false,
+    "verified_human": false
+  }
 }
