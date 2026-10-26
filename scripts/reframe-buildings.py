@@ -28,7 +28,8 @@ def reframe(path, margin=.12):
     box_width, box_height = right-left, bottom-top
     available = 1 - 2 * margin
     scale = min(1., width * available / box_width, height * available / box_height)
-    if scale >= .999 and all((left >= margin*width, top >= margin*height, right <= (1-margin)*width, bottom <= (1-margin)*height)):
+    # Pixel-rounding tolerance prevents re-encoding already-correct assets on repeat runs.
+    if all((left >= margin*width-2, top >= margin*height-2, right <= (1-margin)*width+2, bottom <= (1-margin)*height+2)):
         return None
     # Transform the entire original RGBA image, preserving soft alpha edges.
     scaled = im.resize((round(width*scale), round(height*scale)), Image.Resampling.LANCZOS)
