@@ -1,0 +1,49 @@
+{
+  "direction": "N",
+  "camera_description": "rear view, facing directly AWAY from the viewer toward screen-top; back of head, shoulders, coat and axe are visible; face not visible",
+  "reference_sha256": "40596135f14365c2a77258cd34fe8285c2968fc791816023fbe37cdb197982c7",
+  "model": "meta/muse-image",
+  "stance": "standing_still",
+  "sequence": 1,
+  "prompt": "HIGH-RESOLUTION 2D hand-painted fantasy RTS CHARACTER TURNAROUND: ONE single complete adult human character standing completely STILL in a perfectly neutral idle stance.\n\nImage input reference is the ACTUAL ORIGINAL WarConquer soldier. Reproduce this exact SAME CHARACTER faithfully: identical head shape, hair, costume design, axe head, axe shaft, hands, gear, materials, repairs, accessories, scarf, colors, and body proportions. Show a ROTATED CAMERA VIEW OF THE SAME CHARACTER, NOT a new character. Reconstruct the physically correct back, sides and profile, respecting what is visible and occluded in this camera direction. The axe remains in the SAME anatomical hand across all eight outputs and has the SAME exact construction and blade shape. All other clothing and equipment stay in consistent anatomical positions.\n\nPHYSICAL POSE IS STATIC AND IDENTICAL IN ALL DIRECTIONS: weight centered and evenly supported; feet planted near shoulder width and at the same depth; knees relaxed but straight; pelvis not twisted; torso upright and not leaning; shoulders level; arms down relaxed naturally, axe held low beside the body. NO walking, NO stepping, NO attack pose, NO running, NO swinging, NO floating or dancing. Preserve body scale and uniform orthographic/near-orthographic moderately elevated RTS camera (approximately 25-35 degrees above horizontal), flat consistent light.\n\nMANDATORY FACING FOR THIS ONE IMAGE: rear view, facing directly AWAY from the viewer toward screen-top; back of head, shoulders, coat and axe are visible; face not visible. Strictly honor this viewing angle even when the concept reference has a different angle. It must be clear that this is N in a conventional eight-direction RTS with N away from camera, S toward camera, E toward image-right, W toward image-left.\n\nVisually beautiful detailed HD antialiased hand-painted 2D illustration, NOT pixel art, NOT 3D scene, no blocky low-resolution stylization. Only one isolated full-body warrior centered on square frame. All of boots, head and axe must fit completely with generous margins. Transparent clean background preferred; if alpha cannot be rendered, use a COMPLETELY PLAIN BLACK OR PURE WHITE background for later extraction. No scenery, ground, text, arrows, labels, UI, borders, grids, motion lines, shadow or extra characters.\n",
+  "status": "generated-awaiting-visual-review",
+  "matte_method": "black-background-matte",
+  "raw_dimensions": [
+    1600,
+    1600
+  ],
+  "final_dimensions": [
+    1024,
+    1024
+  ],
+  "output_sha256": "34d8d1d35362cd4a89fb94c92412b76584cd8894dc58afc037e14187df68971f",
+  "usage": {
+    "prompt_tokens": 584,
+    "completion_tokens": 1350,
+    "total_tokens": 1934,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 1350
+    }
+  },
+  "raw_bbox": [
+    407,
+    16,
+    1303,
+    1584
+  ],
+  "source_edge_contact": false,
+  "foreground_fraction": 0.29083,
+  "normalization_scale": 0.4702,
+  "feet_baseline_px": 899
+}
