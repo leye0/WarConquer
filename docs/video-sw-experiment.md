@@ -1,4 +1,4 @@
-# SW walking then attacking video proof of concept
+> **Archive historique — expérimentation OpenRouter.** Les scripts et workflows ponctuels pour cette tentative ont été retirés de `main` au profit du [pipeline de guides de pose](pose-guided-asset-animation.md). Les médias, coûts et résultats originaux restent dans `assets/experiments/video-sw/` et sont récupérables par Git. Ne pas confondre cette méthode image-to-video avec le contrôle de pose déterministe.\n\n# SW walking then attacking video proof of concept
 
 This is **video**, not a sprite-sheet generator. Use the approved source still `assets/experiments/standing-turnaround/marches_hache/SW.png`, rendered to **256×256** against a clean light background, as the first frame in an OpenRouter image-to-video job.
 

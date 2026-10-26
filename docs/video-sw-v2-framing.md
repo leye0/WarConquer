@@ -1,4 +1,4 @@
-# SW video v2 — complete axe inside frame
+> **Archive historique — expérimentation de cadrage.** L'ancien script/workflow ponctuel a été retiré de `main`. Les fichiers du test restent dans `assets/experiments/video-sw-v2/`. Le [pipeline actuel](pose-guided-asset-animation.md) détermine les positions des articulations sans confier le cadrage au modèle vidéo.\n\n# SW video v2 — complete axe inside frame
 
 The first video (see `assets/experiments/video-sw/`) visibly clips the axe near 4.5 s. **That video cannot be repaired by shrinking its rendered pixels**, because the axe head is outside the encoded frame.
 

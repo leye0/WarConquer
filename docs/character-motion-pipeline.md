@@ -1,5 +1,7 @@
 # WarConquer – un personnage → 8 directions Muse → 8 vidéos
 
+Ce pipeline historique pour les huit images Muse puis huit vidéos OpenRouter est conservé tel quel. Il est **distinct** du nouveau [guide de pose déterministe](pose-guided-asset-animation.md), qui ne génère aucun personnage ni vidéo payante. Ne pas utiliser le workflow huit directions pour une validation de guide de pose SW.
+
 Un seul pipeline réutilisable sous `main`, avec fichier de requête `character-motion-request.json`.
 
 ## Entrée

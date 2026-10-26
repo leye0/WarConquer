@@ -12,6 +12,12 @@
 
 Ces documents constituent une **proposition de conception en cours de discussion** ; ils ne définissent pas encore une implémentation technique. Le gameplay et les contenus originaux seront développés ensuite.
 
+## Guides de pose pour les assets animés
+
+Le pilote de contrôle de mouvement SW approuvé est maintenant accessible depuis [le pipeline de guides de pose](docs/pose-guided-asset-animation.md). Un seul script, une seule GitHub Action et une seule requête servent d'entrée : `scripts/build-pose-guide.py`, `.github/workflows/build-pose-guide.yml`, `pose-guide-request.json`.
+
+Ces guides contiennent des articulations et une trajectoire d'arme rigide; **ils ne sont pas encore les sprites animés du jeu**. Les vidéos OpenRouter précédentes et le pipeline historique des huit directions sont conservés à des fins de comparaison.
+
 ---
 
 # WebSuite — visual browser automation for development agents
