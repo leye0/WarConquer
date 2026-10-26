@@ -10,9 +10,13 @@ TARGETS = [
     'assets/concepts/marches/buildings/centre_ii.png',
     'assets/concepts/marches/buildings/maison.png',
     'assets/concepts/marches/buildings/tour.png',
+    'assets/concepts/neutral/objects/masque_signataire.png',
+    'assets/concepts/neutral/objects/eclat_echo.png',
 ]
 
 def reframe(path, margin=.12):
+    import hashlib
+    original_sha256 = hashlib.sha256(path.read_bytes()).hexdigest()
     im = Image.open(path).convert('RGBA')
     alpha = im.getchannel('A')
     mask = alpha.point(lambda value: 255 if value > 32 else 0)
@@ -38,9 +42,8 @@ def reframe(path, margin=.12):
     canvas.save(path, optimize=True)
     metadata = path.with_suffix('.json')
     if metadata.exists():
-        import hashlib
         info = json.loads(metadata.read_text())
-        info['framing_adjustment'] = {'method':'lossless-content-preserving RGBA rescale and recenter','margin':margin,'scale':round(scale,5),'original_bbox':list(bounds),'new_bbox':list(new_box)}
+        info['framing_adjustment'] = {'method':'RGBA Lanczos rescale and recenter, no generative edit','source_sha256':original_sha256,'margin':margin,'scale':round(scale,5),'original_bbox':list(bounds),'new_bbox':list(new_box)}
         info['sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
         metadata.write_text(json.dumps(info, ensure_ascii=False, indent=2)+'\n')
     return {'path':str(path.relative_to(ROOT)), 'scale':round(scale,4), 'bbox_before':bounds, 'bbox_after':new_box}
@@ -51,11 +54,11 @@ def main():
         path=ROOT/name
         if not path.is_file():
             raise FileNotFoundError(path)
-        result=reframe(path)
+        result=reframe(path, margin=.15 if '/objects/' in name else .12)
         if result:
             results.append(result)
             print(json.dumps(result))
-    print(f'Corrected {len(results)} building images')
+    print(f'Corrected {len(results)} concept images')
     if __import__('os').environ.get('GITHUB_STEP_SUMMARY'):
         with open(__import__('os').environ['GITHUB_STEP_SUMMARY'],'a') as out:
             out.write('## Framing corrections\n'+''.join('- '+r['path']+' (scale '+str(r['scale'])+')\n' for r in results))
