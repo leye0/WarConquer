@@ -50,7 +50,11 @@ def catalog():
             'neutral': 'aged ivory stone, old bronze, weathered oak, parchment, midnight blue ink, restrained oxblood accents'
         }[faction]
         refs_faction = faction if faction != 'neutral' else 'couronne'
-        objects.append(dict(name=name, output=path, prompt=f'{STYLE}\nFaction/material palette: {palette}.\nSubject: {desc}. This is ONE small narrative prop, not a building, scene or environment. No readable text, no floor, no surrounding scenery.', references=[f'assets/concepts/{refs_faction}/units/archer.png', f'assets/concepts/{refs_faction}/buildings/sanctuaire.png']))
+        if path.endswith('/masque_signataire.png') or path.endswith('/eclat_echo.png'):
+            refs = ['assets/concepts/neutral/objects/cloche_demain.png', 'assets/concepts/neutral/objects/pierre_temoignage.png']
+        else:
+            refs = [f'assets/concepts/{refs_faction}/units/archer.png', f'assets/concepts/{refs_faction}/buildings/sanctuaire.png']
+        objects.append(dict(name=name, output=path, prompt=f'{STYLE}\nFaction/material palette: {palette}.\nSubject: {desc}. This is ONE small narrative prop, not a building, scene or environment. No readable text, no floor, no surrounding scenery.', references=refs))
     if len(objects) != 10:
         raise ValueError('Expected exactly 10 narrative object entries')
     return rows + objects
@@ -87,7 +91,7 @@ def generate(job):
         refs.append({'type': 'image_url', 'image_url': {'url': 'data:image/png;base64,' + base64.b64encode(raw).decode()}})
     if not refs:
         raise ValueError('At least one reference is required for visual consistency')
-    job = dict(job, prompt=job['prompt'] + '\nCRITICAL FRAMING: wide shot zoomed far out, the ENTIRE figure from head to both soles, or ALL wings from tip to tip, fully inside a square canvas with at least 15 percent empty margin on EVERY side. Subject occupies only 65 percent of canvas. Not a portrait, not a close-up. Match reference STYLE ONLY, NEVER their tight crop. No atmospheric haze. Background must be uniform white if alpha unavailable.')
+    job = dict(job, prompt=job['prompt'] + '\nCRITICAL FRAMING: show the ENTIRE isolated subject, 15 percent empty margin on all four sides, about 65 percent of square canvas occupied. Preserve the exact SUBJECT SHAPE specified above, use references for PAINTING STYLE only and do NOT imitate their geometry. No atmospheric haze. Background must be uniform white if alpha unavailable.')
     result = api(dict(model=os.environ['OPENROUTER_IMAGE_MODEL'], prompt=job['prompt'], input_references=refs, n=1, output_format='png', background='transparent', aspect_ratio='1:1'))
     raw = base64.b64decode(result['data'][0]['b64_json'], validate=True)
     im = Image.open(io.BytesIO(raw)).convert('RGBA')
