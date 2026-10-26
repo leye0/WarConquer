@@ -1,11 +1,22 @@
 #!/usr/bin/env python3
 """OpenRouter image generation, with mandatory style references and resumable batches."""
-import argparse, base64, concurrent.futures, hashlib, io, json, os, re
+import argparse, base64, concurrent.futures, hashlib, io, json, os, re, threading
 from pathlib import Path
 import urllib.request, urllib.error
 from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
+_cutout_lock = threading.Lock()
+_cutout_session = None
+
+def cutout_session():
+    global _cutout_session
+    with _cutout_lock:
+        if _cutout_session is None:
+            from rembg import new_session
+            _cutout_session = new_session('u2netp')
+        return _cutout_session
+
 STYLE = '''Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.'''
 
 def safe_path(value):
@@ -59,8 +70,9 @@ def generate(job):
     im.save(raw_file)
     removed = False
     if im.getchannel('A').getextrema()[0] == 255:
-        from rembg import remove, new_session
-        im = remove(im, session=new_session('u2netp'), alpha_matting=True)
+        from rembg import remove
+        # A shared session prevents concurrent downloads and repeated model initialization.
+        im = remove(im, session=cutout_session(), alpha_matting=True)
         removed = True
     alpha = im.getchannel('A')
     hist = alpha.histogram()
