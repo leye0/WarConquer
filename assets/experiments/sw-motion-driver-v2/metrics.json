@@ -1,0 +1,94 @@
+{
+  "status": "PASS",
+  "errors": [],
+  "generative_calls": 0,
+  "paid_cost_usd": 0,
+  "duration_seconds": 8,
+  "fps": 12,
+  "frames": 96,
+  "size_px": [
+    768,
+    768
+  ],
+  "body_heading": "SW (fixed, no yaw animation)",
+  "walking_seconds": [
+    0,
+    4
+  ],
+  "attacking_seconds": [
+    4,
+    8
+  ],
+  "number_of_planned_steps": 5,
+  "foot_forward_lead_xy": [
+    -12.0,
+    12.0
+  ],
+  "root_start_xy": [
+    496.0,
+    538.0
+  ],
+  "root_after_walk_xy": [
+    457.9859394434112,
+    576.0140605565888
+  ],
+  "root_distance_px": 53.76,
+  "root_distance_percent_of_frame_side": 7.0,
+  "root_horizontal_fraction": 0.0495,
+  "root_vertical_fraction": 0.0495,
+  "both_feet_planted_from_4s": true,
+  "planned_steps": [
+    [
+      "left",
+      0.22,
+      0.7
+    ],
+    [
+      "right",
+      0.93,
+      1.41
+    ],
+    [
+      "left",
+      1.64,
+      2.12
+    ],
+    [
+      "right",
+      2.35,
+      2.83
+    ],
+    [
+      "left",
+      3.06,
+      3.54
+    ]
+  ],
+  "stride_distances_px": [
+    26.379,
+    35.921,
+    19.085,
+    19.085,
+    19.085
+  ],
+  "mean_stride_distance_px": 23.911,
+  "maximum_planted_foot_slip_during_walk_px": 0.0,
+  "complete_rigid_axe_in_safe_area": true,
+  "minimum_clearance_px": 111.11,
+  "note": "Geometric driver only. It does not prove that a future generative model will follow these joints or retain identity/axe.",
+  "reference_alignment": {
+    "source_png": "assets/experiments/standing-turnaround/marches_hache/SW.png",
+    "alpha_bbox": [
+      303,
+      162,
+      720,
+      899
+    ],
+    "source_rect_on_preview": [
+      392,
+      269,
+      544,
+      538
+    ]
+  }
+}
