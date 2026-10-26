@@ -1,0 +1,66 @@
+{
+  "status": "prepared-no-paid-call",
+  "approved": false,
+  "model": "x-ai/grok-imagine-video-1.5-lite",
+  "actual_submissions": 0,
+  "workflow_run_id": "40409076489",
+  "workflow_run_attempt": "1",
+  "reference_sha256": "6360516929233e5599d8a8e759c3d6bc1d8c7acd1d2a540fd07434ac8d238dc6",
+  "reference_framing": {
+    "input_dimensions": [
+      1024,
+      1024
+    ],
+    "source_bbox": [
+      303,
+      162,
+      720,
+      899
+    ],
+    "new_dimensions": [
+      768,
+      768
+    ],
+    "dark_textured_border_px": 22,
+    "warning_band_px": 54,
+    "central_safe_area_xyxy": [
+      76,
+      76,
+      692,
+      692
+    ],
+    "character_fraction_height": 0.3503,
+    "subject_box": [
+      392,
+      269,
+      544,
+      538
+    ],
+    "center_x_fraction": 0.61,
+    "feet_y_fraction": 0.7,
+    "source_sha256": "901c17d9b7b484385fd764e9522ee2f1944c32498a33cf7365c00de0ae6615e9"
+  },
+  "request": {
+    "version": 3,
+    "experiment": "SW_textured_safety_frame_single_video",
+    "direction": "SW",
+    "model": "x-ai/grok-imagine-video-1.5-lite",
+    "duration_seconds": 8,
+    "walk_seconds": 4,
+    "attack_seconds": 4,
+    "reference_size_px": 768,
+    "resolution": "480p",
+    "aspect_ratio": "1:1",
+    "audio": false,
+    "max_accepted_jobs": 1,
+    "border_px": 22,
+    "warning_band_px": 54,
+    "first_frame": "assets/experiments/standing-turnaround/marches_hache/SW.png",
+    "output": "assets/experiments/video-sw-textured/SW-walk-then-attack-textured.mp4",
+    "source_policy": "Existing SW.PNG only; no Muse or eight-direction generation",
+    "notes": "One continuous 8-second paid 480p video: SW walk 0-4s, stop and attack 4-8s, immutable textured border. No paid retry after an ambiguous attempt. Human visual approval required."
+  },
+  "prompt": "NON-NEGOTIABLE CONSTRAINTS:\n\n1. The visible textured border, warning band and central safe area are intentional spatial composition constraints, NOT scenery.\n2. Preserve the ENTIRE dark textured border, gray warning band, safe-area boundary and four corner markers at EXACTLY the same fixed image coordinates throughout all eight seconds.\n3. The complete character, BOTH feet, BOTH hands and the ENTIRE axe including its blade tip at the HIGHEST wind-up must remain fully inside the central pale safe area on EVERY FRAME.\n4. No part of the character or axe may touch or enter the gray warning band, markers or dark textured border.\n5. NO zooming, panning, camera tracking, reframing, automatic recentering, subject enlargement, scale changes, cropping or image stabilization that shifts the frame.\n6. The character must stay at the SAME apparent size through the complete sequence. Border width, all corners and safe-zone geometry must stay pixel-stable.\n7. The character must remain facing SOUTHWEST, toward the image LOWER-LEFT corner (both left and down) throughout.\n8. The ENTIRE BODY must face southwest: head, shoulders, chest, pelvis, knees and BOTH feet. Never rotate only the head or turn the torso or feet toward another direction.\n9. Preserve EXACTLY the same WarConquer man of the Marches: face, beard, hair, oxblood-red cloak and clothing, leather armor, copper ornaments, limbs and proportions, handcrafted axe, accessories and anatomical handedness of the reference.\n10. Walk and attack occur within ONE continuous eight-second video with no cut or scene transition.\n\nEXACT ACTION SEQUENCE:\n\n0-4 seconds -- WALKING ONLY. Natural alternating footsteps with visible foot contact, walking toward SOUTHWEST: LEFT AND DOWN simultaneously on screen. Modest travel, approximately FIVE percent of overall image dimensions, keeping ample clearance from the warning band. The whole body remains facing southwest. No attack in this phase.\n\n4-8 seconds -- ATTACKING ONLY. Stop walking COMPLETELY, plant BOTH feet, then make one or two clearly readable controlled, compact axe strikes toward the SOUTHWEST / LOWER-LEFT. Include preparation, wind-up, strike, follow-through and recovery. Do not move the feet across the image or rotate the torso. The whole axe, from handle to the very tip of its blade, must remain inside the CENTRAL SAFE AREA throughout its ENTIRE trajectory including maximum height and extension.\n\nADDITIONAL REQUIREMENTS: Fixed slightly elevated orthographic RTS camera. Modern highly detailed hand-painted 2D game art, NOT pixel art. Exactly ONE character. Uniform pale off-white empty center without scenery, environment, obstacles, additional actors, shadows, interface, text, special effects, cinematic transitions or audio. NEVER remove, reinterpret, move, redraw inconsistently, animate, zoom, pan or crop the safety frame. The safety frame is a permanent composition constraint, NOT a prop or a background environment. Preserve full weapon visibility, constant subject scale and correct whole-body SW orientation over spectacular movement.\n",
+  "estimated_cost_usd": 0.17,
+  "warning": "The prepared state is checkpointed to main BEFORE the sole paid POST; no ambiguous retries."
+}
