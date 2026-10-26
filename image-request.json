@@ -1,9 +1,8 @@
 {
-  "batch": "repair-framing-03",
-  "concurrency": 3,
-  "targets": [
-    "assets/concepts/couronne/units/archiviste.png",
-    "assets/concepts/marches/units/tisseur.png",
-    "assets/concepts/marches/units/vigile.png"
-  ]
+  "prompt": "Edit the attached reference image with maximum fidelity. Preserve the SAME crouching human infiltrator, carved dark half-mask, clothing, blade, anatomy, painterly style and faction palette. Make the small rectangular name tablet entirely blank aged wood with simple abstract scratches, NO letters, NO digits, NO readable text anywhere. Complete isolated figure, clean transparent background.",
+  "output": "assets/concepts/marches/units/passe_nom_clean.png",
+  "references": [
+    "assets/concepts/marches/units/passe_nom.png"
+  ],
+  "concurrency": 1
 }
