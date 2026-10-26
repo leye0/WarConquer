@@ -18,7 +18,7 @@
     1600
   ],
   "transparent_fraction": 0.60723046875,
-  "sha256": "9af105f23d6d4c0f480d0d50b06056e5c1c990c6cbf445da3e206eb94bd3df5e",
+  "sha256": "10116bda7a00788bed7d694755b8a6d4a423876416adbe9ad0565f2377b39746",
   "usage": {
     "prompt_tokens": 353,
     "completion_tokens": 2862,
@@ -37,5 +37,22 @@
       "reasoning_tokens": 0,
       "image_tokens": 2862
     }
+  },
+  "framing_adjustment": {
+    "method": "lossless-content-preserving RGBA rescale and recenter",
+    "margin": 0.12,
+    "scale": 0.78655,
+    "original_bbox": [
+      43,
+      26,
+      1564,
+      1572
+    ],
+    "new_bbox": [
+      202,
+      192,
+      1396,
+      1408
+    ]
   }
 }
