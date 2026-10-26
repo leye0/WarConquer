@@ -1,0 +1,122 @@
+name: Character motion · 8 stills Muse → 8 videos OpenRouter
+on:
+  push:
+    branches: [main]
+    paths: ['character-motion-request.json']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: character-motion-main
+  cancel-in-progress: false
+jobs:
+  full-pipeline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 125
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install sprite and video processing dependencies
+        run: python -m pip install 'Pillow==11.3.0' 'numpy==2.2.6' 'scipy==1.16.2' 'imageio-ffmpeg==0.6.0'
+      - name: Validate user request and Python, with zero cost
+        run: |
+          python -m py_compile scripts/character-motion-pipeline.py
+          python scripts/character-motion-pipeline.py --stage validate
+      - name: Configure GitHub checkout checkpointing
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+      - name: Generate 8 standing directions with Muse, checkpoint every result
+        id: stills
+        shell: bash
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_IMAGE_MODEL: ${{ secrets.OPENROUTER_IMAGE_MODEL }}
+        run: |
+          set -uo pipefail
+          sync_outputs() {
+            git add -A assets/experiments/character-motion
+            if ! git diff --cached --quiet; then
+              git commit -m 'art: checkpoint paid Muse direction output'
+              git fetch origin main
+              git rebase origin/main
+              git push origin HEAD:main
+            fi
+          }
+          failures=0
+          for D in N E S W NE SE SW NW; do
+            python scripts/character-motion-pipeline.py --stage still --direction "$D" || failures=1
+            sync_outputs || exit 1
+          done
+          exit "$failures"
+      - name: Build eight-view image contact sheet
+        id: still-review
+        if: ${{ success() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/character-motion-pipeline.py --stage stills-contact
+          git add -A assets/experiments/character-motion
+          if ! git diff --cached --quiet; then
+            git commit -m 'art: 8 directional stills contact sheet for human validation'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Generate 8 direction-specific videos at low cost, checkpoint each accepted job before polling
+        id: videos
+        if: ${{ success() }}
+        shell: bash
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          set -uo pipefail
+          sync_outputs() {
+            git add -A assets/experiments/character-motion
+            if ! git diff --cached --quiet; then
+              git commit -m 'art: checkpoint OpenRouter video job or resulting MP4'
+              git fetch origin main
+              git rebase origin/main
+              git push origin HEAD:main
+            fi
+          }
+          failures=0
+          for D in N NE E SE S SW W NW; do
+            if ! python scripts/character-motion-pipeline.py --stage video-submit --direction "$D"; then
+              failures=1
+              sync_outputs || exit 1
+              continue
+            fi
+            sync_outputs || exit 1
+            if ! python scripts/character-motion-pipeline.py --stage video-collect --direction "$D"; then
+              failures=1
+              sync_outputs || exit 1
+              continue
+            fi
+            sync_outputs || exit 1
+          done
+          exit "$failures"
+      - name: Publish final report and true completion status
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set +e
+          python scripts/character-motion-pipeline.py --stage final
+          git add -A assets/experiments/character-motion
+          if ! git diff --cached --quiet; then
+            git commit -m 'docs: full directional character animation generation report'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+          exit 0
+      - name: Upload raw Muse outputs for debugging only
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: character-motion-raw
+          path: character-motion-debug/
+          retention-days: 2
+          if-no-files-found: ignore
