@@ -1,5 +1,5 @@
 {
-  "status": "submitted",
+  "status": "completed-reviewed-not-approved",
   "approved": false,
   "model": "x-ai/grok-imagine-video-1.5-lite",
   "actual_submissions": 1,
@@ -42,7 +42,10 @@
     "feet_y_fraction": 0.7,
     "source_sha256": "901c17d9b7b484385fd764e9522ee2f1944c32498a33cf7365c00de0ae6615e9"
   },
-  "usage": {},
+  "usage": {
+    "cost": 0.17,
+    "is_byok": false
+  },
   "warning": "No automatic second model or paid attempt.",
   "request": {
     "version": 3,
@@ -64,5 +67,22 @@
     "source_policy": "Existing SW.PNG only; no Muse or eight-direction generation",
     "notes": "One continuous 8-second paid 480p video: SW walk 0-4s, stop and attack 4-8s, immutable textured border. No paid retry after an ambiguous attempt. Human visual approval required."
   },
-  "estimated_cost_usd": 0.17
+  "estimated_cost_usd": 0.17,
+  "video_path": "assets/experiments/video-sw-textured/SW-walk-then-attack-textured.mp4",
+  "video_sha256": "0719a3095b4b77d42ca6e9d11b700fb83d8d6f1e465efa9abd0baf59f062c958",
+  "video_bytes": 900848,
+  "qa": {
+    "decoded_frames": 32,
+    "dimensions": [
+      544,
+      544
+    ],
+    "possible_warning_contact_or_band_drift_frames": [],
+    "border_flagged_frames": [],
+    "border_heuristic_consistent": true,
+    "walk_scale_height_ratio": 1.031,
+    "v2_walk_scale_height_ratio": 1.487,
+    "visual_approval": false
+  },
+  "quality_report": "assets/experiments/video-sw-textured/quality-report.json"
 }
