@@ -57,7 +57,33 @@ def catalog():
         objects.append(dict(name=name, output=path, prompt=f'{STYLE}\nFaction/material palette: {palette}.\nSubject: {desc}. This is ONE small narrative prop, not a building, scene or environment. No readable text, no floor, no surrounding scenery.', references=refs))
     if len(objects) != 10:
         raise ValueError('Expected exactly 10 narrative object entries')
-    return rows + objects
+    narrative = []
+    for line in (ROOT / 'docs/narrative-asset-catalog.md').read_text().splitlines():
+        m = re.match(r'\| ([^|]+) \| ([^|]+) \| `(assets/concepts/[^`]+)` \|', line)
+        if not m:
+            continue
+        name, desc, path = m.groups()
+        faction = path.split('/')[2]
+        if '/huissiers/' in path:
+            refs = ['assets/concepts/neutral/objects/masque_signataire.png', 'assets/concepts/couronne/units/garde_lourd.png']
+            palette = 'charcoal forged iron, weathered dark steel and restrained aged bronze, neutral to the two factions'
+        elif '/sites/' in path:
+            refs = ['assets/concepts/neutral/objects/pierre_temoignage.png', 'assets/concepts/couronne/buildings/observatoire.png']
+            palette = 'aged ivory limestone, weathered bronze, pale white-blue Echo, small touches of old dark wood and red memory thread'
+        elif faction == 'couronne':
+            refs = ['assets/concepts/couronne/units/archiviste.png', 'assets/concepts/couronne/units/garde_lourd.png']
+            palette = 'midnight blue, ivory, bronze, practical medieval tailoring and maintained materials'
+        elif faction == 'marches':
+            refs = ['assets/concepts/marches/units/paysan.png', 'assets/concepts/marches/units/ravaudeuse.png']
+            palette = 'oxblood red, charcoal wool, weathered leather, patinated copper and memory ribbons'
+        else:
+            refs = ['assets/concepts/couronne/units/paysan.png', 'assets/concepts/marches/units/paysan.png']
+            palette = 'weathered medieval linen, leather, muted slate blue and oxblood, maritime brass, faction-neutral'
+        kind = 'ONE isolated full-body humanoid with feet, hands and any props fully in frame' if '/characters/' in path or '/huissiers/' in path else 'ONE isolated physical stone-and-metal site structure; no terrain or environment'
+        narrative.append(dict(name=name, output=path, prompt=f'{STYLE}\nMaterial palette: {palette}.\nSubject: {desc}. {kind}. Match style references for brushwork and MATERIAL ONLY, never copy their subject. No readable text, no added people, no painted ground.', references=refs))
+    if len(narrative) != 18:
+        raise ValueError('Expected exactly 18 narrative character, Huissier and site entries')
+    return rows + objects + narrative
 
 def api(payload):
     req = urllib.request.Request('https://openrouter.ai/api/v1/images', data=json.dumps(payload).encode(), headers={'Authorization': 'Bearer ' + os.environ['OPENROUTER_API_KEY'], 'Content-Type': 'application/json'}, method='POST')
@@ -111,9 +137,28 @@ def generate(job):
     opaque = sum(hist[240:]) / (im.width * im.height)
     if transparent < .05 or opaque < .02:
         raise ValueError('Invalid alpha/empty foreground; raw retained for review')
+    # Enforce alpha-safe margins on the actual pixels, not just via a prompt.
+    margin = .15
+    fg = alpha.point(lambda value: 255 if value > 32 else 0).getbbox()
+    if not fg:
+        raise ValueError('No visible alpha foreground after background extraction')
+    w, h = im.size
+    l, t, r, b = fg
+    source_edge_contact = l <= 2 or t <= 2 or r >= w-2 or b >= h-2
+    scale = min(1., (1-2*margin)*w/(r-l), (1-2*margin)*h/(b-t))
+    if scale < .999 or not (l >= margin*w-2 and t >= margin*h-2 and r <= (1-margin)*w+2 and b <= (1-margin)*h+2):
+        resized = im.resize((round(w*scale), round(h*scale)), Image.Resampling.LANCZOS) if scale < 1 else im
+        canvas = Image.new('RGBA', (w,h), (0,0,0,0))
+        x = round(w/2 - (l+r)*scale/2)
+        y = round(h/2 - (t+b)*scale/2)
+        canvas.alpha_composite(resized,(x,y))
+        im = canvas
+    new_box = im.getchannel('A').point(lambda value: 255 if value > 32 else 0).getbbox()
+    if not new_box or new_box[0] < margin*w-3 or new_box[1] < margin*h-3 or new_box[2] > (1-margin)*w+3 or new_box[3] > (1-margin)*h+3:
+        raise ValueError(f'Foreground outside safe margins: {new_box}')
     target.parent.mkdir(parents=True, exist_ok=True)
     im.save(target)
-    meta = dict(job, replaced_previous=replacing, status='generated-awaiting-visual-review', model=os.environ['OPENROUTER_IMAGE_MODEL'], reference_sha256=hashes, background_removed=removed, size=list(im.size), transparent_fraction=transparent, sha256=hashlib.sha256(target.read_bytes()).hexdigest(), usage=result.get('usage', {}))
+    meta = dict(job, replaced_previous=replacing, status='generated-awaiting-visual-review', model=os.environ['OPENROUTER_IMAGE_MODEL'], reference_sha256=hashes, background_removed=removed, framing_adjustment={'scale':round(scale,5),'margin':margin,'original_bbox':list(fg),'final_bbox':list(new_box),'source_edge_contact':source_edge_contact}, size=list(im.size), transparent_fraction=transparent, sha256=hashlib.sha256(target.read_bytes()).hexdigest(), usage=result.get('usage', {}))
     target.with_suffix('.json').write_text(json.dumps(meta, indent=2, ensure_ascii=False) + '\n')
     return meta
 
@@ -131,8 +176,8 @@ def main():
             raise ValueError('Unknown catalog target')
     if not set(request.get('replace_existing', [])).issubset({j['output'] for j in jobs}):
         raise ValueError('replace_existing must be a subset of the selected target paths')
-    if not 1 <= len(jobs) <= 78:
-        raise ValueError('Expected 1..78 jobs')
+    if not 1 <= len(jobs) <= 96:
+        raise ValueError('Expected 1..96 jobs')
     workers = int(request.get('concurrency', 3))
     if not 1 <= workers <= 4:
         raise ValueError('Concurrency must be 1..4')
