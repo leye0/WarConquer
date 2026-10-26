@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """OpenRouter image generation, with mandatory style references and resumable batches."""
-import argparse, base64, concurrent.futures, hashlib, io, json, os, re, threading
+import argparse, base64, concurrent.futures, hashlib, io, json, os, re, threading, traceback
 from pathlib import Path
 import urllib.request, urllib.error
 from PIL import Image, ImageDraw
@@ -45,8 +45,18 @@ def api(payload):
         with urllib.request.urlopen(req, timeout=300) as response:
             return json.load(response)
     except urllib.error.HTTPError as error:
-        # Do not expose provider response bodies, credentials or embedded image data.
-        raise RuntimeError(f'OpenRouter HTTP {error.code}; no automatic paid retry') from None
+        # Preserve status and safe provider error fields, never raw payloads or image data.
+        detail = ''
+        try:
+            body = json.loads(error.read(8192).decode('utf-8', errors='replace'))
+            info = body.get('error', {}) if isinstance(body, dict) else {}
+            if isinstance(info, dict):
+                detail = str(info.get('message', ''))[:500]
+                code = str(info.get('code', ''))[:80]
+                detail = f' code={code}; message={detail}'
+        except (ValueError, UnicodeError, OSError):
+            pass
+        raise RuntimeError(f'OpenRouter HTTP {error.code}{detail}; no automatic paid retry') from None
 
 def generate(job):
     target = safe_path(job['output'])
@@ -114,6 +124,13 @@ def main():
         if not os.environ.get(key):
             raise ValueError(f'Missing required secret: {key}')
     report = []
+    def redact(value):
+        for secret in (os.environ.get('OPENROUTER_API_KEY'), os.environ.get('OPENROUTER_IMAGE_MODEL')):
+            if secret:
+                value = value.replace(secret, '[REDACTED]')
+        value = re.sub(r'(?i)Bearer\\s+[A-Za-z0-9._-]+', 'Bearer [REDACTED]', value)
+        value = re.sub(r'data:image/[^\\s]+', '[IMAGE DATA REDACTED]', value)
+        return value[:6000]
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
         futures = {pool.submit(generate, job): job for job in jobs}
         for future in concurrent.futures.as_completed(futures):
@@ -122,8 +139,10 @@ def main():
                 report.append(future.result())
                 print(job['output'] + ': ' + report[-1]['status'], flush=True)
             except Exception as error:
-                report.append(dict(output=job['output'], status='failed', error=str(error).replace(os.environ['OPENROUTER_API_KEY'], '[REDACTED]').replace(os.environ['OPENROUTER_IMAGE_MODEL'], '[MODEL]')))
-                print(job['output'] + ': failed', flush=True)
+                detail = redact(''.join(traceback.format_exception(type(error), error, error.__traceback__)))
+                report.append(dict(output=job['output'], status='failed', error_type=type(error).__name__, error=redact(str(error)), traceback=detail))
+                print(f"::error title=Image generation failed::{job['output']}: {redact(str(error))}", flush=True)
+                print(detail, flush=True)
     out = ROOT / 'image-output'
     out.mkdir(exist_ok=True)
     (out / 'report.json').write_text(json.dumps(report, indent=2, ensure_ascii=False))
@@ -142,7 +161,7 @@ def main():
         sheet.save(out / 'contact-sheet.png')
     if os.environ.get('GITHUB_STEP_SUMMARY'):
         with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
-            f.write('## Image generation\n' + '\n'.join('- ' + r['output'] + ': ' + r['status'] for r in report) + '\n\nVisual review required; these are candidates, not approved references.\n')
+            f.write('## Image generation\n' + '\n'.join('- ' + r['output'] + ': ' + r['status'] + ((' — ' + r['error']) if r['status'] == 'failed' else '') for r in report) + '\n\nVisual review required; these are candidates, not approved references.\n')
     if any(r['status'] == 'failed' for r in report):
         raise SystemExit(1)
 
