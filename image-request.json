@@ -1,0 +1,8 @@
+{
+  "batch": "style-pilot-01",
+  "concurrency": 2,
+  "targets": [
+    "assets/concepts/couronne/units/chapelain.png",
+    "assets/concepts/marches/units/ravaudeuse.png"
+  ]
+}
