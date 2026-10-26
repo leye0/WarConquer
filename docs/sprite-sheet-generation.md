@@ -24,3 +24,7 @@ Fichiers : sprite-sheet-request.json, scripts/generate-sprite-sheet.py, .github/
 Statut : **brouillon, pas d'approbation automatique**. Vérifier une par une 25 cases : nombre exact, identité constante, posture et angle, équipement, cadrage, contact au sol, détourage, peinture haute résolution. Des statistiques alpha ne prouvent pas ces propriétés. Un seul appel Muse par exécution ; pas de retry payant.
 
 Si un modèle ne préserve pas la grille entière, passer à des groupes de poses plus petits (ex. une rangée par appel) puis assembler de manière déterministe avec Pillow, jamais fabriquer des mannequins SVG comme finalité.
+
+## Vérification réelle du premier lancement (2026-10-26)
+
+L'action GitHub 40355710178 a effectué la validation locale, puis a échoué lors du téléchargement de l'image Grunt : HTTP 403 depuis www.spriters-resource.com. La génération Muse n'a donc pas été appelée. Aucune planche PNG WarConquer n'a été créée par cet essai. Ne pas déclarer le pilote terminé ni approuvé. La feuille originale doit être fournie comme fichier image accessible au processus avant le prochain essai; ne jamais fabriquer une silhouette à sa place.
