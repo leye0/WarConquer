@@ -36,8 +36,24 @@ def catalog():
             extra = 'One isolated ship, diagonal overhead view, no water, no crew.' if '/ships/' in path else ('Complete isolated building, readable function, no terrain tile.' if '/buildings/' in path else '')
             rows.append(dict(name=name, output=path, prompt=f'{STYLE}\nFaction palette: {palette}.\nSubject: {desc}. {extra}', references=[f'assets/concepts/{faction}/units/archer.png', f'assets/concepts/{faction}/units/garde_lourd.png']))
     if len(rows) != 68:
-        raise ValueError('Expected exactly 68 catalog entries')
-    return rows
+        raise ValueError('Expected exactly 68 original catalog entries')
+    objects = []
+    for line in (ROOT / 'docs/object-asset-catalog.md').read_text().splitlines():
+        m = re.match(r'\\| ([^|]+) \\| ([^|]+) \\| \`(assets/concepts/[^\`]+)\` \\|', line)
+        if not m:
+            continue
+        name, desc, path = m.groups()
+        faction = path.split('/')[2]
+        palette = {
+            'couronne': 'midnight blue, ivory, bronze, pale limestone, precise maintained craftsmanship',
+            'marches': 'oxblood red, soot-black oak, patinated copper, repaired linen, memory threads',
+            'neutral': 'aged ivory stone, old bronze, weathered oak, parchment, midnight blue ink, restrained oxblood accents'
+        }[faction]
+        refs_faction = faction if faction != 'neutral' else 'couronne'
+        objects.append(dict(name=name, output=path, prompt=f'{STYLE}\\nFaction/material palette: {palette}.\\nSubject: {desc}. This is ONE small narrative prop, not a building, scene or environment. No readable text, no floor, no surrounding scenery.', references=[f'assets/concepts/{refs_faction}/units/archer.png', f'assets/concepts/{refs_faction}/buildings/sanctuaire.png']))
+    if len(objects) != 10:
+        raise ValueError('Expected exactly 10 narrative object entries')
+    return rows + objects
 
 def api(payload):
     req = urllib.request.Request('https://openrouter.ai/api/v1/images', data=json.dumps(payload).encode(), headers={'Authorization': 'Bearer ' + os.environ['OPENROUTER_API_KEY'], 'Content-Type': 'application/json'}, method='POST')
@@ -108,8 +124,8 @@ def main():
         jobs = [r for r in catalog() if r['output'] in request['targets']]
         if len(jobs) != len(set(request['targets'])):
             raise ValueError('Unknown catalog target')
-    if not 1 <= len(jobs) <= 68:
-        raise ValueError('Expected 1..68 jobs')
+    if not 1 <= len(jobs) <= 78:
+        raise ValueError('Expected 1..78 jobs')
     workers = int(request.get('concurrency', 3))
     if not 1 <= workers <= 4:
         raise ValueError('Concurrency must be 1..4')
