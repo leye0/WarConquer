@@ -1,10 +1,10 @@
 {
   "schema": 1,
-  "notes": "Single paid Muse pilot: reinterpret a 5-by-5 upper section of the Warcraft II Grunt reference as the original WarConquer Marches axe soldier. Higher resolution illustration, never pixel art. One API request, no paid retries.",
+  "notes": "First Muse pilot from authenticated GitHub-readable public image mirror (source copyrighted by Blizzard, ephemeral and not committed). No pixel art; character and costume belong to WarConquer. One paid call maximum.",
   "jobs": [
     {
       "source_name": "Grunt",
-      "source_url": "https://www.spriters-resource.com/media/assets/27/29475.png?updated=1755472636",
+      "source_url": "https://raw.githubusercontent.com/DevCrumbs/Warcraft-II/master/docs/Wiki_Files/SpriteSheet/Orcs/Grunt/PC%20Computer%20-%20Warcraft%202%20-%20Grunt.png",
       "expected_source_size": [
         380,
         631
@@ -18,7 +18,8 @@
       "unit_reference": "assets/concepts/marches/units/hache.png",
       "unit_description": "Original WarConquer Marches axe infantryman, HUMAN ex-woodsman of the border, large repaired haft of his axe; patched oxblood wool, soot-dark armor, weathered leather straps, dark oak, patinated copper and memory-ribbons. Never resemble a Warcraft orc; preserve our exact WarConquer concept design.",
       "pose_notes": "The first reference is an approximately 5 by 5 arrangement from the top of a classic Grunt animation sheet: follow its cell order, head/body orientation, weight shifts and arm/leg movement, but substitute an original human Marches axe warrior. Carefully keep weapon in the same anatomical hand and maintain a stable ground anchor. No illustration tiles are allowed to resemble the original Warcraft character.",
-      "output": "assets/spritesheets/drafts/marches_hache_walk_pilot.png"
+      "output": "assets/spritesheets/drafts/marches_hache_walk_pilot.png",
+      "expected_source_blob_sha": "6ce7fdfb4d68c401782149df83d02414389736c5"
     }
   ]
 }
