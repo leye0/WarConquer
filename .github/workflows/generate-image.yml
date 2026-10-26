@@ -47,7 +47,7 @@ jobs:
           IMAGE_REFERENCES: ${{ inputs.references }}
           OMP_NUM_THREADS: '1'
         run: python scripts/generate-image.py
-      - name: Save candidates on a review branch
+      - name: Commit generated assets directly to main
         if: ${{ always() }}
         shell: bash
         run: |
@@ -56,11 +56,12 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add assets/concepts
           if ! git diff --cached --quiet; then
-            branch="art/generated-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-            git checkout -b "$branch"
-            git commit -m 'art: generate reference-guided concept candidates'
-            git push origin "$branch"
-            echo "Review branch: $branch" >> "$GITHUB_STEP_SUMMARY"
+            git commit -m 'art: add generated concept assets'
+            # Integrate onto the latest main without rewriting history.
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+            echo "Generated assets committed directly to main." >> "$GITHUB_STEP_SUMMARY"
           fi
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
