@@ -1,0 +1,37 @@
+{
+  "version": 3,
+  "experiment": "SW_v4_motion_driver_confident_knee_flexion",
+  "character_source": "assets/experiments/standing-turnaround/marches_hache/SW.png",
+  "direction": "SW",
+  "fps": 12,
+  "duration_seconds": 8,
+  "walk_time_seconds": [
+    0,
+    4
+  ],
+  "attack_time_seconds": [
+    4,
+    8
+  ],
+  "root_travel_fraction_of_frame_side": 0.07,
+  "step_count": 5,
+  "walking_upgrade": "deeper swing-knee flexion, 34px swing foot arc, up to 4.5px torso vertical bounce, same fixed foot planting and linked root travel",
+  "ankle_ground_slip_allowed_px": 0.01,
+  "swing_knee_angle_min_target_below_degrees": 135,
+  "attack_feet_immobile": true,
+  "weapon_geometry": "rigid axe attached to left hand",
+  "reference_canvas_px": [
+    768,
+    768
+  ],
+  "safe_area_xyxy": [
+    76,
+    76,
+    692,
+    692
+  ],
+  "video_models_called": [],
+  "maximum_paid_calls": 0,
+  "outputs": "assets/experiments/sw-motion-driver-v3",
+  "comparison_baseline": "assets/experiments/sw-motion-driver-v2"
+}
