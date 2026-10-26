@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "status": "characterized-awaiting-generated-pose-review",
+  "reference": {
+    "game": "Warcraft II",
+    "unit": "Grunt",
+    "origin": "https://www.spriters-resource.com/ms_dos/warcraftii/",
+    "mirror_url": "https://raw.githubusercontent.com/DevCrumbs/Warcraft-II/master/docs/Wiki_Files/SpriteSheet/Orcs/Grunt/PC%20Computer%20-%20Warcraft%202%20-%20Grunt.png",
+    "mirror_git_blob_sha1": "6ce7fdfb4d68c401782149df83d02414389736c5",
+    "sheet_dimensions_px": [
+      380,
+      631
+    ],
+    "selected_column_one_based": 3,
+    "facing": "quasi-profil vers la droite de l'écran",
+    "frame_count": 5,
+    "reading_order": "colonne 3, frames 1-5 de haut en bas",
+    "source_cell_size_px": [
+      76,
+      55
+    ],
+    "measurement_note": "Les coordonnées approx. sont locales à chaque crop 76×55, à ±5 pixels; elles décrivent le placement visible, non un squelette riggué exact.",
+    "limb_identification_rule": "Privilégier membre proche/éloigné et avant/arrière à l'écran; le côté anatomique gauche/droite n'est pas toujours identifiable derrière l'armure.",
+    "source_role": "référence de poses/foulée seulement, aucun pixel ou personnage Warcraft dans le rendu final"
+  },
+  "warconquer_unit": {
+    "image_reference": "assets/concepts/marches/units/hache.png",
+    "identity": "Fantassin HUMAIN original des Marches, ancien bûcheron de frontière, grande hache au manche réparé, vêtements rapiécés rouges oxydés, cuir sombre et cuivre patiné, rubans de mémoire, mêmes détails que le PNG WarConquer; ni orc ni pixel art.",
+    "handedness": "Main(s) et tenue de la hache constantes entre les 5 images; si les deux mains tiennent le manche, elles restent cohérentes.",
+    "camera": "vue légèrement plongeante, profil droit constant, corps et arme entièrement visibles",
+    "pixel_art": false,
+    "final_frame_size_px": [
+      512,
+      512
+    ]
+  },
+  "frames": [
+    {
+      "index": 1,
+      "source_rect_xywh": [
+        152,
+        0,
+        76,
+        55
+      ],
+      "phase": "contact serré; pieds presque superposés",
+      "observations": {
+        "body_axis": "tête presque à la verticale du bassin (x approximatif du bassin 39/76)",
+        "torso": "vertical; aucune propulsion brutale",
+        "legs": "les deux grosses bottes se superposent visuellement sous le bassin; pas de foulée large",
+        "feet": "talon/botte visible x~37..45, y~42..49; l'autre pied est largement caché",
+        "arms": "avant-bras visible porté bas légèrement vers la droite; bras éloigné en partie masqué",
+        "weapon": "outil bas près de la ceinture, dirigé vers la droite; aucun geste d'attaque",
+        "uncertain": [
+          "jambe anatomiquement gauche/droite sous l'armure",
+          "talon d'appui principal"
+        ]
+      },
+      "pose_constraints": [
+        "stance étroite",
+        "genoux rapprochés sous le bassin",
+        "aucune jambe étendue loin vers la droite",
+        "tête au-dessus des hanches",
+        "hache tenue basse"
+      ],
+      "annotation_confidence": "anatomical laterality uncertain; observable screen-space foot positions moderately confident"
+    },
+    {
+      "index": 2,
+      "source_rect_xywh": [
+        152,
+        55,
+        76,
+        55
+      ],
+      "phase": "grande foulée; botte avant loin vers la droite",
+      "observations": {
+        "body_axis": "bassin x~35/76, torse un peu vers l'avant",
+        "torso": "inclinaison modérée dans la direction de marche",
+        "legs": "une jambe s'étire loin derrière à gauche tandis que l'autre avance à droite; les bottes sont franchement séparées",
+        "feet": "botte arrière x~19..28 y~33..45; botte avant x~41..51 y~39..47",
+        "arms": "bras visible projeté en avant vers la droite à la hauteur du torse, autre bras en arrière",
+        "weapon": "hache/outil porté dans le balancier sans frappe, autour de l'abdomen",
+        "uncertain": [
+          "identité anatomique de la jambe avant"
+        ]
+      },
+      "pose_constraints": [
+        "pieds éloignés horizontalement",
+        "botte arrière nettement à gauche",
+        "botte avant nettement à droite",
+        "genou avant fléchi",
+        "pas de pieds réunis"
+      ],
+      "annotation_confidence": "anatomical laterality uncertain; observable screen-space foot positions moderately confident"
+    },
+    {
+      "index": 3,
+      "source_rect_xywh": [
+        152,
+        110,
+        76,
+        55
+      ],
+      "phase": "passage en mouvement; jambe arrière repliée",
+      "observations": {
+        "body_axis": "tête et torse toujours en profil droit; masse principale x~39/76",
+        "torso": "presque vertical, petit mouvement vers l'avant",
+        "legs": "un tibia est replié vers l'arrière gauche sous le corps, l'autre botte est plus basse et plus avancée vers le centre droit",
+        "feet": "tibia/pied arrière x~25..32 y~36..43; botte appui avant x~37..47 y~39..46",
+        "arms": "bras proche dirigé vers la droite au niveau poitrine; bras distant derrière le tronc",
+        "weapon": "objet bas/avant du bassin sans swing offensif",
+        "uncertain": [
+          "séparation exacte de la botte arrière de l'armure"
+        ]
+      },
+      "pose_constraints": [
+        "tibia arrière plié",
+        "botte arrière relevée ou raccourcie",
+        "appui avant sous centre/droite",
+        "écart plus petit qu'en frame 2",
+        "ne pas aligner deux jambes raides"
+      ],
+      "annotation_confidence": "anatomical laterality uncertain; observable screen-space foot positions moderately confident"
+    },
+    {
+      "index": 4,
+      "source_rect_xywh": [
+        152,
+        165,
+        76,
+        55
+      ],
+      "phase": "foulée opposée ouverte; bout de botte avant relevé",
+      "observations": {
+        "body_axis": "tête garde le même profil droit, bassin avance vers la droite",
+        "torso": "penché légèrement dans l'avancée",
+        "legs": "botte arrière bien à gauche, jambe opposée étendue vers la droite avec tibia vert nettement visible et pointe du pied relevée",
+        "feet": "botte arrière x~18..28 y~41..49; pied avant x~45..54 y~33..43",
+        "arms": "un bras recule et monte derrière le buste côté écran gauche; l'autre reste bas et vers l'avant",
+        "weapon": "hache suit le balancement inversé de la marche, pas un coup",
+        "uncertain": [
+          "identité anatomique gauche/droite de l'appui"
+        ]
+      },
+      "pose_constraints": [
+        "pointe du pied avant relevée à droite",
+        "pied arrière au sol à gauche",
+        "genoux et tibias lisiblement écartés",
+        "balancement des bras inversé par rapport à frame 2",
+        "aucune posture militaire figée"
+      ],
+      "annotation_confidence": "anatomical laterality uncertain; observable screen-space foot positions moderately confident"
+    },
+    {
+      "index": 5,
+      "source_rect_xywh": [
+        152,
+        220,
+        76,
+        50
+      ],
+      "phase": "fermeture de foulée; retour des pieds vers le milieu",
+      "observations": {
+        "body_axis": "torse redressé; vue de profil droit maintenue",
+        "torso": "vertical après propulsion",
+        "legs": "écart des pieds réduit après la frame 4; botte arrière reste légèrement gauche, avant légèrement droite",
+        "feet": "botte arrière x~24..37 y~36..44; botte avant x~40..50 y~36..44",
+        "arms": "bras reviennent vers un balancement neutre; moins exagéré qu'en frame 4",
+        "weapon": "près de la ceinture, port naturel pendant la marche",
+        "uncertain": [
+          "répartition du poids avec les bottes chevauchées"
+        ]
+      },
+      "pose_constraints": [
+        "réduction visible de l'écartement après frame 4",
+        "pas de pose fendue large",
+        "torse presque vertical",
+        "deux bottes lisibles sans se confondre totalement",
+        "transition crédible vers frame 1"
+      ],
+      "annotation_confidence": "anatomical laterality uncertain; observable screen-space foot positions moderately confident"
+    }
+  ]
+}
