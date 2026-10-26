@@ -39,7 +39,7 @@ def catalog():
         raise ValueError('Expected exactly 68 original catalog entries')
     objects = []
     for line in (ROOT / 'docs/object-asset-catalog.md').read_text().splitlines():
-        m = re.match(r'\\| ([^|]+) \\| ([^|]+) \\| \`(assets/concepts/[^\`]+)\` \\|', line)
+        m = re.match(r'\| ([^|]+) \| ([^|]+) \| `(assets/concepts/[^`]+)` \|', line)
         if not m:
             continue
         name, desc, path = m.groups()
@@ -50,7 +50,7 @@ def catalog():
             'neutral': 'aged ivory stone, old bronze, weathered oak, parchment, midnight blue ink, restrained oxblood accents'
         }[faction]
         refs_faction = faction if faction != 'neutral' else 'couronne'
-        objects.append(dict(name=name, output=path, prompt=f'{STYLE}\\nFaction/material palette: {palette}.\\nSubject: {desc}. This is ONE small narrative prop, not a building, scene or environment. No readable text, no floor, no surrounding scenery.', references=[f'assets/concepts/{refs_faction}/units/archer.png', f'assets/concepts/{refs_faction}/buildings/sanctuaire.png']))
+        objects.append(dict(name=name, output=path, prompt=f'{STYLE}\nFaction/material palette: {palette}.\nSubject: {desc}. This is ONE small narrative prop, not a building, scene or environment. No readable text, no floor, no surrounding scenery.', references=[f'assets/concepts/{refs_faction}/units/archer.png', f'assets/concepts/{refs_faction}/buildings/sanctuaire.png']))
     if len(objects) != 10:
         raise ValueError('Expected exactly 10 narrative object entries')
     return rows + objects
