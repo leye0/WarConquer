@@ -1,8 +1,15 @@
 {
-  "batch": "style-pilot-01",
-  "concurrency": 2,
+  "batch": "units-complete-matted-02",
+  "concurrency": 3,
   "targets": [
+    "assets/concepts/couronne/units/paysan.png",
     "assets/concepts/couronne/units/chapelain.png",
-    "assets/concepts/marches/units/ravaudeuse.png"
+    "assets/concepts/couronne/units/archiviste.png",
+    "assets/concepts/couronne/units/vigile.png",
+    "assets/concepts/couronne/units/conservateur.png",
+    "assets/concepts/marches/units/ravaudeuse.png",
+    "assets/concepts/marches/units/tisseur.png",
+    "assets/concepts/marches/units/vigile.png",
+    "assets/concepts/marches/units/passe_nom.png"
   ]
 }

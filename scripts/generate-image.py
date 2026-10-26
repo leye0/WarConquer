@@ -59,7 +59,7 @@ def generate(job):
     removed = False
     if im.getchannel('A').getextrema()[0] == 255:
         from rembg import remove, new_session
-        im = remove(im, session=new_session('u2netp'))
+        im = remove(im, session=new_session('u2netp'), alpha_matting=True)
         removed = True
     alpha = im.getchannel('A')
     hist = alpha.histogram()
