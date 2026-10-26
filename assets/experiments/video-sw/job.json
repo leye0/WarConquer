@@ -1,0 +1,28 @@
+{
+  "status": "completed",
+  "approved": false,
+  "model": "x-ai/grok-imagine-video-1.5-lite",
+  "source_sha256": "c3439d0d82570a2ee9fa578575e8a3e3ca8fb03732ea41edc9775318fbb8bb56",
+  "duration_seconds": 8,
+  "aspect_ratio": "1:1",
+  "resolution": "480p",
+  "job_id": "gen-vid-1793041150-iZkvgmFv3ERK823uSAy1",
+  "polling_url": "https://openrouter.ai/api/v1/videos/gen-vid-1793041150-iZkvgmFv3ERK823uSAy1",
+  "prompt": "ANIMATION TEST FOR A SINGLE ORIGINAL 2D RTS GAME CHARACTER. Use the reference image as the precise physical identity and INITIAL POSE of the axe-carrying human warrior. The image is a fixed camera view looking diagonally downward at a standing warrior whose facing is SOUTHWEST (SW) in screen/world coordinates. SOUTHWEST MEANS TOWARD THE BOTTOM-LEFT CORNER OF THE IMAGE: LEFT AND DOWN SIMULTANEOUSLY. His body, eyes, chest and axe always point toward the lower-left (screen SW), keeping the EXACT same southwest-facing three-quarter camera view from start to finish. He must NEVER face south only, west only, right, toward the camera, or away from the camera, and must NEVER turn his body around.\n\nEXACT TIMING AND TWO SEPARATE ACTIONS in one continuous shot of exactly eight seconds:\n0.0s to 4.0s: WALK ONLY. Natural alternating footsteps with visible knee bends, feet making actual contact with the ground. Walk FORWARD in the direction the warrior is facing: SOUTHWEST, toward screen lower-left (left and down together). Travel only a short distance, no more than half a character's body width, so he remains fully visible, and keep his facing SW constant. DO NOT walk on the spot while facing a different direction. No attack during this interval.\n4.0s to 8.0s: STOP WALKING COMPLETELY, PLANT BOTH FEET, and execute deliberate readable AXE STRIKES aimed TOWARD THE SAME SOUTHWEST direction, downward and toward screen lower-left. Swing, follow-through, reset, repeat once if time allows. Never spin or change facing. No walking during this interval.\n\nCharacter design must remain EXACTLY the same individual as the reference, with the identical face, hairstyle, crimson/oxblood and charcoal clothing, leather armor, bracelets, detailed large axe head, shaft, belts and attachments. Same axe in the same anatomical hand. Head, boots and axe all visible at ALL times. Modern sharply detailed hand-painted 2D game art, NOT PIXEL ART. ONE character only. Flat static uniform pale-neutral background, no environment, obstacles, extra characters, motion blur, UI or lettering, NO camera pan/zoom/orbit/cut. Keep the slightly elevated orthographic RTS camera fixed. The SW direction and sequence WALK FIRST, ATTACK SECOND are more important than cinematic flair. Motion should be useful for extracting sprite frames later.\n",
+  "attempted_preflight": [
+    {
+      "model": "bytedance/seedance-1-5-pro:free",
+      "reason": "not-listed-by-videos-models"
+    },
+    {
+      "model": "bytedance/seedance-1-5-pro",
+      "reason": "OpenRouter HTTP 400: HTTP 400: {\"error\":{\"code\":\"InvalidParameter\",\"message\":\"expected the width to be at least 300px, but received a 256x256px image instead Request id: 021793041149154023ef2751affb982"
+    }
+  ],
+  "usage": {
+    "cost": 0.17,
+    "is_byok": false
+  },
+  "pipeline_error_type": "FileNotFoundError",
+  "pipeline_error": "[Errno 2] No such file or directory: 'ffprobe'"
+}
