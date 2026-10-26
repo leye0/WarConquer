@@ -1,0 +1,20 @@
+{
+  "version": 3,
+  "experiment": "SW_textured_safety_frame_single_video",
+  "direction": "SW",
+  "model": "x-ai/grok-imagine-video-1.5-lite",
+  "duration_seconds": 8,
+  "walk_seconds": 4,
+  "attack_seconds": 4,
+  "reference_size_px": 768,
+  "resolution": "480p",
+  "aspect_ratio": "1:1",
+  "audio": false,
+  "max_accepted_jobs": 1,
+  "border_px": 22,
+  "warning_band_px": 54,
+  "first_frame": "assets/experiments/standing-turnaround/marches_hache/SW.png",
+  "output": "assets/experiments/video-sw-textured/SW-walk-then-attack-textured.mp4",
+  "source_policy": "Existing SW.PNG only; no Muse or eight-direction generation",
+  "notes": "One continuous 8-second paid 480p video: SW walk 0-4s, stop and attack 4-8s, immutable textured border. No paid retry after an ambiguous attempt. Human visual approval required."
+}
