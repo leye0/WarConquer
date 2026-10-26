@@ -107,6 +107,16 @@ def main():
     img,model,prompt,usage=run(job,ref,crop)
     out.parent.mkdir(parents=True,exist_ok=True)
     opaque=img.getchannel("A").getextrema()[0]==255
+    if opaque and all(max(img.getpixel(pos)[:3])<10 for pos in ((0,0),(img.width-1,0),(0,img.height-1),(img.width-1,img.height-1))):
+      # Muse frequently returns beautifully painted sprites on solid black.
+      # rembg destroys those details. Restore the original raw PNG from matte
+      # instead, with measured row geometry; keep DRAFT if phases are missing.
+      import subprocess
+      subprocess.run(["python","scripts/postprocess-muse-sprites.py",
+                      "--input",str(TMP/"muse-original-response.png"),
+                      "--run-id",os.environ.get("GITHUB_RUN_ID","new")],
+                     cwd=ROOT,check=True)
+      return
     if opaque:
       from rembg import remove,new_session
       img=remove(img,session=new_session("u2netp"),alpha_matting=False)

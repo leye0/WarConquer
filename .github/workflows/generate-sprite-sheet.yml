@@ -24,7 +24,7 @@ jobs:
           path: ~/.u2net
           key: rembg-u2netp-v1
       - name: Install image utilities
-        run: python -m pip install 'Pillow==11.3.0' 'rembg[cpu]==2.0.67'
+        run: python -m pip install 'Pillow==11.3.0' 'rembg[cpu]==2.0.67' 'numpy==2.2.6' 'scipy==1.16.2'
       - name: Validate request without API cost
         run: python scripts/generate-sprite-sheet.py --dry-run
       - name: Download layout reference then generate via Muse

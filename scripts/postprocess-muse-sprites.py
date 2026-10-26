@@ -14,12 +14,14 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument("--input",default="sprite-output-raw/muse-original-response.png")
     p.add_argument("--output-dir",default="assets/spritesheets/drafts")
-    p.add_argument("--run-id",default="40358268004")
+    p.add_argument("--run-id",default="new")
+    p.add_argument("--expected-sha256",default="")
     args=p.parse_args()
     src=(ROOT/args.input).resolve()
     if not src.is_file():raise FileNotFoundError("Muse raw artifact missing")
     raw_bytes=src.read_bytes()
-    if hashlib.sha256(raw_bytes).hexdigest()!=RAW_SHA256:
+    expected=args.expected_sha256 or (RAW_SHA256 if args.run_id=="40358268004" else "")
+    if expected and hashlib.sha256(raw_bytes).hexdigest()!=expected:
         raise ValueError("Unexpected Muse raw image; abort postprocessing")
     rgb=np.asarray(Image.open(src).convert("RGB"),dtype=np.uint8)
     h,w=rgb.shape[:2]
@@ -87,7 +89,7 @@ def main():
     preview.convert("RGB").save(reviewpath)
     meta={
       "source_run_id":str(args.run_id),"model":"meta/muse-image",
-      "status":"incomplete-draft-awaiting-human-review","expected_grid":[5,5],
+      "status":"incomplete-draft-awaiting-human-review" if len(runs)!=5 else "draft-awaiting-human-review","expected_grid":[5,5],
       "actual_grid":[5,len(runs)],"frame_size":[CELL,CELL],
       "source_dimensions":[w,h],"output_dimensions":list(atlas.size),
       "row_intervals":runs,"cell_alpha_coverage":fill,"source_frame_bounds":bounds,
