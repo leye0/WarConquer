@@ -1,8 +1,13 @@
 {
-  "prompt": "Edit the attached reference image with maximum fidelity. Preserve the SAME crouching human infiltrator, carved dark half-mask, clothing, blade, anatomy, painterly style and faction palette. Make the small rectangular name tablet entirely blank aged wood with simple abstract scratches, NO letters, NO digits, NO readable text anywhere. Complete isolated figure, clean transparent background.",
-  "output": "assets/concepts/marches/units/passe_nom_clean.png",
-  "references": [
-    "assets/concepts/marches/units/passe_nom.png"
+  "targets": [
+    "assets/concepts/couronne/ships/transport.png",
+    "assets/concepts/couronne/ships/escorte.png",
+    "assets/concepts/couronne/ships/dragueur.png",
+    "assets/concepts/couronne/ships/artillerie.png",
+    "assets/concepts/marches/ships/transport.png",
+    "assets/concepts/marches/ships/escorte.png",
+    "assets/concepts/marches/ships/dragueur.png",
+    "assets/concepts/marches/ships/artillerie.png"
   ],
-  "concurrency": 1
+  "concurrency": 3
 }
