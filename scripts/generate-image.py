@@ -76,7 +76,8 @@ def api(payload):
 
 def generate(job):
     target = safe_path(job['output'])
-    if target.exists():
+    replacing = target.exists()
+    if replacing and not job.get('replace_existing', False):
         return dict(output=job['output'], status='skipped-existing')
     refs, hashes = [], {}
     for value in job['references']:
@@ -108,7 +109,7 @@ def generate(job):
         raise ValueError('Invalid alpha/empty foreground; raw retained for review')
     target.parent.mkdir(parents=True, exist_ok=True)
     im.save(target)
-    meta = dict(job, status='generated-awaiting-visual-review', model=os.environ['OPENROUTER_IMAGE_MODEL'], reference_sha256=hashes, background_removed=removed, size=list(im.size), transparent_fraction=transparent, sha256=hashlib.sha256(target.read_bytes()).hexdigest(), usage=result.get('usage', {}))
+    meta = dict(job, replaced_previous=replacing, status='generated-awaiting-visual-review', model=os.environ['OPENROUTER_IMAGE_MODEL'], reference_sha256=hashes, background_removed=removed, size=list(im.size), transparent_fraction=transparent, sha256=hashlib.sha256(target.read_bytes()).hexdigest(), usage=result.get('usage', {}))
     target.with_suffix('.json').write_text(json.dumps(meta, indent=2, ensure_ascii=False) + '\n')
     return meta
 
@@ -121,9 +122,11 @@ def main():
     if 'prompt' in request:
         jobs = [dict(request, prompt=STYLE + '\nSubject: ' + request['prompt'])]
     else:
-        jobs = [r for r in catalog() if r['output'] in request['targets']]
+        jobs = [dict(r, replace_existing=r['output'] in request.get('replace_existing', [])) for r in catalog() if r['output'] in request['targets']]
         if len(jobs) != len(set(request['targets'])):
             raise ValueError('Unknown catalog target')
+    if not set(request.get('replace_existing', [])).issubset({j['output'] for j in jobs}):
+        raise ValueError('replace_existing must be a subset of the selected target paths')
     if not 1 <= len(jobs) <= 78:
         raise ValueError('Expected 1..78 jobs')
     workers = int(request.get('concurrency', 3))
