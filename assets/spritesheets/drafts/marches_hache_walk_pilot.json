@@ -1,82 +1,210 @@
 {
-  "transparent_fraction": 0.90693,
-  "cell_fill": [
-    [
-      0.001,
-      0.0184,
-      0.0053,
-      0.0,
-      0.0
-    ],
-    [
-      0.05,
-      0.0778,
-      0.028,
-      0.0,
-      0.0
-    ],
-    [
-      0.0,
-      0.0006,
-      0.0,
-      0.0,
-      0.0
-    ],
-    [
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0
-    ],
-    [
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0
-    ]
-  ],
-  "all_cells_present_heuristic": false,
-  "status": "draft-awaiting-visual-review",
-  "warning": "Pixel statistics do not prove 25 correct poses or consistent identity",
+  "source_run_id": "40358268004",
   "model": "meta/muse-image",
-  "original_reference_url": "https://raw.githubusercontent.com/DevCrumbs/Warcraft-II/master/docs/Wiki_Files/SpriteSheet/Orcs/Grunt/PC%20Computer%20-%20Warcraft%202%20-%20Grunt.png",
-  "original_sha256": "75d633475d345ab17985cefe801e1fd353ae59b9f8fd47d9a8f2c63cc9bdeee6",
+  "status": "incomplete-draft-awaiting-human-review",
+  "expected_grid": [
+    5,
+    5
+  ],
+  "actual_grid": [
+    5,
+    4
+  ],
+  "frame_size": [
+    448,
+    448
+  ],
   "source_dimensions": [
-    380,
-    631
-  ],
-  "source_crop": [
-    380,
-    274
-  ],
-  "warconquer_unit_reference": "assets/concepts/marches/units/hache.png",
-  "warconquer_unit_sha256": "40596135f14365c2a77258cd34fe8285c2968fc791816023fbe37cdb197982c7",
-  "output_dimensions": [
     1600,
     1600
   ],
-  "output_sha256": "c7e08753d348e045bfe3ca2ee7e1dbb01bbab89a3e53d88bc496fba6f1f69202",
-  "cutout_applied": true,
-  "prompt": "Create ONE original WarConquer 2D sprite animation sheet in modern HIGH-DEFINITION, smooth antialiased hand-painted fantasy RTS art. The first input reference is an archival Warcraft II sprite-sheet excerpt for MOTION STRUCTURE ONLY; the second input reference is the visual identity of our WarConquer unit.\n\nEXACT REGULAR GRID: 5 COLUMNS by 5 ROWS, 25 full-body sprites. There are FIVE CAMERA DIRECTIONS across columns: frontal three-quarter, diagonal toward camera, side, diagonal away, back three-quarter, following their precise angles in reference 1. There are FIVE SUCCESSIVE WALKING PHASES DOWN EACH COLUMN (not across rows). Each column must keep its own direction and animate the same walking cycle from the top cell to the bottom cell. Same feet baseline, same body size, same weapon side, matching directional foreshortening.\n\nUse reference 2 as an exclusive CHARACTER DESIGN guide: identical WarConquer clothing, distinct humanoid identity, equipment, weapons, palette and painting treatment in ALL 25 cells. No Warcraft II species, helmets, colors, paintings, pixels, decals, identifiable costumes or figures. Do not pixelate. No game UI, text, captions, white squares, blue backgrounds, shadows or tile borders.\n\nTransparent single composite PNG. Five rows x five columns, all separated with uniform gaps. Nothing clipped or missing, no overlapping tiles. Professional attractive crisp detailed RTS sprites. No alternate characters or poses invented outside the walk-cycle geometry.\n\nUNIT: Original WarConquer Marches axe infantryman, HUMAN ex-woodsman of the border, large repaired haft of his axe; patched oxblood wool, soot-dark armor, weathered leather straps, dark oak, patinated copper and memory-ribbons. Never resemble a Warcraft orc; preserve our exact WarConquer concept design.\nThe source Grunt sprite sheet has 5 columns of facing directions and 5 full rows of walking poses at the top. Read TIME VERTICALLY down each column: rows 1-5 are walk cycle frames, columns 1-5 are five real facing directions. Preserve that exact structure and position mapping in the new WarConquer human axe-fighter, fully replacing the visual character. Anchor feet at the same baseline in every image.",
-  "usage": {
-    "prompt_tokens": 555,
-    "completion_tokens": 3184,
-    "total_tokens": 3739,
-    "cost": 0.01,
-    "is_byok": false,
-    "prompt_tokens_details": {
-      "cached_tokens": 0
-    },
-    "cost_details": {
-      "upstream_inference_cost": 0.01,
-      "upstream_inference_prompt_cost": 0,
-      "upstream_inference_completions_cost": 0.01
-    },
-    "completion_tokens_details": {
-      "reasoning_tokens": 0,
-      "image_tokens": 3184
-    }
-  }
+  "output_dimensions": [
+    2240,
+    1792
+  ],
+  "row_intervals": [
+    [
+      33,
+      408
+    ],
+    [
+      461,
+      819
+    ],
+    [
+      862,
+      1205
+    ],
+    [
+      1232,
+      1568
+    ]
+  ],
+  "cell_alpha_coverage": [
+    [
+      0.3758,
+      0.3102,
+      0.288,
+      0.2903,
+      0.3316
+    ],
+    [
+      0.3494,
+      0.304,
+      0.284,
+      0.284,
+      0.3248
+    ],
+    [
+      0.3317,
+      0.2836,
+      0.2894,
+      0.2819,
+      0.3131
+    ],
+    [
+      0.3336,
+      0.3058,
+      0.287,
+      0.2805,
+      0.3158
+    ]
+  ],
+  "source_frame_bounds": [
+    [
+      [
+        33,
+        6,
+        319,
+        368
+      ],
+      [
+        43,
+        15,
+        319,
+        378
+      ],
+      [
+        67,
+        9,
+        302,
+        374
+      ],
+      [
+        59,
+        7,
+        295,
+        375
+      ],
+      [
+        34,
+        13,
+        280,
+        385
+      ]
+    ],
+    [
+      [
+        39,
+        8,
+        313,
+        349
+      ],
+      [
+        49,
+        10,
+        308,
+        353
+      ],
+      [
+        67,
+        7,
+        300,
+        355
+      ],
+      [
+        60,
+        6,
+        293,
+        356
+      ],
+      [
+        34,
+        13,
+        276,
+        368
+      ]
+    ],
+    [
+      [
+        47,
+        11,
+        307,
+        337
+      ],
+      [
+        69,
+        8,
+        307,
+        337
+      ],
+      [
+        67,
+        6,
+        300,
+        341
+      ],
+      [
+        64,
+        9,
+        293,
+        344
+      ],
+      [
+        36,
+        17,
+        274,
+        353
+      ]
+    ],
+    [
+      [
+        45,
+        8,
+        306,
+        330
+      ],
+      [
+        52,
+        7,
+        302,
+        331
+      ],
+      [
+        66,
+        6,
+        299,
+        334
+      ],
+      [
+        64,
+        7,
+        290,
+        335
+      ],
+      [
+        36,
+        12,
+        274,
+        346
+      ]
+    ]
+  ],
+  "matte_method": "connected-components foreground + black-background alpha extraction; rembg avoided",
+  "source_raw_sha256": "390107869a4aeefb73885bff8ddb66e972dec895843fe99a2162e081386f2677",
+  "output_sha256": "a830f9025754cd57ef7979f6198dcb1d04b6297c965a3a0c4a324a3f89bc1308",
+  "warnings": [
+    "Muse produced four rows instead of five",
+    "Angles and gait still need review before this guide can be accepted"
+  ]
 }
