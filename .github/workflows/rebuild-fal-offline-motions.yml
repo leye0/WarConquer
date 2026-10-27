@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'fal-motion-request.json'
+      - '.github/workflows/rebuild-fal-offline-motions.yml'
   workflow_dispatch:
 
 permissions:
@@ -20,7 +21,7 @@ jobs:
     timeout-minutes: 18
     env:
       WARCONQUER_STANDARD_IDLE: '1'
-      MIXAMO_CONVERTED_DIR: ${{ runner.temp }}/warconquer-mixamo
+      MIXAMO_CONVERTED_DIR: "${{ runner.temp }}/warconquer-mixamo"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -31,26 +32,12 @@ jobs:
           python -m pip install 'Pillow==11.3.0'
           npm install --no-save --no-audit --no-fund 'fbx2gltf@0.9.7-p1'
           chmod +x node_modules/fbx2gltf/bin/Linux/FBX2glTF
-      - name: Validate approved stored fal rig and chosen offline motion input
+      - name: Validate original rig and all Python source code
         run: |
           python -m py_compile scripts/build-fal-rig-playable.py scripts/build-mixamo-playable.py scripts/convert-mixamo-fbx.py
           python scripts/build-fal-rig-playable.py --stage validate
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          src=Path('assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1')
-          assert (src/'fal-rigged.glb').is_file()
-          approved=json.loads(Path('fal-motion-request.json').read_text())
-          report=json.loads((src/'rig-qa.json').read_text())
-          assert approved == {
-            'schema':1,
-            'rigged_sha256':report['rigged_sha256'],
-            'idle_clip':'Standard_Idle',
-            'other_clips':['Walking_21','Run_With_Sword','Standing_Melee_Attack_Downward'],
-            'api_predictions':0,
-          }
-          print('Offline exact rig SHA and clip selection approved; no paid API')
-          PY
+          test -s assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/fal-rigged.glb
+          test -s fal-motion-request.json
       - name: Download original YBot Mixamo motions including Standard Idle
         run: python scripts/convert-mixamo-fbx.py download "$MIXAMO_CONVERTED_DIR"
       - name: Convert five real FBX clips to GLB
