@@ -137,3 +137,8 @@ Le pilote `fal-textured.glb` est une génération **séparée, UV texturée mais
 ## Registre générique des actions par équipement
 
 La bibliothèque `scripts/equipment-animation-policy.js` décrit douze catégories d'équipement et ne choisit que les gestes réellement présents dans les groupes d'animations du GLB. L'arène utilise maintenant ce registre après avoir équipé un objet reconnu par vision ; une attaque incompatible est désactivée. Un arc exige un adaptateur de préhension, un geste de tir, une contrainte de seconde main et un événement `arrow_release`, tous absents du guerrier actuel. Cela empêche qu'un mouvement de hache serve à tirer une flèche. Les données de QA `equipmentAction`, `equipmentReady` et `equipmentMissing` rendent cette validation observable. Voir [la chaîne de production](character-production-pipeline.md).
+
+
+## Inventaire audité des véritables animations
+
+Le manifeste [`data/motion-library.json`](../data/motion-library.json) indexe neuf FBX sources Mixamo connus, dont huit réellement utilisés dans le GLB fal.ai. [`scripts/audit-motion-library.mjs`](../scripts/audit-motion-library.mjs) compare automatiquement les huit animations aux noms présents dans le GLB, vérifie que l'attaque à la hache est compatible, et refuse d'assimiler cette attaque à un tir à l'arc. `node scripts/audit-motion-library.mjs bow` affiche les termes de recherche et les adaptateurs encore manquants. Aucun nouveau FBX n'est téléchargé et aucune IA payante n'est appelée par cet audit. Les gestes d'archerie restent **à acquérir et intégrer**, avec IK et événement de lâcher.
