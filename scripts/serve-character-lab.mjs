@@ -101,7 +101,7 @@ const server = createServer((req, res) => {
   }
   if (pathname === "/" || pathname === "/character-lab.html") {
     pathname = "/character-lab.html";
-  } else if (!pathname.startsWith("/assets/")) {
+  } else if (pathname !== "/scripts/character-lab-client.js" && !pathname.startsWith("/assets/")) {
     return send(res, 404, "Not found");
   }
   let absolute;
