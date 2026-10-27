@@ -1,0 +1,31 @@
+name: Equipment · source-art geometric checks (offline)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/measure-prop-scale-blind.py'
+      - 'scripts/test-measure-prop-scale-blind.py'
+      - '.github/workflows/check-prop-geometry.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install image geometry helper
+        run: python -m pip install 'Pillow==11.3.0'
+      - name: Test image-only geometry, blade lateral width and no plan anchoring
+        run: |
+          python -m py_compile scripts/measure-prop-scale-blind.py scripts/test-measure-prop-scale-blind.py
+          python scripts/test-measure-prop-scale-blind.py
+          python scripts/measure-prop-scale-blind.py --check
+          echo 'PASS: offline geometry verified, no paid model requests'
