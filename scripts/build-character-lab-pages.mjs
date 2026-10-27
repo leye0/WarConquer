@@ -62,6 +62,10 @@ for (const character of catalog.characters) {
 let bytes = 0;
 bytes += publish("character-lab.html", "index.html");
 bytes += publish("character-lab.html");
+bytes += publish("perception-lab.html");
+bytes += publish("scripts/arena-scene.js");
+bytes += publish("scripts/perception-brain.js");
+bytes += publish("scripts/perception-lab-client.js");
 bytes += publish("scripts/character-lab-client.js");
 bytes += publish("scripts/weapon-grip-geometry.js");
 bytes += publish("scripts/equipment-animation-policy.js");

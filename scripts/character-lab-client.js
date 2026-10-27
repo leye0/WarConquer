@@ -132,70 +132,13 @@
   }
 
   function createWorld() {
-    if (!window.BABYLON) {
-      setStatus("Babylon.js n'a pas chargé. Vérifiez la connexion Internet.", "error");
+    if (!window.BABYLON || !window.WCArena) {
+      setStatus("Le moteur Babylon.js ou l'arène commune n'a pas chargé.", "error");
       setOverlay("Le moteur 3D n'a pas pu être chargé.", true);
       return false;
     }
-    const B = BABYLON;
-    const canvas = byId("world");
-    const engine = new B.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
-    const scene = new B.Scene(engine);
-    scene.clearColor = B.Color4.FromHexString("#141b24ff");
-    scene.ambientColor = new B.Color3(.43,.47,.53);
-    const camera = new B.ArcRotateCamera("isometric", -Math.PI / 4, Math.PI / 3.25,
-      13, new B.Vector3(0,.9,0), scene);
-    camera.mode = B.Camera.ORTHOGRAPHIC_CAMERA;
-    camera.lowerBetaLimit = .45; camera.upperBetaLimit = 1.37;
-    camera.lowerRadiusLimit = 6; camera.upperRadiusLimit = 23;
-    camera.wheelPrecision = 60;
-    camera.panningSensibility = 0;
-    camera.attachControl(canvas, true);
-    scene.activeCamera = camera;
-    const sun = new B.DirectionalLight("sun", new B.Vector3(-.6,-1,-.5), scene);
-    sun.position = new B.Vector3(9,13,7); sun.intensity = 1.8;
-    const sky = new B.HemisphericLight("ambient", new B.Vector3(0,1,0), scene);
-    sky.intensity = .85;
-    sky.groundColor = new B.Color3(.28,.31,.32);
-    const ground = B.MeshBuilder.CreateGround("terrain", { width: 32, height: 32 }, scene);
-    const groundMat = new B.StandardMaterial("groundMaterial", scene);
-    groundMat.diffuseColor = new B.Color3(.23,.30,.27);
-    groundMat.specularColor = B.Color3.Black();
-    ground.material = groundMat;
-    ground.receiveShadows = true;
-    const lines = [];
-    for (let i = -16; i <= 16; i++) {
-      lines.push([new B.Vector3(-16,.009,i),new B.Vector3(16,.009,i)]);
-      lines.push([new B.Vector3(i,.009,-16),new B.Vector3(i,.009,16)]);
-    }
-    const grid = B.MeshBuilder.CreateLineSystem("terrainGrid", { lines }, scene);
-    grid.color = new B.Color3(.33,.41,.36);
-    grid.alpha = .52;
-    const shadow = new B.ShadowGenerator(1024,sun);
-    shadow.useBlurExponentialShadowMap = true;
-    shadow.blurKernel = 12;
-    function decorateStone(x,z,r) {
-      const stone = B.MeshBuilder.CreateSphere("stone", { diameter: 1, segments: 6 },scene);
-      stone.position = new B.Vector3(x,r*.33,z);
-      stone.scaling = new B.Vector3(r*1.2,r*.52,r*.8);
-      const mat = new B.StandardMaterial("stoneGray",scene);
-      mat.diffuseColor = new B.Color3(.36,.42,.40);
-      mat.specularColor = B.Color3.Black();
-      stone.material=mat;
-      stone.receiveShadows = true;
-    }
-    [[-6,-4,.7],[6,4,.5],[-4,7,.8],[7,-6,.65],[-8,5,.5],[3,9,.45]]
-      .forEach(p => decorateStone(...p));
-    const markers = [
-      [[-2.6,0,0],[-1.3,0,0]],[[1.3,0,0],[2.6,0,0]],
-      [[0,0,-2.6],[0,0,-1.3]],[[0,0,1.3],[0,0,2.6]]
-    ];
-    const accent = B.MeshBuilder.CreateLineSystem("spawnMarks",{
-      lines:markers.map(pair=>pair.map(v=>new B.Vector3(v[0],.022,v[2])))
-    },scene);
-    accent.color = new B.Color3(.83,.65,.35);
-    state.scene=scene;state.engine=engine;state.camera=camera;
-    state.sun=shadow;
+    const {engine,scene,camera,shadow}=WCArena.create(byId("world"),BABYLON);
+    state.scene=scene;state.engine=engine;state.camera=camera;state.sun=shadow;
     setIsometricCamera();
     engine.runRenderLoop(() => {
       update(engine.getDeltaTime()/1000);
@@ -208,18 +151,9 @@
 
   function setIsometricCamera() {
     if (!state.camera || !state.engine) return;
-    const camera=state.camera;
-    const size=state.engine.getRenderWidth()/Math.max(1,state.engine.getRenderHeight());
-    camera.alpha=-Math.PI/4;
-    camera.beta=Math.PI/3.25;
-    // A narrower screen needs more headroom above the character and its touch HUD.
-    camera.radius=window.matchMedia('(max-width:520px)').matches?10.5:13;
-    camera.orthoTop=2.7;
-    camera.orthoBottom=-2.7;
-    camera.orthoLeft=-2.7*size;
-    camera.orthoRight=2.7*size;
     const p=state.character?.position;
-    camera.setTarget(new BABYLON.Vector3(p?.x||0,.85,p?.z||0));
+    WCArena.fitCamera(state.camera,state.engine,BABYLON,p,
+      window.matchMedia("(max-width:520px)").matches);
     state.follow=true;
     byId("cameraMode").textContent="ISO · SUIVI";
   }
@@ -758,16 +692,8 @@
   function update(delta) {
     const B=BABYLON;
     const dt=Math.min(.055,Math.max(0,delta||0));
-    // An orthographic ArcRotateCamera changes radius on wheel; update the
-    // orthographic extents so wheel zoom actually changes visible scale.
-    if (state.camera && state.engine) {
-      const half=2.7*state.camera.radius/13;
-      const aspect=state.engine.getRenderWidth()/Math.max(1,state.engine.getRenderHeight());
-      state.camera.orthoTop=half;
-      state.camera.orthoBottom=-half;
-      state.camera.orthoLeft=-half*aspect;
-      state.camera.orthoRight=half*aspect;
-    }
+    if (state.camera && state.engine)
+      WCArena.refreshCameraScale(state.camera,state.engine);
     const pressed=key=>state.input.has(key)||state.touch.has(key);
     updateFireballs(dt);
     const vertical=(pressed("w")||pressed("arrowup")?1:0)-(pressed("s")||pressed("arrowdown")?1:0);

@@ -24,6 +24,12 @@ node scripts/serve-character-lab.mjs
 
 Ouvrir ensuite **http://127.0.0.1:4173/character-lab.html**. Aucun appel aux modèles payants n'est effectué. Important : le premier personnage possède un clip d'attaque, mais pas encore de véritable animation de marche (le déplacement WASD fonctionne sans cycle de jambes). Voir [la documentation du terrain](docs/character-lab.md).
 
+## Laboratoire de perception et navigation
+
+Le [Perception Lab](perception-lab.html) réutilise **la même arène 3D** que le Character Lab (module [arena-scene.js](scripts/arena-scene.js)). On y ajoute des ennemis, alliés, ressources et obstacles, puis on donne des ordres à un éclaireur : aller, contourner, trouver, s'approcher, fuir, attaquer et tenter de ramasser. Vision, occlusion, mémoire individuelle et A* fonctionnent sans LLM ni coût API. Le personnage joue les clips réels de son GLB lorsqu'ils existent.
+
+Démarrer le serveur Character Lab, puis ouvrir http://127.0.0.1:4173/perception-lab.html. Le nouveau lab sera aussi inclus dans GitHub Pages. Détails et tests : [docs/perception-lab.md](docs/perception-lab.md).
+
 ---
 
 # WebSuite — visual browser automation for development agents

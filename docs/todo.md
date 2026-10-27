@@ -1,6 +1,6 @@
 # WarConquer — TODO : personnages vivants et personnalisables
 
-> **Statut :** idées à explorer, non implémentées et non priorisées, sauf la section « Plus tard ». Ce document complète la [bible du jeu](game-bible.md), le [pipeline de personnages et d'équipements](character-production-pipeline.md) et le [Character Lab](character-lab.md). Les choix techniques ci-dessous sont des pistes, pas des décisions figées.
+> **Statut :** idées à explorer et non priorisées, sauf indication contraire. Un premier prototype du volet perception/navigation est décrit dans le [Perception Lab](perception-lab.md). Ce document complète la [bible du jeu](game-bible.md), le [pipeline de personnages et d'équipements](character-production-pipeline.md) et le [Character Lab](character-lab.md). Les choix techniques ci-dessous sont des pistes, pas des décisions figées.
 
 ## Apparence et équipement
 
@@ -12,6 +12,7 @@
 - [ ] **Reconnaissance rapide et intelligente du terrain, assistée par LLM.** Un système peu lent et peu coûteux doit interpréter ce que chaque personnage peut voir de la carte : chemins, obstacles, passages, relief, dangers, ressources, autres unités et points d'intérêt. Il doit aider le personnage à s'orienter et à choisir des initiatives de déplacement pertinentes.
   - Conserver une **mémoire spatiale individuelle** : endroits déjà vus, observations, changements constatés et incertitudes, en respectant le brouillard de guerre et les limites de perception.
   - Étudier une approche hybride : géométrie/navigation déterministe pour les trajets précis, reconnaissance et raisonnement contextuel pour les décisions, avec cache et actualisations sur événements pour éviter un appel LLM à chaque frame.
+  - **Prototype v0.1 :** arène commune, objets typés éditables (unité amie/ennemie, ressource, obstacle), ligne de vue, mémoire individuelle bornée, A*, ordres structurés, peur/fuite et intentions d’attaque/ramassage. Voir [Perception Lab](perception-lab.md). Le modèle contextuel reste à développer.
 
 ## Pensée, dialogue et ordres
 

@@ -1,0 +1,44 @@
+{
+  "html": "perception-lab.html",
+  "steps": [
+    {
+      "action": "wait",
+      "ms": 1800
+    },
+    {
+      "action": "click",
+      "selector": "#playPause"
+    },
+    {
+      "action": "assertText",
+      "selector": "#playPause",
+      "includes": "Reprendre"
+    },
+    {
+      "action": "click",
+      "selector": "[data-order=\"find\"]"
+    },
+    {
+      "action": "assertText",
+      "selector": "#status",
+      "includes": "Ordre transmis"
+    },
+    {
+      "action": "screenshot",
+      "name": "01-find-order"
+    },
+    {
+      "action": "click",
+      "selector": "#singleStep"
+    },
+    {
+      "action": "assertText",
+      "selector": "#brainState",
+      "includes": "moving"
+    },
+    {
+      "action": "screenshot",
+      "name": "02-perception-step"
+    }
+  ]
+}

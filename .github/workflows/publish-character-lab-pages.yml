@@ -5,6 +5,11 @@ on:
     branches: [main]
     paths:
       - 'character-lab.html'
+      - 'perception-lab.html'
+      - 'scripts/arena-scene.js'
+      - 'scripts/perception-brain.js'
+      - 'scripts/perception-lab-client.js'
+      - 'scripts/test-perception-brain.mjs'
       - 'scripts/character-lab-client.js'
       - 'scripts/weapon-grip-geometry.js'
       - 'scripts/equipment-animation-policy.js'
@@ -41,6 +46,10 @@ jobs:
       - name: Validate client and static exporter
         run: |
           node --check scripts/character-lab-client.js
+          node --check scripts/arena-scene.js
+          node --check scripts/perception-brain.js
+          node --check scripts/perception-lab-client.js
+          node scripts/test-perception-brain.mjs
           node --check scripts/weapon-grip-geometry.js
           node --check scripts/equipment-animation-policy.js
           node scripts/test-equipment-animation-policy.mjs
@@ -59,6 +68,10 @@ jobs:
             const dir = process.env.PAGES_DIR;
             assert(existsSync(join(dir, "index.html")));
             assert(existsSync(join(dir, "scripts/character-lab-client.js")));
+            assert(existsSync(join(dir, "perception-lab.html")));
+            assert(existsSync(join(dir, "scripts/arena-scene.js")));
+            assert(existsSync(join(dir, "scripts/perception-brain.js")));
+            assert(existsSync(join(dir, "scripts/perception-lab-client.js")));
             assert(existsSync(join(dir, "scripts/weapon-grip-geometry.js")));
             assert(existsSync(join(dir, "scripts/equipment-animation-policy.js")));
             const data = JSON.parse(readFileSync(join(dir, "api/character-lab.json")));

@@ -9,6 +9,7 @@ on:
       - '.github/workflows/websuite.yml'
       - 'scripts/websuite.mjs'
       - 'examples/render-interaction.json'
+      - 'examples/perception-lab-scenario.json'
   workflow_dispatch:
     inputs:
       html_path:
@@ -63,7 +64,10 @@ jobs:
             fi
             if [[ ! -s "$targets" ]]; then printf '%s\0' 'patate.html' > "$targets"; fi
             node scripts/websuite.mjs --nul-list "$targets" renders
-            echo "Rendered changed HTML files in a single Chrome session." >> "$GITHUB_STEP_SUMMARY"
+            if grep -azq "perception-lab.html" "$targets"; then
+              node scripts/websuite.mjs --scenario examples/perception-lab-scenario.json renders-perception
+            fi
+            echo "Rendered changed HTML files and Perception Lab interactions." >> "$GITHUB_STEP_SUMMARY"
           elif [[ -n "$SCENARIO_PATH" ]]; then
             node scripts/websuite.mjs --scenario "$SCENARIO_PATH" renders
             echo "Interactive scenario: $SCENARIO_PATH" >> "$GITHUB_STEP_SUMMARY"
@@ -81,6 +85,7 @@ jobs:
           name: websuite
           path: |
             renders/
+            renders-perception/
             render.png
             render-source.txt
           retention-days: 1

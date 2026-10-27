@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>WarConquer · Lab perception et navigation</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:#10161d;color:#eee9db}
+*{box-sizing:border-box}body{margin:0;min-width:320px}button,input,select{font:inherit}
+button{cursor:pointer;border:1px solid #4b584e;color:#f1ead7;background:#26352f;border-radius:9px;padding:10px 12px;transition:background .12s}
+button:hover{background:#354a3f}button.active{background:#836437;border-color:#e1af66;color:#fff6d9}
+button:focus-visible,input:focus-visible,select:focus-visible,canvas:focus-visible{outline:2px solid #ecc17e;outline-offset:2px}
+button:disabled{opacity:.45;cursor:default}
+.top{display:flex;align-items:center;gap:14px;padding:14px 22px;background:#17212a;border-bottom:1px solid #ffffff20}
+.crest{width:42px;height:42px;border-radius:11px;border:1px solid #a98952;background:#423728;color:#f4d294;display:grid;place-items:center;font:700 23px Georgia,serif}
+h1{font:700 21px Georgia,serif;margin:0;letter-spacing:.025em}.sub{color:#b1bfb8;font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-top:4px}
+.back{margin-left:auto;color:#e9c999;text-decoration:none;font-size:13px}.back:hover{text-decoration:underline}
+.badge{padding:7px 11px;border-radius:99px;border:1px solid #66714e;background:#2a362c;color:#cdd7bf;font-size:12px}
+.layout{display:grid;grid-template-columns:minmax(220px,250px) minmax(0,1fr) minmax(250px,300px);min-height:calc(100vh - 120px)}
+.panel{padding:19px 17px;background:#171f27;min-width:0;overflow:auto}
+.left{border-right:1px solid #ffffff14}.right{border-left:1px solid #ffffff14}
+h2{font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:#d9be8a;margin:0 0 12px}
+h3{font-size:13px;color:#e3e4d8;margin:18px 0 8px}
+.group{border-top:1px solid #ffffff15;padding-top:18px;margin-top:18px}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:7px}.buttons button{font-size:12px;padding:9px 7px}
+.full{width:100%;margin-top:8px}
+.hint{font-size:12px;line-height:1.55;color:#98aaa6;margin:8px 0}
+.stage{padding:18px;min-width:0;display:flex;flex-direction:column;gap:9px}
+.stage-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12px;color:#b3c7bc}
+.scene-box{height:min(72vh,850px);min-height:430px;position:relative;overflow:hidden;border:1px solid #5e6f5e;border-radius:15px;background:radial-gradient(circle at 50% 30%,#485d49,#23312d 75%);box-shadow:0 18px 45px #0005}
+#world{width:100%;height:100%;display:block;touch-action:none}
+.scene-title{position:absolute;top:14px;left:14px;pointer-events:none;background:#14201ddd;border:1px solid #93876380;border-radius:7px;padding:9px 11px;font-size:11px;text-transform:uppercase;letter-spacing:.09em}
+.legend{position:absolute;bottom:12px;left:12px;right:12px;display:flex;flex-wrap:wrap;gap:8px;pointer-events:none}
+.legend span{padding:6px 8px;border:1px solid #ffffff22;border-radius:7px;background:#101b1bdf;font-size:11px}
+.marker{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.status{background:#27322c;border:1px solid #455646;border-radius:10px;padding:11px 13px;font-size:12px;line-height:1.5;color:#e9ebd9}
+.row{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:10px 0;font-size:12px}
+.muted{color:#98a9a8}.num{font-variant-numeric:tabular-nums;color:#f3d49d}
+input:not([type=checkbox]),select{background:#23313a;color:#f4eee0;border:1px solid #4d5e63;border-radius:8px;padding:9px;min-width:0;width:100%}
+label{display:block;font-size:11px;color:#b4c4bd;margin:10px 0 5px}
+.checks{display:flex;gap:13px;flex-wrap:wrap}.checks label{display:flex;align-items:center;gap:5px;margin:10px 0}
+pre{font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;word-break:break-word;background:#111b21;border:1px solid #35464b;border-radius:9px;padding:10px;max-height:240px;overflow:auto;color:#b9d3c8}
+ul{list-style:none;padding:0;margin:0}li{font-size:12px;padding:7px 0;border-bottom:1px solid #ffffff14;color:#c6d2c9}
+.foot{padding:9px 22px;background:#111820;border-top:1px solid #ffffff18;font-size:11px;color:#879d9b}
+@media(max-width:1100px){.layout{grid-template-columns:190px minmax(0,1fr) 245px}.panel{padding:14px 11px}.stage{padding:10px}}
+@media(max-width:820px){.layout{display:flex;flex-direction:column}.stage{order:0}.left{order:1;border-right:0;border-top:1px solid #ffffff18}.right{order:2;border-left:0;border-top:1px solid #ffffff18}.scene-box{height:53vh;min-height:330px}.panel{padding:16px}.buttons{grid-template-columns:repeat(4,1fr)}.top{padding:12px}.badge{display:none}}
+@media(max-width:480px){.buttons{grid-template-columns:repeat(2,1fr)}.top{gap:9px}h1{font-size:17px}.sub{font-size:9px}.back{font-size:11px}.scene-title{font-size:9px}.legend{gap:4px}.legend span{font-size:9px;padding:5px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="crest">W</div>
+  <div><h1>Lab de perception</h1><div class="sub">WarConquer · cerveau tactique hybride</div></div>
+  <span class="badge" id="engineBadge">Babylon · initialisation</span>
+  <a class="back" href="character-lab.html">← Character Lab</a>
+</header>
+<main class="layout">
+  <section class="panel left" aria-label="Commandes">
+    <h2>1 · Placer dans l'arène</h2>
+    <div class="buttons" id="placeButtons">
+      <button data-place="enemy">⚔ Ennemi</button>
+      <button data-place="resource">◆ Ressource</button>
+      <button data-place="obstacle">▣ Obstacle</button>
+      <button data-place="ally">✦ Allié</button>
+    </div>
+    <button class="full active" id="selectMode">Sélectionner / inspecter</button>
+    <p class="hint">Choisir un objet, puis toucher le terrain pour le placer. Un clic sur un objet ouvre ses propriétés.</p>
+    <div class="group">
+      <h2>2 · Donner un ordre</h2>
+      <div class="buttons">
+        <button data-order="goto">Aller ici ↗</button>
+        <button data-order="find">Trouver ◆</button>
+        <button data-order="attack">Attaquer ⚔</button>
+        <button data-order="collect">Ramasser ◆</button>
+        <button data-order="relative" data-dir="forward">Avancer ↑</button>
+        <button data-order="relative" data-dir="back">Reculer ↓</button>
+        <button data-order="relative" data-dir="left">Gauche ←</button>
+        <button data-order="relative" data-dir="right">Droite →</button>
+        <button data-order="flee">Fuir !</button>
+        <button data-order="hold">Arrêt ■</button>
+      </div>
+      <p class="hint">Pour Aller, Attaquer ou Ramasser, cliquer ensuite sur la destination ou la cible.</p>
+    </div>
+    <div class="group">
+      <h2>3 · Simulation</h2>
+      <div class="buttons">
+        <button id="playPause">Pause</button>
+        <button id="singleStep">Pas 100 ms</button>
+      </div>
+      <button class="full" id="resetDemo">Recréer l'exemple</button>
+      <div class="row"><span>Vision</span><span class="num" id="visionRangeLabel">7 m</span></div>
+      <input id="visionRange" aria-label="Portée de vision" type="range" min="3" max="12" value="7">
+      <p class="hint">La grille est cachée au cerveau jusqu'à ce qu'il la voie. Réflexes et déplacements : 0 appel LLM.</p>
+    </div>
+  </section>
+  <section class="stage" aria-label="Terrain">
+    <div class="stage-row"><span>Arène isométrique partagée · 32 × 32 m</span><span id="clock">0.0 s · 10 Hz</span></div>
+    <div class="scene-box">
+      <canvas id="world" tabindex="0" aria-label="Arène 3D. Cliquez pour placer des objets ou donner un ordre."></canvas>
+      <div class="scene-title">Terrain • exploration et mémoire</div>
+      <div class="legend">
+        <span><i class="marker" style="background:#58c8dc"></i>Éclaireur</span>
+        <span><i class="marker" style="background:#df7468"></i>Ennemi</span>
+        <span><i class="marker" style="background:#edc16b"></i>Ressource</span>
+        <span><i class="marker" style="background:#b2b9bd"></i>Obstacle</span>
+      </div>
+    </div>
+    <div class="status" id="status" role="status">Initialisation de la scène…</div>
+  </section>
+  <aside class="panel right" aria-label="Inspection et mémoire">
+    <h2>Perception de l'éclaireur</h2>
+    <div class="row"><span>État</span><span class="num" id="brainState">Repos</span></div>
+    <div class="row"><span>Peur</span><span class="num" id="fear">0 %</span></div>
+    <div class="row"><span>Cases mémorisées</span><span class="num" id="knownCells">0</span></div>
+    <div class="row"><span>Entités vues / mémorisées</span><span class="num" id="seenCount">0 / 0</span></div>
+    <div class="row"><span>Animation GLB</span><span class="num" id="animationState">Chargement…</span></div>
+    <h3>Détections et souvenirs</h3>
+    <ul id="memoryList"><li>Exploration non commencée</li></ul>
+    <div class="group">
+      <h2>Propriétés de l'objet sélectionné</h2>
+      <p class="hint" id="selectionHint">Touchez une unité, une ressource ou un obstacle.</p>
+      <div id="inspector" hidden>
+        <label for="objectName">Nom</label><input id="objectName" maxlength="50">
+        <label for="objectKind">Nature</label>
+        <select id="objectKind"><option value="unit">Unité</option><option value="resource">Ressource</option><option value="obstacle">Obstacle</option></select>
+        <label for="objectTeam">Camp</label>
+        <select id="objectTeam"><option value="red">Ennemi (rouge)</option><option value="blue">Allié (bleu)</option><option value="neutral">Neutre</option></select>
+        <label for="resourceKind">Ressource</label>
+        <select id="resourceKind"><option value="wood">Bois</option><option value="ore">Minerai</option><option value="food">Nourriture</option></select>
+        <label for="threatLevel">Danger (0–1)</label><input id="threatLevel" type="number" min="0" max="1" step=".1" value="1">
+        <div class="checks"><label><input id="blocking" type="checkbox"> Bloquant</label><label><input id="opaque" type="checkbox"> Occultant</label></div>
+        <button class="full" id="deleteObject">Retirer l'objet</button>
+      </div>
+    </div>
+    <div class="group"><h2>Contrat de la dernière décision</h2><pre id="decision">{ "status": "ready" }</pre></div>
+  </aside>
+</main>
+<footer class="foot">Prototype local déterministe · Les actions réclament des clips Mixamo réels : aucune animation de ramassage n'est inventée.</footer>
+<script src="https://cdn.babylonjs.com/babylon.js"></script>
+<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+<script src="scripts/arena-scene.js"></script>
+<script src="scripts/perception-brain.js"></script>
+<script src="scripts/perception-lab-client.js"></script>
+</body>
+</html>
