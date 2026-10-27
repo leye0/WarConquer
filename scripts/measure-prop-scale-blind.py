@@ -59,8 +59,7 @@ SYSTEM=(
  "and a low confidence instead of inventing invisible endpoints. "
  "The isolated weapon's size on its own canvas is irrelevant. "
  "Do not assume a huge size because the words LONG or TWO-HANDED appear. "
- "Do not use external pictures or game stats. No other previous inference "
- "or 3D render exists in this analysis. Respond in the strict JSON schema."
+ "Do not use external pictures or game stats. Judge solely these two original source images. Respond in the strict JSON schema."
 )
 
 def local(value):
