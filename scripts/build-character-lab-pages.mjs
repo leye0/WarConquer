@@ -65,6 +65,7 @@ bytes += publish("character-lab.html");
 bytes += publish("perception-lab.html");
 bytes += publish("scripts/arena-scene.js");
 bytes += publish("scripts/perception-brain.js");
+bytes += publish("scripts/resource-inventory.js");
 bytes += publish("scripts/perception-lab-client.js");
 bytes += publish("scripts/character-lab-client.js");
 bytes += publish("scripts/weapon-grip-geometry.js");

@@ -39,6 +39,32 @@
     {
       "action": "screenshot",
       "name": "02-perception-step"
+    },
+    {
+      "action": "click",
+      "selector": "#collectNearest"
+    },
+    {
+      "action": "assertText",
+      "selector": "#status",
+      "includes": "Ordre de collecte"
+    },
+    {
+      "action": "click",
+      "selector": "#playPause"
+    },
+    {
+      "action": "wait",
+      "ms": 4800
+    },
+    {
+      "action": "assertText",
+      "selector": "#inventoryText",
+      "includes": "Minerai : 1"
+    },
+    {
+      "action": "screenshot",
+      "name": "03-resource-collected"
     }
   ]
 }

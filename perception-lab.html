@@ -80,7 +80,8 @@ ul{list-style:none;padding:0;margin:0}li{font-size:12px;padding:7px 0;border-bot
         <button data-order="flee">Fuir !</button>
         <button data-order="hold">Arrêt ■</button>
       </div>
-      <p class="hint">Pour Aller, Attaquer ou Ramasser, cliquer ensuite sur la destination ou la cible.</p>
+      <button class="full" id="collectNearest">Ramasser une ressource repérée</button>
+      <p class="hint">Pour Aller, Attaquer ou Ramasser, cliquer ensuite sur la destination ou la cible. Le bouton ci-dessus utilise la ressource déjà mémorisée la plus proche.</p>
     </div>
     <div class="group">
       <h2>3 · Simulation</h2>
@@ -115,6 +116,10 @@ ul{list-style:none;padding:0;margin:0}li{font-size:12px;padding:7px 0;border-bot
     <div class="row"><span>Cases mémorisées</span><span class="num" id="knownCells">0</span></div>
     <div class="row"><span>Entités vues / mémorisées</span><span class="num" id="seenCount">0 / 0</span></div>
     <div class="row"><span>Animation GLB</span><span class="num" id="animationState">Chargement…</span></div>
+    <h3>Inventaire réel</h3>
+    <div class="status" id="inventoryText">Bois : 0 · Minerai : 0 · Nourriture : 0</div>
+    <h3>Événements</h3>
+    <ul id="eventList"><li>Aucune collecte</li></ul>
     <h3>Détections et souvenirs</h3>
     <ul id="memoryList"><li>Exploration non commencée</li></ul>
     <div class="group">
@@ -128,19 +133,22 @@ ul{list-style:none;padding:0;margin:0}li{font-size:12px;padding:7px 0;border-bot
         <select id="objectTeam"><option value="red">Ennemi (rouge)</option><option value="blue">Allié (bleu)</option><option value="neutral">Neutre</option></select>
         <label for="resourceKind">Ressource</label>
         <select id="resourceKind"><option value="wood">Bois</option><option value="ore">Minerai</option><option value="food">Nourriture</option></select>
+        <label for="resourceQuantity">Quantité</label><input id="resourceQuantity" type="number" min="1" max="99" step="1" value="1">
         <label for="threatLevel">Danger (0–1)</label><input id="threatLevel" type="number" min="0" max="1" step=".1" value="1">
         <div class="checks"><label><input id="blocking" type="checkbox"> Bloquant</label><label><input id="opaque" type="checkbox"> Occultant</label></div>
+        <button class="full" id="collectSelected">Ramasser cette ressource</button>
         <button class="full" id="deleteObject">Retirer l'objet</button>
       </div>
     </div>
     <div class="group"><h2>Contrat de la dernière décision</h2><pre id="decision">{ "status": "ready" }</pre></div>
   </aside>
 </main>
-<footer class="foot">Prototype local déterministe · Clips Mixamo authentiques seulement · <a href="https://github.com/leye0/WarConquer/blob/main/docs/perception-lab.md">Contrat, limites et tests</a></footer>
+<footer class="foot">Prototype déterministe · Ressources et inventaire réels · Clips Mixamo authentiques seulement · <a href="https://github.com/leye0/WarConquer/blob/main/docs/perception-lab.md">Contrat, limites et tests</a></footer>
 <script src="https://cdn.babylonjs.com/babylon.js"></script>
 <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
 <script src="scripts/arena-scene.js"></script>
 <script src="scripts/perception-brain.js"></script>
+<script src="scripts/resource-inventory.js"></script>
 <script src="scripts/perception-lab-client.js"></script>
 </body>
 </html>

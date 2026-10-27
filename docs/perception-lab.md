@@ -30,11 +30,11 @@ Le monde contient originX, originZ, grid (lignes de points et # bloquants), occl
 | {type:"attack",entityId:"enemy-1",distance:1.35} | Approcher puis émettre l'intention attack |
 | {type:"collect",entityId:"wood-1",distance:.95} | Approcher puis émettre l'intention collect |
 
-La reconnaissance utilise géométrie, champ de vision, occlusion, mémoire spatiale individuelle et dernière position des objets. Les souvenirs sont plafonnés, et ceux des entités dynamiques expirent. A* planifie **uniquement sur les cellules mémorisées** en pénalisant l'inconnu, tandis que le moteur tranche les collisions réelles. La peur augmente près des ennemis, puis décroît; elle peut déclencher une fuite prioritaire.
+La reconnaissance utilise géométrie, champ de vision, occlusion, mémoire spatiale individuelle et dernière position des objets. Les souvenirs sont plafonnés, et ceux des entités dynamiques expirent. A* planifie **uniquement sur les cellules mémorisées** en pénalisant l'inconnu, tandis que le moteur tranche les collisions réelles. La peur augmente près des ennemis, puis décroît. En mode d’ordres manuels, la peur est une information et **ne détourne plus automatiquement** l’ordre actif. La fuite s’active sur commande explicite; un futur planificateur LLM pourra aussi la décider.
 
 ## Animations réelles
 
-Le contrôleur du laboratoire charge le GLB depuis le catalogue déjà utilisé par le Character Lab, identifie les groupes d'animation par leur nom et déclenche marche, course pour fuir, attaque et éventuellement ramassage. Une animation de ramassage n'est reconnue que si son clip est explicitement compatible (pickup, pick_up, collect ou gather). Si elle manque, l'action est signalée indisponible et la ressource n'est pas supprimée. Aucune animation d'attaque n'est utilisée comme faux ramassage. Le prototype n'applique encore ni dommages de combat ni économie de ressources.
+Le contrôleur du laboratoire charge le GLB depuis le catalogue déjà utilisé par le Character Lab, identifie les groupes d'animation par leur nom et déclenche marche, course pour fuir, attaque et éventuellement ramassage. Une animation de ramassage n'est reconnue que si son clip est explicitement compatible (pickup, pick_up, collect ou gather). Si elle manque, **la collecte fonctionne quand même** : la ressource disparaît du monde et sa quantité est ajoutée à l’inventaire (bois, minerai ou nourriture). Seule la gestuelle Mixamo est facultative. La transaction est exécutée une seule fois, même si le cerveau renvoie plusieurs fois la même intention. Aucune animation d’attaque n’est utilisée comme faux ramassage. Le prototype ne gère pas encore les dégâts de combat.
 
 Si le catalogue ou le modèle 3D ne peut être chargé, le laboratoire utilise clairement un avatar 3D de secours sans prétendre jouer les mouvements Mixamo.
 
@@ -42,8 +42,9 @@ Si le catalogue ou le modèle 3D ne peut être chargé, le laboratoire utilise c
 
 ~~~bash
 node scripts/test-perception-brain.mjs
+node scripts/test-resource-inventory.mjs
 ~~~
 
-Les tests couvrent le champ de vision, les murs, le brouillard de guerre, A*, la mémoire bornée, les ordres relatifs, la peur, l'attaque/ramassage et 100 cervelets. Le benchmark est indicatif : il ne remplace pas un profilage RTS complet.
+Les tests couvrent le champ de vision, les murs, le brouillard de guerre, A*, la mémoire bornée, les ordres relatifs, la peur, les positions d’interaction, les collisions refusées, l’arrêt après blocage et 100 cervelets. Les tests de ressources vérifient la collecte exactement une fois, les distances et les quantités. Le moteur de mouvement signale chaque refus au cerveau, qui peut replanifier puis remonter un état bloqué. Le benchmark est indicatif : il ne remplace pas un profilage RTS complet.
 
 Prototype 2D sur plan X/Z avec obstacles simplifiés en disques, sans relief, sans foule multi-agent persistante, sans sauvegarde longue durée. Le champ de vision par défaut est volontairement à 360° pour les premiers tests; l'exploration ne garantit pas de trouver tous les objets cachés. Un LLM très léger pourra plus tard lire snapshot() et produire un ordre structuré, mais n'aura pas à calculer chaque pas.

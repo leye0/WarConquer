@@ -70,6 +70,7 @@
       this.x=options.x??.5;this.z=options.z??.5;
       this.heading=options.heading??0;
       this.speed=options.speed??2.5;
+      this.autoFlee=!!options.autoFlee;
       this.range=options.visionRange??7;
       this.fov=options.fov??TAU;
       this.memoryTtlMs=options.memoryTtlMs??15000;
@@ -80,11 +81,51 @@
       this.cells=new Map();this.entities=new Map();this.visible=[];
       this.route=null;this.relativeAnchor=null;this.exploreTarget=null;
       this.fleeTarget=null;this.lastTick=0;
+      this.stallCount=0;this.stalledOrder=null;this.currentOrderKey=null;
+      this.lastCollision=null;
     }
     setPose({x,z,heading}) {
       if(number(x))this.x=x;
       if(number(z))this.z=z;
       if(number(heading))this.heading=heading;
+    }
+    forgetEntity(id) {
+      this.entities.delete(String(id));
+      this.visible=this.visible.filter(e=>e.id!==String(id));
+    }
+    reportMoveResult({accepted,attempted,blockedCell,nowMs=0}={}) {
+      if(!attempted||Math.hypot(attempted.dx||0,attempted.dz||0)<1e-7)return;
+      if(accepted){this.stallCount=0;this.lastCollision=null;return;}
+      this.stallCount++;
+      this.lastCollision={cell:blockedCell?{...blockedCell}:null,at:nowMs};
+      if(blockedCell){
+        const k=key(blockedCell.x,blockedCell.z);
+        this.remember(this.cells,k,
+          {x:blockedCell.x,z:blockedCell.z,blocked:true,seenAt:nowMs,source:"contact"},this.maxCells);
+      }
+      this.route=null;this.fleeTarget=null;this.exploreTarget=null;
+      if(this.stallCount>=3)this.stalledOrder=this.currentOrderKey;
+    }
+    approachGoal(world,entity,reach,nowMs) {
+      if(dist(this,entity)<=reach)return {x:this.x,z:this.z};
+      // A resource/unit can occupy a blocked cell. Route to an actual
+      // navigable interaction cell, never to its obstructed centre.
+      const targetCell=cell(world,entity.x,entity.z);
+      const radius=Math.ceil(reach)+1,candidates=[];
+      for(let dz=-radius;dz<=radius;dz++)for(let dx=-radius;dx<=radius;dx++){
+        const c={x:targetCell.x+dx,z:targetCell.z+dz};
+        if(!inside(world,c)||this.knownBlocked(world,c,nowMs))continue;
+        const originX=world.originX||0,originZ=world.originZ||0;
+        const p={
+          x:clamp(entity.x,originX+c.x+.06,originX+c.x+.94),
+          z:clamp(entity.z,originZ+c.z+.06,originZ+c.z+.94)
+        };
+        if(dist(p,entity)>reach-.01)continue;
+        candidates.push(p);
+      }
+      candidates.sort((a,b)=>dist(this,a)-dist(this,b));
+      for(const p of candidates)if(this.path(world,p,nowMs))return p;
+      return null;
     }
     facing(p) {
       const angle=Math.atan2(p.z-this.z,p.x-this.x);
@@ -221,12 +262,22 @@
       if(this.fear>=.65)this.fleeing=true;
       if(this.fear<=.25)this.fleeing=false;
       const cmd=order||{type:"hold"};
+      const orderKey=JSON.stringify(cmd);
+      if(orderKey!==this.currentOrderKey){
+        this.currentOrderKey=orderKey;this.stallCount=0;this.stalledOrder=null;
+        this.route=null;this.fleeTarget=null;this.exploreTarget=null;
+      }
       if(cmd.type!=="relative")this.relativeAnchor=null;
-      const response={id:this.id,status:"holding",action:null,mode:this.fleeing?"fear":"manual",
+      const response={id:this.id,status:"holding",action:null,mode:this.autoFlee&&this.fleeing?"reflex":"manual",
         fear:this.fear,visible:seen.map(e=>e.id),goal:null,
         move:{dx:0,dz:0},path:[],memory:{cells:this.cells.size,entities:this.entities.size}};
-      let target=null,arrival=.25;
-      if((this.fleeing||cmd.type==="flee")&&threats.length){
+      if(this.stalledOrder===orderKey){
+        response.status="stuck";
+        response.reason="repeated_collision";
+        return response;
+      }
+      let target=null,arrival=.25,interactionEntity=null;
+      if((cmd.type==="flee"||(this.autoFlee&&this.fleeing))&&threats.length){
         target=this.escape(world,threats,nowMs);
         response.status="fleeing";arrival=.35;
       }else{
@@ -246,17 +297,21 @@
               arrival=Math.max(.35,Number(cmd.distance)||1.2);
               if(cmd.type==="attack"&&entity.role!=="enemy")break;
               if(cmd.type==="collect"&&entity.kind!=="resource")break;
-              const dx=this.x-entity.x,dz=this.z-entity.z;
-              const length=Math.max(.0001,Math.hypot(dx,dz));
-              target={x:entity.x+dx/length*arrival*.9,
-                z:entity.z+dz/length*arrival*.9};
+              interactionEntity=entity;
+              target=this.approachGoal(world,entity,arrival,nowMs);
+              if(!target)response.status="blocked";
             }
             break;
           }
           case "find": {
             const found=this.chooseEntity(e=>e.kind===cmd.kind&&
               (!cmd.team||e.team===cmd.team));
-            if(found){target={x:found.x,z:found.z};arrival=Math.max(.4,Number(cmd.distance)||1);}
+            if(found){
+              arrival=Math.max(.4,Number(cmd.distance)||1);
+              interactionEntity=found;
+              target=this.approachGoal(world,found,arrival,nowMs);
+              if(!target)response.status="blocked";
+            }
             else {
               if(!this.exploreTarget||this.cells.has(key(
                 cell(world,this.exploreTarget.x,this.exploreTarget.z).x,
@@ -274,7 +329,7 @@
       }
       if(!target)return response;
       response.goal=target;
-      if(dist(this,target)<=arrival){
+      if(interactionEntity?dist(this,interactionEntity)<=arrival:dist(this,target)<=.25){
         response.status=response.status==="searching"?"searching":"arrived";
         if(cmd.type==="attack"||cmd.type==="collect") {
           if(seen.some(e=>e.id===String(cmd.entityId)))response.action=cmd.type;
@@ -305,6 +360,8 @@
     snapshot() {
       return {id:this.id,team:this.team,pose:{x:this.x,z:this.z,heading:this.heading},
         emotions:{fear:this.fear,fleeing:this.fleeing},
+        navigation:{stallCount:this.stallCount,lastCollision:this.lastCollision,
+          blocked:this.stalledOrder===this.currentOrderKey},
         visible:this.visible.map(e=>({...e})),
         memory:{cells:[...this.cells.values()].map(c=>({...c})),
           entities:[...this.entities.values()].map(e=>({...e}))}};

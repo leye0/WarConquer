@@ -5,7 +5,7 @@
   "use strict";
   const $=id=>document.getElementById(id);
   const B=window.BABYLON;
-  if(!B||!window.WCArena||!window.WCPerception){
+  if(!B||!window.WCArena||!window.WCPerception||!window.WCResources){
     $("status").textContent="Babylon.js, l'arène ou le module de perception n'a pas chargé.";
     $("engineBadge").textContent="Moteur indisponible";
     return;
@@ -22,7 +22,8 @@
   const colors={unitBlue:"#55c4d4",unitRed:"#d96c5f",resource:"#efc267",obstacle:"#aeb6ba"};
   const state={items:[],seq:0,clock:0,paused:false,tool:null,pending:null,
     selected:null,order:{type:"hold"},decision:null,animation:{},currentClip:null,
-    actionRunning:false,actor:null,brain:null,loadedModel:false,acc:0};
+    actionRunning:false,actor:null,brain:null,loadedModel:false,acc:0,
+    inventory:WCResources.inventory(),events:[],actionSerial:0,lastStatus:null};
   const point=(x,z)=>({x,z});
   const range=(x,min,max)=>Math.max(min,Math.min(max,x));
   const color=hex=>B.Color3.FromHexString(hex);
@@ -80,7 +81,8 @@
     const item={id,name:options.name||({unit:"Unité",resource:"Ressource",obstacle:"Obstacle"}[kind]||kind)+" "+state.seq,
       kind,team:options.team||(kind==="unit"?"red":"neutral"),
       x,z,radius:options.radius??(kind==="obstacle"?.65:.4),
-      resourceType:options.resourceType||"wood",threat:options.threat??(kind==="unit"?1:0),
+      resourceType:options.resourceType||"wood",quantity:options.quantity??1,
+      threat:options.threat??(kind==="unit"?1:0),
       blocking:options.blocking??(kind==="obstacle"||kind==="unit"),
       opaque:options.opaque??(kind==="obstacle"),mesh:null,static:false};
     state.items.push(item);renderItem(item);return item;
@@ -95,7 +97,7 @@
       const mesh=scene.getMeshByName(rock.id);
       if(!mesh)continue;
       const item={id:rock.id,name:"Rocher",kind:"obstacle",team:"neutral",
-        x:rock.x,z:rock.z,radius:rock.radius,resourceType:"ore",threat:0,
+        x:rock.x,z:rock.z,radius:rock.radius,resourceType:"ore",quantity:1,threat:0,
         blocking:true,opaque:true,mesh,static:true};
       state.items.push(item);renderItem(item);
     }
@@ -106,6 +108,10 @@
     state.brain=new Brain({id:"scout",team:"blue",x:0,z:0,
       visionRange:Number($("visionRange").value),memoryTtlMs:20000});
     state.clock=0;state.order={type:"hold"};state.decision=null;
+    state.inventory=WCResources.inventory();state.events=[];state.lastStatus=null;
+    state.actionSerial++;state.actionRunning=false;
+    for(const clip of state.animation.groups||[])clip.stop();
+    state.currentClip=null;motion("idle");
     state.tool=null;state.pending=null;
     state.paused=false;$("playPause").textContent="Pause";
     selectItem(null);syncMode();
@@ -117,8 +123,12 @@
       let row="",oc="";
       for(let x=0;x<32;x++){
         const p={x:x-15.5,z:z-15.5};
-        const objectsHere=state.items.filter(o=>
-          Math.hypot(p.x-o.x,p.z-o.z)<o.radius+.25);
+        const objectsHere=state.items.filter(o=>{
+          // Grid cell square intersects the object circle (not a centre-only guess).
+          const dx=Math.max(0,Math.abs(p.x-o.x)-.5);
+          const dz=Math.max(0,Math.abs(p.z-o.z)-.5);
+          return Math.hypot(dx,dz)<o.radius;
+        });
         row+=objectsHere.some(o=>o.blocking)?"#":".";
         oc+=objectsHere.some(o=>o.opaque)?"#":".";
       }
@@ -157,50 +167,89 @@
     if(clip)clip.start(true,1,clip.from,clip.to);
     $("animationState").textContent=clip?.name||"Aucun clip";
   }
+  function recordEvent(value) {
+    state.events.unshift(value);
+    if(state.events.length>6)state.events.length=6;
+    message(value);
+  }
   function act(action) {
     if(state.actionRunning)return;
+    if(action==="collect"){
+      const id=state.order?.entityId;
+      const resource=state.items.find(item=>item.id===id);
+      const reach=Math.max(1.25,Number(state.order.distance)||0);
+      const outcome=WCResources.collect({
+        items:state.items,bag:state.inventory,entityId:id,
+        actor:{x:player.position.x,z:player.position.z},reach
+      });
+      if(!outcome.ok){
+        recordEvent("Ramassage refusé : "+outcome.reason);
+        state.order={type:"hold"};
+        return;
+      }
+      resource?.mesh?.dispose(false,true);
+      state.brain.forgetEntity(id);
+      if(state.selected===resource)selectItem(null);
+      state.order={type:"hold"};
+      recordEvent("Ramassé : "+outcome.amount+" "+outcome.type+
+        " · inventaire total : "+outcome.total);
+      // The inventory transaction is already committed. The animation is
+      // cosmetic and may be absent or interrupted without undoing the pickup.
+    }
     const group=state.animation[action];
     if(!group){
-      $("animationState").textContent=action==="collect"?
-        "Ramassage indisponible (clip manquant)":"Attaque indisponible (clip manquant)";
-      if(action==="collect")state.order={type:"hold"};
+      if(action==="collect"){
+        motion("idle");
+        $("animationState").textContent="Collecte effectuée · sans clip Mixamo";
+      }else{
+        $("animationState").textContent="Attaque indisponible · clip manquant";
+        state.order={type:"hold"};
+      }
       return;
     }
+    const serial=++state.actionSerial;
     state.actionRunning=true;
     state.currentClip?.stop();state.currentClip=null;
     group.stop();group.start(false,1,group.from,group.to);
     $("animationState").textContent=group.name;
     group.onAnimationGroupEndObservable.addOnce(()=>{
+      if(serial!==state.actionSerial)return;
       state.actionRunning=false;
-      if(action==="collect"){
-        const target=state.items.find(i=>i.id===state.order.entityId);
-        if(target){target.mesh?.dispose(false,true);state.items=state.items.filter(i=>i!==target);}
-        state.order={type:"hold"};
-      }
       motion("idle");
     });
   }
   function tick(){
     state.clock+=100;
     const world=makeWorld();
-    state.brain.speed=state.brain.fleeing||state.order.type==="flee"?4.6:2.5;
+    state.brain.speed=state.order.type==="flee"?4.6:2.5;
     state.brain.setPose({x:player.position.x,z:player.position.z});
     const decision=state.brain.step(world,state.order,100,state.clock);
     state.decision=decision;
-    const nx=player.position.x+decision.move.dx,nz=player.position.z+decision.move.dz;
-    const next=WCPerception.cell(world,nx,nz);
-    if(next.x>=0&&next.z>=0&&next.x<32&&next.z<32&&world.grid[next.z][next.x]!== "#"){
-      if(Math.hypot(decision.move.dx,decision.move.dz)>.0001){
-        player.position.x=nx;player.position.z=nz;
-        const yaw=Math.atan2(decision.move.dx,decision.move.dz);
-        player.rotation.y=yaw;
-        state.brain.heading=Math.atan2(decision.move.dz,decision.move.dx);
+    const attempted=decision.move;
+    const wantsMove=Math.hypot(attempted.dx,attempted.dz)>.0001;
+    let moved=false;
+    if(wantsMove&&!state.actionRunning){
+      const nx=player.position.x+attempted.dx,nz=player.position.z+attempted.dz;
+      const next=WCPerception.cell(world,nx,nz);
+      const accepted=next.x>=0&&next.z>=0&&next.x<32&&next.z<32&&
+        world.grid[next.z][next.x]!=="#";
+      state.brain.reportMoveResult({accepted,attempted,blockedCell:accepted?null:next,nowMs:state.clock});
+      if(accepted){
+        moved=true;player.position.x=nx;player.position.z=nz;
+        player.rotation.y=Math.atan2(attempted.dx,attempted.dz);
+        state.brain.heading=Math.atan2(attempted.dz,attempted.dx);
+      }else{
+        decision.status=state.brain.stallCount>=3?"stuck":"replanning";
+        decision.reason="collision";
+        decision.move={dx:0,dz:0};
       }
     }
     if(decision.action)act(decision.action);
-    else if(decision.status==="fleeing")motion("run");
-    else if(Math.hypot(decision.move.dx,decision.move.dz)>.001)motion("walk");
+    else if(moved)motion(decision.status==="fleeing"?"run":"walk");
     else motion("idle");
+    if(decision.status==="stuck"&&state.lastStatus!=="stuck")
+      recordEvent("Chemin bloqué après plusieurs essais : un nouvel ordre est nécessaire.");
+    state.lastStatus=decision.status;
     sight.position.x=player.position.x;sight.position.z=player.position.z;
     sight.scaling.setAll(state.brain.range/7);
     drawPath(decision);
@@ -214,6 +263,15 @@
     $("fear").textContent=Math.round(brain.fear*100)+" %";
     $("knownCells").textContent=brain.cells.size+" / 1024";
     $("seenCount").textContent=brain.visible.length+" / "+brain.entities.size;
+    $("inventoryText").textContent="Bois : "+state.inventory.wood+
+      " · Minerai : "+state.inventory.ore+" · Nourriture : "+state.inventory.food;
+    const history=$("eventList");history.replaceChildren();
+    if(!state.events.length){
+      const li=document.createElement("li");li.textContent="Aucune collecte";history.append(li);
+    }
+    for(const entry of state.events){
+      const li=document.createElement("li");li.textContent=entry;history.append(li);
+    }
     $("visionRangeLabel").textContent=brain.range+" m";
     const list=$("memoryList");list.replaceChildren();
     if(!brain.entities.size){
@@ -249,6 +307,8 @@
     $("objectKind").value=item.kind;
     $("objectTeam").value=item.team;
     $("resourceKind").value=item.resourceType;
+    $("resourceQuantity").value=item.quantity||1;
+    $("collectSelected").disabled=item.kind!=="resource";
     $("threatLevel").value=item.threat;
     $("blocking").checked=item.blocking;
     $("opaque").checked=item.opaque;
@@ -289,7 +349,7 @@
         if(!obj||!(state.pending==="attack"?obj.kind==="unit"&&obj.team==="red":obj.kind==="resource")){
           message("Sélectionnez "+(state.pending==="attack"?"une unité ennemie.":"une ressource."));return;
         }
-        state.order={type:state.pending,entityId:obj.id,distance:state.pending==="attack"?1.35:.95};
+        state.order={type:state.pending,entityId:obj.id,distance:state.pending==="attack"?1.35:Math.max(1.25,obj.radius+1)};
       }
       message("Ordre actif : "+state.order.type);
       state.pending=null;syncMode();
@@ -367,6 +427,24 @@
   $("singleStep").addEventListener("click",()=>{state.paused=true;$("playPause").textContent="Reprendre";tick();});
   $("resetDemo").addEventListener("click",resetDemo);
   $("visionRange").addEventListener("input",e=>{state.brain.range=Number(e.target.value);updateHud();});
+  $("collectNearest").addEventListener("click",()=>{
+    const entity=state.brain.chooseEntity(e=>e.kind==="resource");
+    if(!entity){
+      message("Aucune ressource connue : explorer avant de ramasser.");
+      return;
+    }
+    state.order={type:"collect",entityId:entity.id,
+      distance:Math.max(1.25,entity.radius+1)};
+    state.pending=null;state.tool=null;syncMode();
+    message("Ordre de collecte : "+entity.id);
+  });
+  $("collectSelected").addEventListener("click",()=>{
+    if(state.selected?.kind!=="resource")return;
+    state.order={type:"collect",entityId:state.selected.id,
+      distance:Math.max(1.25,state.selected.radius+1)};
+    state.pending=null;state.tool=null;syncMode();
+    message("Ordre de collecte : "+state.selected.name);
+  });
   $("deleteObject").addEventListener("click",()=>{
     if(!state.selected||state.selected.static)return;
     const item=state.selected;item.mesh?.dispose(false,true);
@@ -376,6 +454,7 @@
   const controls={
     objectName:["name",v=>String(v).slice(0,50)],
     objectKind:["kind",String],objectTeam:["team",String],resourceKind:["resourceType",String],
+    resourceQuantity:["quantity",v=>Math.min(99,Math.max(1,Math.round(Number(v)||1)))],
     threatLevel:["threat",v=>range(Number(v)||0,0,1)],
     blocking:["blocking",v=>!!v],opaque:["opaque",v=>!!v]
   };

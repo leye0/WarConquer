@@ -57,7 +57,7 @@ const me=options=>new Brain({id:"scout",x:.5,z:.5,visionRange:7,...options});
 }
 {
   const w={...clear,objects:[{id:"enemy",kind:"unit",team:"red",x:1.5,z:.5,threat:1}]};
-  const b=me({x:.5,z:.5,visionRange:4,bravery:0});
+  const b=me({x:.5,z:.5,visionRange:4,bravery:0,autoFlee:true});
   for(let t=100;t<=1200;t+=100)b.step(w,{type:"hold"},100,t);
   assert(b.fleeing,"Close enemies trigger a fear-based flee");
   const d=b.step(w,{type:"hold"},100,1300);
@@ -101,4 +101,40 @@ const me=options=>new Brain({id:"scout",x:.5,z:.5,visionRange:7,...options});
   assert(many.every(b=>b.cells.size<=1024));
   console.log("PASS: 100 cervelets × 5 ticks, "+(Date.now()-before)+" ms (informational)");
 }
-console.log("PASS: vision/occlusion, bounded memory, relative orders, A*, fear, actions, search and fog of war");
+
+{
+  // Manual orders must not be silently replaced by fear; a future planner
+  // can explicitly issue a flee order when it chooses that objective.
+  const w={...clear,objects:[{id:"enemy",kind:"unit",team:"red",x:1.5,z:.5}]};
+  const b=me({visionRange:4,bravery:0,autoFlee:false});
+  let d;
+  for(let ms=100;ms<=1400;ms+=100)
+    d=b.step(w,{type:"goto",x:8.5,z:8.5},100,ms);
+  assert(b.fleeing,"The emotional state may still contain fear");
+  assert.notEqual(d.status,"fleeing","Fear must not hijack an explicit manual order");
+}
+{
+  // A solid target's centre is blocked, but reaching its free perimeter is valid.
+  const w=grid(["........","........","..##....","........","........"]);
+  w.occlusion=Array.from({length:5},()=> "........");
+  w.objects=[{id:"rocky",kind:"resource",x:2.5,z:2.5,blocking:true,radius:.8}];
+  const b=me({x:.5,z:2.5,visionRange:8});
+  const d=b.step(w,{type:"collect",entityId:"rocky",distance:1.3},100,100);
+  assert(d.goal,"Find a reachable interaction position outside the blocked cell");
+  assert.notEqual(w.grid[cell(w,d.goal.x,d.goal.z).z][cell(w,d.goal.x,d.goal.z).x],"#");
+}
+{
+  const b=me(),order={type:"goto",x:8.5,z:8.5};
+  for(let i=1;i<=3;i++){
+    const d=b.step(clear,order,100,i*100);
+    assert(d.move.dx||d.move.dz,"A step should have been attempted");
+    b.reportMoveResult({accepted:false,attempted:d.move,blockedCell:{x:1,z:1},nowMs:i*100});
+  }
+  const stuck=b.step(clear,order,100,400);
+  assert.equal(stuck.status,"stuck","Repeated refused movement must stop");
+  assert.deepEqual(stuck.move,{dx:0,dz:0});
+  assert.equal(b.snapshot().navigation.blocked,true);
+  assert.notEqual(b.step(clear,{type:"hold"},100,500).status,"stuck","A new order resets the stall");
+}
+
+console.log("PASS: vision/occlusion, memory, A*, fear, interaction approach, collision feedback and no oscillation");
