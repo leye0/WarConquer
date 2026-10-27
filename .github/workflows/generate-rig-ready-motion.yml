@@ -1,0 +1,76 @@
+name: Rig-ready motion · one seeded axe-chop clip
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'rig-ready-motion-request.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: marches-rig-ready-motion-one-shot
+  cancel-in-progress: false
+
+jobs:
+  motion:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned Replicate client
+        run: python -m pip install 'replicate==1.0.7'
+      - name: Validate exact request and rig fingerprint before using paid API
+        run: |
+          python -m py_compile scripts/generate-rig-ready-motion.py
+          python scripts/generate-rig-ready-motion.py --stage validate
+      - name: Submit at most one seeded motion generation
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
+        run: python scripts/generate-rig-ready-motion.py --stage submit
+      - name: Commit prediction ID before any long polling
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: checkpoint single seeded axe motion prediction'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Collect generated motion and inspect GLB animation tracks
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
+        run: python scripts/generate-rig-ready-motion.py --stage collect
+      - name: Publish motion file or failure report on main
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if [ -d assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion ]; then
+            git add -A assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion
+            if ! git diff --cached --quiet; then
+              git commit -m 'assets: record generated axe motion and validation'
+              git fetch origin main
+              git rebase origin/main
+              git push origin HEAD:main
+            fi
+          fi
+      - name: Attach source motion and reports to Action
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: marches-axe-chop-source-motion
+          path: assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/axe-chop-v1/
+          retention-days: 7
+          if-no-files-found: ignore
