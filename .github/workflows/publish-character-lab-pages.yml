@@ -14,6 +14,7 @@ on:
       - 'assets/experiments/rig-source-turnaround/**'
       - 'assets/experiments/props/marches_hache/trellis-v1/axe.glb'
       - 'assets/experiments/props/marches_hache/trellis-v1/grip-plan.json'
+      - 'assets/experiments/props/marches_hache/trellis-v1/physical-size.json'
       - 'assets/experiments/props/marches_hache/trellis-v1/grip-plan-v3.json'
       - 'assets/concepts/marches/units/hache.png'
       - '.github/workflows/publish-character-lab-pages.yml'
@@ -73,6 +74,12 @@ jobs:
               assert(plan.scale_observation?.character_image_shows_full_object,"Scale not based on full character reference");
             }
               assert(existsSync(join(dir,modelPath)),"Missing prop "+p.id);
+              if(p.physicalSize){
+                const physicalPath=p.physicalSize.startsWith("/")?p.physicalSize.slice(1):p.physicalSize;
+                const size=JSON.parse(readFileSync(join(dir,physicalPath)));
+                assert(size.units==="cm" && size.estimated_length_cm>0,
+                  "Invalid physical centimeter estimate");
+              }
             }
             assert(data.characters.length > 0);
             const all = data.characters.flatMap(c => c.models);
