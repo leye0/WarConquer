@@ -64,13 +64,15 @@ jobs:
           mkdir -p assets/experiments/character-lab-qa
           google-chrome --headless=new --no-sandbox --enable-unsafe-swiftshader --disable-dev-shm-usage --no-first-run --no-default-browser-check --hide-scrollbars --window-size=1280,800 --virtual-time-budget=12000 --screenshot=assets/experiments/character-lab-qa/terrain-live.png http://127.0.0.1:4173/character-lab.html
           test -s assets/experiments/character-lab-qa/terrain-live.png
+      - name: Exercise real idle, walk, run and axe attack with CDP keyboard
+        run: node scripts/test-character-lab-motion.mjs
       - name: Save screenshot as a reviewable repository artifact
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add assets/experiments/character-lab-qa/terrain-live.png
+          git add -A assets/experiments/character-lab-qa
           if ! git diff --cached --quiet; then
             git commit -m 'qa: capture playable character lab terrain screenshot'
             git fetch origin main
@@ -81,6 +83,6 @@ jobs:
         if: always()
         with:
           name: character-lab-live
-          path: assets/experiments/character-lab-qa/terrain-live.png
+          path: assets/experiments/character-lab-qa/*.png
           if-no-files-found: ignore
           retention-days: 3
