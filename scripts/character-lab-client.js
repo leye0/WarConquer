@@ -288,7 +288,8 @@
       const longAxis=dims.indexOf(Math.max(...dims));
       if (!Number.isFinite(dims[longAxis])||dims[longAxis]<.001) throw new Error("Bornes de la hache invalides");
       const worldScale=new B.Vector3();
-      hand.computeWorldMatrix(true).decompose(worldScale);
+      const handRotation=new B.Quaternion();
+      hand.computeWorldMatrix(true).decompose(worldScale,handRotation);
       const handUnit=Math.max(.00001,(Math.abs(worldScale.x)+Math.abs(worldScale.y)+Math.abs(worldScale.z))/3);
       const anchor=new B.TransformNode("wc-trellis-axe-right-hand",state.scene);
       const offset=new B.TransformNode("wc-trellis-axe-shaft-grip",state.scene);
@@ -303,8 +304,13 @@
       if (longAxis===1) grip.y=lo.y+dimension.y*.22;
       if (longAxis===2) grip.z=lo.z+dimension.z*.22;
       offset.position.copyFrom(grip.scale(-1));
-      if (longAxis===0) anchor.rotation.z=Math.PI/2;
-      if (longAxis===2) anchor.rotation.x=-Math.PI/2;
+      // Align the shaft upright in the first preview pose, accounting for the
+      // Mixamo hand bone rest orientation. The relative correction remains
+      // attached to the hand as walk/run/attack rotate that bone.
+      const upAxis=longAxis===0 ? B.Quaternion.RotationAxis(B.Axis.Z,Math.PI/2)
+                  : longAxis===2 ? B.Quaternion.RotationAxis(B.Axis.X,-Math.PI/2)
+                  : B.Quaternion.Identity();
+      anchor.rotationQuaternion=B.Quaternion.Inverse(handRotation).multiply(upAxis);
       state.weaponImport=prop;
       state.weaponAnchor=anchor;
       text("weaponMetric","Hache TRELLIS texturée · prise provisoire");
