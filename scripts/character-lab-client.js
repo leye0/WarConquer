@@ -388,7 +388,7 @@
       state.character=pivot;
       state.imported=imported;
       lookForAnimations(imported.animationGroups||[]);
-      if (url && url.includes("/motion/mixamo-axe-v1/")) void tryEquipAxe(imported,token);
+      if (url && imported.skeletons?.length) void tryEquipAxe(imported,token);
       setIsometricCamera();
       text("modelMetric",vertices.length+" mesh · "+(imported.skeletons?.length||0)+" rig");
       setStatus("Prêt · WASD pour se déplacer", "success");
