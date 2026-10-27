@@ -5,7 +5,7 @@
   "use strict";
   const byId = id => document.getElementById(id);
   const TRELLIS_AXE_URL = "assets/experiments/props/marches_hache/trellis-v1/axe.glb";
-  const TRELLIS_GRIP_URL = "assets/experiments/props/marches_hache/trellis-v1/grip-vision.json";
+  const TRELLIS_GRIP_URL = "assets/experiments/props/marches_hache/trellis-v1/grip-plan.json";
   // Resolve asset URLs under both localhost / and GitHub Pages /WarConquer/.
   const assetUrl = path => path?.startsWith("/assets/") ? "." + path : path;
   const FALLBACK = {
@@ -311,9 +311,10 @@
     text("weaponMetric","—");
     byId("world").dataset.weaponGrip="none";
     byId("world").dataset.weaponGripHeadRatio="";
+    byId("world").dataset.weaponGripScale="";
   }
 
-  // Fit semantic grip in image space once (OpenRouter vision, offline CI).
+  // Vision decides the whole pose/scale/hand specification offline; geometry fits GLB.
   // Recompute the shaft/head frame from Babylon's actual imported vertices;
   // GLB axes cannot be taken from the original picture or hard-coded.
   function importedPropPoints(meshes) {
@@ -366,7 +367,7 @@
     return B.Quaternion.FromRotationMatrix(rotation).normalize();
   }
 
-  async function tryEquipAxe(imported,token) {
+  async function tryEquipProp(imported,token) {
     const B=BABYLON;
     let prop,anchor;
     try {
@@ -376,14 +377,23 @@
         return;
       }
       const vision=await response.json();
-      const gripFraction=vision?.analysis?.grip_fraction_from_butt;
-      const side=vision?.analysis?.landmarks?.holding_hand==="left"?"left":"right";
-      if(vision.schema!==1||!Number.isFinite(gripFraction)||
-        gripFraction<=.03||gripFraction>=.65)throw Error("Repères visuels de prise invalides");
+      const spec=vision?.specifications;
+      const gripFraction=vision?.derived_image_geometry?.grip_fraction_from_butt;
+      const side=spec?.dominant_hand==="left"?"left":"right";
+      if(vision.schema!==2||spec?.grip_geometry!=="shaft"||
+        spec.hold_mode==="unsupported")throw Error("Plan visuel non compatible avec une prise sur manche");
+      if(!Number.isFinite(gripFraction)||gripFraction<=.03||gripFraction>=.65||
+        !Number.isFinite(spec.length_relative_character_height)||
+        spec.length_relative_character_height<.13||spec.length_relative_character_height>1.85||
+        !Number.isFinite(spec.palm_from_wrist)||spec.palm_from_wrist<0||spec.palm_from_wrist>1)
+        throw Error("Dimensions ou repères du plan vision invalides");
+      const propPath=vision.inputs?.object_glb;
+      if(!/^assets\/experiments\/props\/[a-z0-9_/-]+\.glb$/.test(propPath||""))
+        throw Error("Chemin de GLB non autorisé");
       const anatomy=findGripAnatomy(imported,side);
       if(!anatomy)throw Error("Main "+side+" introuvable dans le rig");
       if(!window.WCWeaponGrip?.fitGrip)throw Error("Analyseur géométrique manquant");
-      prop=await B.SceneLoader.ImportMeshAsync(null,"",assetUrl(TRELLIS_AXE_URL),state.scene);
+      prop=await B.SceneLoader.ImportMeshAsync(null,"",assetUrl(propPath),state.scene);
       if(token!==state.pendingLoad) {
         for(const node of [...prop.meshes,...prop.transformNodes])
           if(!node.isDisposed())node.dispose(false,true);
@@ -391,22 +401,38 @@
       }
       const points=importedPropPoints(prop.meshes||[]);
       const frame=window.WCWeaponGrip.fitGrip(points,gripFraction,
-        vision.analysis.landmarks.object_type);
+        spec.object_kind);
       const {hand,forearm,middle}=anatomy;
       hand.computeWorldMatrix(true);
       const handPosition=hand.getAbsolutePosition();
       const elbowPosition=forearm?.getAbsolutePosition?.()||handPosition.add(new B.Vector3(0,.3,0));
-      let shaftWorld=elbowPosition.subtract(handPosition);
-      if(shaftWorld.length()<.001)throw Error("Avant-bras sans direction géométrique");
-      shaftWorld.normalize();
+      const toElbow=elbowPosition.subtract(handPosition);
       const pivotForward=B.Vector3.TransformNormal(B.Axis.Z,
         state.character.getWorldMatrix()).normalize();
-      let bladeWorld=pivotForward.subtract(shaftWorld.scale(B.Vector3.Dot(pivotForward,shaftWorld)));
+      const pivotRight=B.Vector3.TransformNormal(B.Axis.X,
+        state.character.getWorldMatrix()).normalize();
+      const up=B.Axis.Y;
+      const headDirections={
+        toward_elbow:toElbow, toward_fingers:toElbow.negate(),
+        forward:pivotForward,backward:pivotForward.negate(),
+        up,down:up.negate()
+      };
+      const strikeDirections={
+        forward:pivotForward,backward:pivotForward.negate(),
+        outward:side==="right"?pivotRight:pivotRight.negate(),
+        inward:side==="right"?pivotRight.negate():pivotRight
+      };
+      const shaftWorld=headDirections[spec.head_direction]?.clone();
+      if(!shaftWorld||shaftWorld.length()<.001)
+        throw Error("Orientation de manche vision sans repère anatomique");
+      shaftWorld.normalize();
+      let bladeWorld=strikeDirections[spec.edge_direction]?.clone();
+      if(!bladeWorld)throw Error("Orientation du tranchant vision absente");
+      bladeWorld.subtractInPlace(shaftWorld.scale(B.Vector3.Dot(bladeWorld,shaftWorld)));
       if(bladeWorld.length()<.01) {
-        const sideways=B.Vector3.TransformNormal(B.Axis.X,state.character.getWorldMatrix());
-        bladeWorld=sideways.subtract(shaftWorld.scale(B.Vector3.Dot(sideways,shaftWorld)));
+        // Reject near-collinear directions instead of inventing a new design.
+        throw Error("Plan vision incompatible : tranchant parallèle au manche");
       }
-      if(bladeWorld.length()<.001)throw Error("Orientation anatomique indéterminée");
       const worldRotation=buildGripRotation(frame,shaftWorld,bladeWorld);
       const parentScale=new B.Vector3(),parentRotation=new B.Quaternion();
       hand.getWorldMatrix().decompose(parentScale,parentRotation);
@@ -414,14 +440,14 @@
       if(!Number.isFinite(unitScale)||unitScale<1e-7)throw Error("Échelle de main invalide");
       // Only the grip is parented to the animated hand. The weapon shaft
       // extends toward the forearm and the cutting edge toward the avatar's front.
-      const desiredLength=1.9*.49;
+      const desiredLength=1.9*spec.length_relative_character_height;
       anchor=new B.TransformNode("wc-auto-grip-"+side+"-hand",state.scene);
       anchor.parent=hand;
       let palmWorld=handPosition;
       if(middle) {
         const knuckle=middle.getAbsolutePosition();
         if(B.Vector3.Distance(handPosition,knuckle)<.25)
-          palmWorld=B.Vector3.Lerp(handPosition,knuckle,.45);
+          palmWorld=B.Vector3.Lerp(handPosition,knuckle,spec.palm_from_wrist);
       }
       anchor.position.copyFrom(B.Vector3.TransformCoordinates(
         palmWorld,B.Matrix.Invert(hand.getWorldMatrix())));
@@ -434,9 +460,11 @@
       for(const node of roots)node.parent=offset;
       state.weaponImport=prop;
       state.weaponAnchor=anchor;
-      text("weaponMetric","Prise auto · vision + géométrie 3D · "+side+
-        " · ratio tête/manche "+frame.headWidthRatio.toFixed(2));
-      byId("world").dataset.weaponGrip="vision-geometry";
+      text("weaponMetric","Prise auto · Gemini Vision + GLB · main "+side+
+        (spec.hold_mode==="two_hands"?" (seconde main non pilotée)":"")+
+        " · objet/hauteur "+spec.length_relative_character_height.toFixed(2));
+      byId("world").dataset.weaponGrip="vision-plan-geometry";
+      byId("world").dataset.weaponGripScale=spec.length_relative_character_height.toFixed(3);
       byId("world").dataset.weaponGripHeadRatio=frame.headWidthRatio.toFixed(3);
     }catch(err){
       if(prop)for(const node of [...prop.meshes,...prop.transformNodes])
@@ -527,7 +555,7 @@
       state.imported=imported;
       lookForAnimations(imported.animationGroups||[]);
       pivot.setEnabled(true);
-      if (url && imported.skeletons?.length) void tryEquipAxe(imported,token);
+      if (url && imported.skeletons?.length) void tryEquipProp(imported,token);
       setIsometricCamera();
       text("modelMetric",vertices.length+" mesh · "+(imported.skeletons?.length||0)+" rig");
       setStatus("Prêt · WASD pour se déplacer", "success");
