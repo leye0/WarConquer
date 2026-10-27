@@ -1,0 +1,41 @@
+{
+  "trial_id": "marches-axeman-strict-tpose-v1-2026-10-27",
+  "reference_sha256": "40596135f14365c2a77258cd34fe8285c2968fc791816023fbe37cdb197982c7",
+  "model": "meta/muse-image",
+  "expected_views": [
+    "front",
+    "back",
+    "left",
+    "right"
+  ],
+  "present_views": 4,
+  "maximum_paid_images": 4,
+  "no_paid_retry": true,
+  "warnings": {
+    "front": [],
+    "back": [],
+    "left": [],
+    "right": []
+  },
+  "human_pose_orientation_identity_review": "REQUIRED",
+  "ready_for_reconstruction": false,
+  "note": "The four images must be visually inspected for a strict, consistent T-pose before the one-shot paid 3D reconstruction.",
+  "results": [
+    {
+      "view": "front",
+      "status": "generated-needs-visual-approval"
+    },
+    {
+      "view": "back",
+      "status": "generated-needs-visual-approval"
+    },
+    {
+      "view": "left",
+      "status": "generated-needs-visual-approval"
+    },
+    {
+      "view": "right",
+      "status": "generated-needs-visual-approval"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "view": "front",
+  "view_definition": "FRONT: person faces camera, complete face and chest visible, perfectly symmetrical elevation, no three-quarter angle",
+  "status": "generated-needs-visual-approval",
+  "prompt": "Reconstruct the SAME adult male medieval-fantasy Marches axeman from the WarConquer original reference as a high-fidelity FULL-BODY CHARACTER MODEL TURNAROUND REFERENCE for 3D automatic rigging. Preserve the exact identity, head, hair, tunic, leather, fabric, armor shape, muted oxblood-red/charcoal/aged-copper materials, repair seams and garment placement. The reference is for APPEARANCE ONLY: deliberately CHANGE the original action/idle pose into the neutral rigging pose defined below. Same anatomy, unchanged clothing and proportions in every view, no redesign.\n\nMANDATORY EXACT STRICT T-POSE: head centered above spine, back and torso vertical, pelvis neutral, shoulders at equal height, BOTH arms extended straight outward from shoulders at 90 degrees from torso, forming a single horizontal line from LEFT fingertips through shoulders to RIGHT fingertips. Both elbows straight, wrists straight, hands OPEN, fingers together, palms facing downward, two arms distinct and visibly separate from torso. Both legs straight and apart at hip width, knees straight but relaxed, each complete boot separate and touching the same invisible floor level. NO A-pose; arms must NOT slope down. NO bent elbows, NO hands on hips, NO crossed legs, NO walking, NO jumping, NO lean, NO attack or motion.\n\nNO axe, NO sword, NO shield, NO handheld prop, NO long rigid object, NO backpack, NO loose dangling accessories between arms and torso, NO cloak or flowing cape that joins the hands to the hips. Equipment will be modeled separately after rigging. Keep close-fitting garments so that shoulder, elbow, hip and knee boundaries remain clear. This clean character must have exactly two hands and two boots.\n\nCAMERA: one single isolated character, straight-on orthographic camera at the midpoint of the body, no elevated RTS camera, no perspective, no tilt, roll or isometric angle, uniform scale and body proportions. REQUIRED VIEW: FRONT: person faces camera, complete face and chest visible, perfectly symmetrical elevation, no three-quarter angle. Keep the entire head, ALL fingertips, both separated legs and both complete boots in frame with generous blank padding. Reference image proportions 1024 by 1024, upright vertical character, centered, same common feet baseline. Sharp detailed painterly WarConquer design, realistic contours and anatomically coherent clothing, neutral diffuse lighting. Transparent background; failing alpha, solid PURE WHITE backdrop. No scenery, no floor, no shadow, no ground plane, no text, no layout, no multiple views, no labels, no border, no guides, no extra figures.\n",
+  "reference_sha256": "40596135f14365c2a77258cd34fe8285c2968fc791816023fbe37cdb197982c7",
+  "reference_views": [
+    "original"
+  ],
+  "model": "meta/muse-image",
+  "warnings": [],
+  "geometry": {
+    "foreground_bbox": [
+      179,
+      218,
+      845,
+      899
+    ],
+    "width_height_ratio": 0.978,
+    "foreground_pixels": 122557
+  },
+  "placement": {
+    "raw_bbox": [
+      41,
+      22,
+      1560,
+      1576
+    ],
+    "source_edge_contact": false,
+    "foreground_fraction": 0.24856,
+    "normalization_scale": 0.43818,
+    "feet_baseline_px": 899
+  },
+  "source_image_size": [
+    1600,
+    1600
+  ],
+  "matte": "black-background-matte",
+  "sha256": "ddaf1862304adc05d01157bda8caae57b8a549ade83ce70e3ace9638a8997d87",
+  "usage": {
+    "prompt_tokens": 652,
+    "completion_tokens": 1137,
+    "total_tokens": 1789,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 1137
+    }
+  }
+}

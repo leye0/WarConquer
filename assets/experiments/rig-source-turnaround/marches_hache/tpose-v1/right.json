@@ -1,0 +1,60 @@
+{
+  "view": "right",
+  "view_definition": "RIGHT SIDE: true 90 degree orthographic profile, face and toes point toward the RIGHT edge of the image, no three-quarter view",
+  "status": "generated-needs-visual-approval",
+  "prompt": "Reconstruct the SAME adult male medieval-fantasy Marches axeman from the WarConquer original reference as a high-fidelity FULL-BODY CHARACTER MODEL TURNAROUND REFERENCE for 3D automatic rigging. Preserve the exact identity, head, hair, tunic, leather, fabric, armor shape, muted oxblood-red/charcoal/aged-copper materials, repair seams and garment placement. The reference is for APPEARANCE ONLY: deliberately CHANGE the original action/idle pose into the neutral rigging pose defined below. Same anatomy, unchanged clothing and proportions in every view, no redesign.\n\nMANDATORY EXACT STRICT T-POSE: head centered above spine, back and torso vertical, pelvis neutral, shoulders at equal height, BOTH arms extended straight outward from shoulders at 90 degrees from torso, forming a single horizontal line from LEFT fingertips through shoulders to RIGHT fingertips. Both elbows straight, wrists straight, hands OPEN, fingers together, palms facing downward, two arms distinct and visibly separate from torso. Both legs straight and apart at hip width, knees straight but relaxed, each complete boot separate and touching the same invisible floor level. NO A-pose; arms must NOT slope down. NO bent elbows, NO hands on hips, NO crossed legs, NO walking, NO jumping, NO lean, NO attack or motion.\n\nNO axe, NO sword, NO shield, NO handheld prop, NO long rigid object, NO backpack, NO loose dangling accessories between arms and torso, NO cloak or flowing cape that joins the hands to the hips. Equipment will be modeled separately after rigging. Keep close-fitting garments so that shoulder, elbow, hip and knee boundaries remain clear. This clean character must have exactly two hands and two boots.\n\nCAMERA: one single isolated character, straight-on orthographic camera at the midpoint of the body, no elevated RTS camera, no perspective, no tilt, roll or isometric angle, uniform scale and body proportions. REQUIRED VIEW: RIGHT SIDE: true 90 degree orthographic profile, face and toes point toward the RIGHT edge of the image, no three-quarter view. Keep the entire head, ALL fingertips, both separated legs and both complete boots in frame with generous blank padding. Reference image proportions 1024 by 1024, upright vertical character, centered, same common feet baseline. Sharp detailed painterly WarConquer design, realistic contours and anatomically coherent clothing, neutral diffuse lighting. Transparent background; failing alpha, solid PURE WHITE backdrop. No scenery, no floor, no shadow, no ground plane, no text, no layout, no multiple views, no labels, no border, no guides, no extra figures.\n",
+  "reference_sha256": "40596135f14365c2a77258cd34fe8285c2968fc791816023fbe37cdb197982c7",
+  "reference_views": [
+    "original",
+    "front"
+  ],
+  "model": "meta/muse-image",
+  "warnings": [],
+  "geometry": {
+    "foreground_bbox": [
+      185,
+      162,
+      839,
+      899
+    ],
+    "width_height_ratio": 0.887,
+    "foreground_pixels": 119751
+  },
+  "placement": {
+    "raw_bbox": [
+      143,
+      81,
+      1453,
+      1557
+    ],
+    "source_edge_contact": false,
+    "foreground_fraction": 0.18739,
+    "normalization_scale": 0.49951,
+    "feet_baseline_px": 899
+  },
+  "source_image_size": [
+    1600,
+    1600
+  ],
+  "matte": "white-background-matte",
+  "sha256": "c014122823cc8ba9a5cfee864151faf4bb0a5580db8812f988ddc99b6d71b6f7",
+  "usage": {
+    "prompt_tokens": 654,
+    "completion_tokens": 2553,
+    "total_tokens": 3207,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 2553
+    }
+  }
+}
