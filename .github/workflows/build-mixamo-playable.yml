@@ -37,7 +37,7 @@ jobs:
           for clip in 2hand_Idle Walking_21 Run_With_Sword Standing_Melee_Attack_Downward; do
             test -s "$RUNNER_TEMP/warconquer-mixamo/$clip.glb"
           done
-      - name: Retarget authentic skeleton clips to approved WarConquer 52-bone mesh and UV texture
+      - name: Retarget Mixamo 52-bone clips and diagnose source arm rest poses
         env:
           MIXAMO_CONVERTED_DIR: "${{ runner.temp }}/warconquer-mixamo"
         run: |
