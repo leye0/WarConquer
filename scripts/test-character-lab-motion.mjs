@@ -52,7 +52,8 @@ async function state() {
   movement:t("movementMetric"),position:t("positionMetric"),status:t("statusText"),
   canvas:!!document.getElementById("world"),
   fireball:typeof BABYLON!=="undefined"&&!!BABYLON.EngineStore.LastCreatedEngine?.scenes[0]?.meshes.some(m=>m.name==="wc-fireball"&&!m.isDisposed()),
-  idleOptions:document.getElementById("idleSelect")?.options.length||0}})()`);
+  idleOptions:document.getElementById("idleSelect")?.options.length||0,
+  poseReturns:Number(document.getElementById("world")?.dataset.poseReturns||0)}})()`);
 }
 async function until(check,label,timeout=30000) {
   const end=Date.now()+timeout;let last;
@@ -173,6 +174,7 @@ try {
     s.walk.includes("Marche ET course"),
     "fal UV native texture + genuine idle/walk/run/attack in Babylon",45000);
   console.log("FAL_RIGGED_IDLE_PASS",JSON.stringify(texturedIdle));
+  await screenshot("fal-animated-idle-initial-live");
   await sleep(750);
   await screenshot("fal-animated-idle-live");
   assert((await state()).idleOptions>=5,"four Mixamo idle options + fireball must be selectable in arena");
@@ -207,14 +209,16 @@ try {
   console.log("FAL_RIGGED_ATTACK_PASS",JSON.stringify(texturedAttack));
   await sleep(300);
   await screenshot("fal-animated-attack-live");
-  await until(s=>s.motion.startsWith("Idle_"),"attack ends before fireball",16000);
+  await until(s=>s.motion.startsWith("Idle_")&&s.poseReturns>=1,"attack restores captured pre-gesture pose before idle",20000);
+  await screenshot("fal-animated-post-attack-restored-live");
   await js("document.getElementById('castButton').click()");
   await until(s=>s.motion.startsWith("Cast_Fireball"),"actual Mixamo casting gesture from button",10000);
   console.log("CAST_PASS");
   await screenshot("fal-animated-cast-live");
   await until(s=>s.fireball,"visible fireball emitted inside arena",16000);
   await screenshot("fal-animated-fireball-live");
-  await until(s=>s.motion.startsWith("Idle_"),"casting returns to selected idle",16000);
+  await until(s=>s.motion.startsWith("Idle_")&&s.poseReturns>=2,"casting restores captured pre-gesture pose before idle",20000);
+  await screenshot("fal-animated-post-cast-restored-live");
   await js("document.getElementById('resetButton').click()");
   await until(s=>s.motion.startsWith("Idle_Mixamo"),"fal idle after reset",10000);
   await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.alpha=Math.PI/2;c.beta=Math.PI/2.12;c.setTarget(new BABYLON.Vector3(0,1.15,0));c.lowerRadiusLimit=2.8;c.radius=5.5;return true})()");
