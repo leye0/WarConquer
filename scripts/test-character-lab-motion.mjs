@@ -53,7 +53,9 @@ async function state() {
   canvas:!!document.getElementById("world"),
   fireball:typeof BABYLON!=="undefined"&&!!BABYLON.EngineStore.LastCreatedEngine?.scenes[0]?.meshes.some(m=>m.name==="wc-fireball"&&!m.isDisposed()),
   idleOptions:document.getElementById("idleSelect")?.options.length||0,
-  poseReturns:Number(document.getElementById("world")?.dataset.poseReturns||0)}})()`);
+  poseReturns:Number(document.getElementById("world")?.dataset.poseReturns||0),
+  weapon:t("weaponMetric"),weaponGrip:document.getElementById("world")?.dataset.weaponGrip||"none",
+  weaponRatio:Number(document.getElementById("world")?.dataset.weaponGripHeadRatio||0)}})()`);
 }
 async function until(check,label,timeout=30000) {
   const end=Date.now()+timeout;let last;
@@ -174,6 +176,11 @@ try {
     s.walk.includes("Marche ET course"),
     "fal UV native texture + genuine idle/walk/run/attack in Babylon",45000);
   console.log("FAL_RIGGED_IDLE_PASS",JSON.stringify(texturedIdle));
+  const equipped=await until(s=>s.weaponGrip==="vision-geometry"&&s.weaponRatio>=1.23,
+    "3D axe grip guided by real vision landmarks and GLB shaft/head geometry",20000);
+  console.log("AUTO_GRIP_PASS",JSON.stringify(equipped));
+  await sleep(400);
+  await screenshot("fal-animated-auto-grip-idle-live");
   await screenshot("fal-animated-idle-initial-live");
   await sleep(750);
   await screenshot("fal-animated-idle-live");
