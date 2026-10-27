@@ -73,8 +73,9 @@ def worlds(doc,rotations):
 def skinned(doc,base,weights,joints,inv_bind,mesh_idx,world):
     mesh_node=doc["nodes"][mesh_idx]
     skin=doc["skins"][mesh_node["skin"]]
-    inv_mesh=np.linalg.inv(world[mesh_idx])
-    palette=np.array([inv_mesh@world[j]@inv_bind[k]
+    # Per Khronos glTF 2.0, the transform of the skinned mesh node is
+    # ignored by skinning; joint world matrices already give world positions.
+    palette=np.array([world[j]@inv_bind[k]
                       for k,j in enumerate(skin["joints"])])
     verts4=np.column_stack((base,np.ones(len(base))))
     wsum=weights.sum(axis=1)
@@ -143,6 +144,10 @@ def main():
         rotations[channel["target"]["node"]]=accessor(doc,binary,sampler["output"])
     rest_world=worlds(doc,{})
     rest=skinned(doc,base,weights,joints,inv_bind,mesh_idx,rest_world)
+    rest_mismatch=float(np.max(np.linalg.norm(rest-base,axis=1)))
+    original_extent=float(np.max(base.max(axis=0)-base.min(axis=0)))
+    if rest_mismatch>original_extent*0.08:
+        raise ValueError(f"Skin bind/rest mismatch: {rest_mismatch:.5f} exceeds 8% of character size")
     lo=rest.min(axis=0);hi=rest.max(axis=0)
     center=(lo+hi)/2
     extent=hi-lo
@@ -176,6 +181,7 @@ def main():
                    for r in records)
     result={"status":"software-skin-rendered-awaiting-human-motion-qa",
             "mesh_vertices":len(base),"faces_rendered":len(faces),
+            "rest_skinning_max_vertex_mismatch":round(rest_mismatch,6),
             "skin_joint_count":len(doc["skins"][0]["joints"]),
             "samples":records,"rest_bounds":np.array([lo,hi]).round(4).tolist(),
             "axis_vertical":up,"deformation_explosion_detected":bool(suspicious),
