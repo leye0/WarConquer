@@ -1,0 +1,99 @@
+name: Motion transfer · DreamActor M2.0 · one approved SW trial
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'motion-transfer-request.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: motion-transfer-sw-one-shot
+  cancel-in-progress: false
+
+jobs:
+  one-shot-pilot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Replicate client and visual QA dependencies
+        run: python -m pip install 'replicate>=1.0,<2.0' 'Pillow==11.3.0'
+
+      - name: Validate original SW image and the existing approved 8-second motion
+        run: |
+          python -m py_compile scripts/test-motion-transfer.py
+          python scripts/test-motion-transfer.py --stage validate
+
+      - name: Verify Replicate secret exists (never print it)
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
+        run: |
+          if [ -z "$REPLICATE_API_TOKEN" ]; then
+            echo "::error::Missing GitHub Actions secret REPLICATE_API_KEY"
+            exit 1
+          fi
+
+      - name: Submit no more than ONE paid prediction for this trial
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
+        run: python scripts/test-motion-transfer.py --stage submit
+
+      - name: Checkpoint the paid prediction ID on main before polling
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/experiments/motion-transfer/marches_hache/SW/dreamactor-m2.0/prediction.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: checkpoint one paid SW DreamActor prediction'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+
+      - name: Collect the same prediction and build 4-fps visual contact sheet
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
+        run: python scripts/test-motion-transfer.py --stage collect
+
+      - name: Publish video, checkpoint, and QA report on main
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if [ -d assets/experiments/motion-transfer ]; then
+            git add -A assets/experiments/motion-transfer
+            if ! git diff --cached --quiet; then
+              git commit -m 'assets: publish DreamActor SW motion-transfer pilot and visual QA'
+              git fetch origin main
+              git rebase origin/main
+              git push origin HEAD:main
+            fi
+          fi
+
+      - name: Summarize test state
+        if: ${{ always() }}
+        run: |
+          echo '## DreamActor M2.0 one-shot SW motion transfer' >> "$GITHUB_STEP_SUMMARY"
+          python -c 'import json,pathlib; p=pathlib.Path("assets/experiments/motion-transfer/marches_hache/SW/dreamactor-m2.0"); r=p/"report.json"; c=p/"prediction.json"; print(json.dumps(json.loads(r.read_text()) if r.exists() else json.loads(c.read_text()) if c.exists() else {"status":"No prediction submitted"}, indent=2))' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload generated trial for independent inspection
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: dreamactor-sw-motion-transfer
+          path: assets/experiments/motion-transfer/marches_hache/SW/dreamactor-m2.0/
+          if-no-files-found: ignore
+          retention-days: 7
