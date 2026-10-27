@@ -55,7 +55,10 @@ PROMPT = (
     "Estimate palm position as 0 at the wrist joint and 1 at the finger knuckles. "
     "Return specs and confidence. If handle cannot be identified, set unsupported "
     "instead of inventing points. DO NOT infer raw GLB axis or Euler coordinates: "
-    "the 3D pipeline computes actual axes from imported vertices."
+    "the 3D pipeline computes actual axes from imported vertices. For shaft grip, "
+    "ensure grip_point is located ON the straight line segment from handle_butt to "
+    "handle_near_head and in the lower 15-60% of that segment; do not pick "
+    "a point on the original character image."
 )
 
 
@@ -134,7 +137,7 @@ def validate(raw: dict) -> dict:
         raise ValueError("Shaft image endpoints too close")
     fraction = ((grip[0]-start[0])*axis[0]+(grip[1]-start[1])*axis[1])/sq
     deviation = abs((grip[0]-start[0])*axis[1]-(grip[1]-start[1])*axis[0])/math.sqrt(sq)
-    if not .04 <= fraction <= .68 or deviation > .15:
+    if not .04 <= fraction <= .64 or deviation > .20:
         raise ValueError("Vision grip not located on the shaft")
     return {"grip_fraction_from_butt": round(fraction, 5),
             "image_deviation": round(deviation, 5),
@@ -162,37 +165,58 @@ def run(request_path: str, check: bool) -> None:
     if check:
         print("No generated plan yet")
         return
-    key = os.environ.get("OPENROUTER_API_KEY", "").strip()
-    if not key:
-        raise RuntimeError("OPENROUTER_API_KEY Actions secret not configured")
-    payload = {
-        "model": cfg["vision_model"], "temperature": 0, "max_tokens": 850,
-        "provider": {"require_parameters": True},
-        "response_format": {
-            "type": "json_schema",
-            "json_schema": {"name": "prop_attachment_plan", "strict": True, "schema": SCHEMA},
-        },
-        "messages": [
-            {"role": "system", "content": PROMPT},
-            {"role": "user", "content": [
-                {"type": "text", "text": "IMAGE 1: isolated prop source."},
-                image_part(obj),
-                {"type": "text", "text": "IMAGE 2: character concept; assess realistic relative scale and grip."},
-                image_part(char),
-            ]},
-        ],
-    }
-    req = Request(ENDPOINT, data=json.dumps(payload).encode(), method="POST",
-        headers={"Authorization": "Bearer " + key, "Content-Type": "application/json",
-                 "HTTP-Referer": "https://github.com/leye0/WarConquer",
-                 "X-Title": "WarConquer generic prop attachment"})
-    with urlopen(req, timeout=150) as response:
-        answer = json.loads(response.read(160000))
-    content = (answer.get("choices") or [{}])[0].get("message", {}).get("content")
-    if not isinstance(content, str):
-        raise ValueError("Vision provider returned no JSON text")
-    spec = json.loads(content)
-    fit = validate(spec)
+    # Cache the raw, paid result BEFORE validating semantic quality. An invalid
+    # landmark must never trigger another charge merely because CI was re-run.
+    checkpoint = output.with_name("grip-plan-response.json")
+    if checkpoint.exists():
+        record = json.loads(checkpoint.read_text())
+        if record.get("input_hashes") != provenance or record.get("vision_model") != cfg["vision_model"]:
+            raise ValueError("Cached paid response belongs to different inputs")
+        spec = record["raw_specifications"]
+        print("Reusing the exact paid model response; zero extra cost")
+    else:
+        key = os.environ.get("OPENROUTER_API_KEY", "").strip()
+        if not key:
+            raise RuntimeError("OPENROUTER_API_KEY Actions secret not configured")
+        payload = {
+            "model": cfg["vision_model"], "temperature": 0, "max_tokens": 850,
+            "provider": {"require_parameters": True},
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {"name": "prop_attachment_plan", "strict": True, "schema": SCHEMA},
+            },
+            "messages": [
+                {"role": "system", "content": PROMPT},
+                {"role": "user", "content": [
+                    {"type": "text", "text": "IMAGE 1: isolated prop source."},
+                    image_part(obj),
+                    {"type": "text", "text": "IMAGE 2: character concept; assess realistic relative scale and grip."},
+                    image_part(char),
+                ]},
+            ],
+        }
+        req = Request(ENDPOINT, data=json.dumps(payload).encode(), method="POST",
+            headers={"Authorization": "Bearer " + key, "Content-Type": "application/json",
+                     "HTTP-Referer": "https://github.com/leye0/WarConquer",
+                     "X-Title": "WarConquer generic prop attachment"})
+        with urlopen(req, timeout=150) as response:
+            answer = json.loads(response.read(160000))
+        content = (answer.get("choices") or [{}])[0].get("message", {}).get("content")
+        if not isinstance(content, str):
+            raise ValueError("Vision provider returned no JSON text")
+        spec = json.loads(content)
+        checkpoint.parent.mkdir(parents=True, exist_ok=True)
+        checkpoint.write_text(json.dumps({
+            "schema": 1, "experiment": cfg["experiment"],
+            "vision_model": cfg["vision_model"], "input_hashes": provenance,
+            "raw_specifications": spec, "paid_vision_requests": 1
+        }, ensure_ascii=False, indent=2) + "\\n")
+        print("Pinned raw paid model response before validation")
+    try:
+        fit = validate(spec)
+    except Exception:
+        print("Vision plan rejected; cached raw response retained for zero-cost review:", json.dumps(spec, ensure_ascii=False))
+        raise
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps({
         "schema": 2, "experiment": cfg["experiment"], "vision_model": cfg["vision_model"],
