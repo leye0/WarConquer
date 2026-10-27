@@ -62,6 +62,7 @@ Le fichier `warconquer-playable.glb` regroupe maintenant la marche, la course, l
 
 - **WebSuite** rend automatiquement [character-lab.html](../character-lab.html) après une modification HTML sur main.
 - Le workflow [Character Lab QA](../.github/workflows/character-lab-qa.yml) vérifie le serveur, l'accès aux fichiers réels, les quatre vues, l'en-tête GLB, le JavaScript et capture une image du terrain 3D dans [assets/experiments/character-lab-qa/terrain-live.png](../assets/experiments/character-lab-qa/terrain-live.png).
-- Ce test ne fait aucun appel de génération payant. Il est déclenché une fois par la création/modification de ce document ou manuellement dans GitHub Actions.
+- Le test automatisé [test-character-lab-motion.mjs](../scripts/test-character-lab-motion.mjs) lance aussi **Chrome réel par CDP**, maintient les touches **W** puis **Shift+W**, relâche le mouvement, déclenche l'attaque, vérifie les noms du groupe d'animation actif, le déplacement WASD et sauvegarde des captures distinctes (`walk-live.png`, `run-live.png`, `attack-live.png`).
+- Ces tests ne font aucun appel de génération payant. Ils se déclenchent avec une modification de ce document ou manuellement dans GitHub Actions.
 
 Une capture valide **n'est pas encore** une vérification humaine des animations : il faut tester les commandes et la marche dans le navigateur.
