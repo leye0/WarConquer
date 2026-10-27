@@ -1,0 +1,99 @@
+name: Multi-view 3D · Marches axeman · Hunyuan3D-2mv
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'multiview-3d-request.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: marches-hunyuan3d-2mv-one-shot
+  cancel-in-progress: false
+
+jobs:
+  reconstruct:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install small 3D mesh tooling and Replicate API client
+        run: python -m pip install 'replicate==1.0.7' 'Pillow==11.3.0' 'numpy>=2.0,<3.0' 'trimesh>=4.5,<5.0'
+
+      - name: Verify all four original RGBA views without generating images
+        run: |
+          python -m py_compile scripts/build-multiview-3d.py
+          python scripts/build-multiview-3d.py --stage validate
+
+      - name: Check Replicate secret (no output of its value)
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
+        run: |
+          if [ -z "$REPLICATE_API_TOKEN" ]; then
+            echo "::error::Missing GitHub secret REPLICATE_API_KEY"
+            exit 1
+          fi
+
+      - name: Submit one and only one four-angle 3D reconstruction
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
+        run: python scripts/build-multiview-3d.py --stage submit
+
+      - name: Persist paid prediction ID on main before polling
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/experiments/3d-reconstruction/marches_hache/hunyuan3d-2mv/prediction.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: checkpoint multiview Hunyuan3D prediction'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+
+      - name: Retrieve 3D GLB and inspect mesh geometry
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
+        run: python scripts/build-multiview-3d.py --stage collect
+
+      - name: Preserve resulting GLB, QA preview, and report on main
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if [ -d assets/experiments/3d-reconstruction ]; then
+            git add -A assets/experiments/3d-reconstruction
+            if ! git diff --cached --quiet; then
+              git commit -m 'assets: publish first multiview Marches 3D reconstruction and QA'
+              git fetch origin main
+              git rebase origin/main
+              git push origin HEAD:main
+            fi
+          fi
+
+      - name: Summarize reconstruction state
+        if: ${{ always() }}
+        run: |
+          echo '## Four-angle Hunyuan3D mesh test' >> "$GITHUB_STEP_SUMMARY"
+          python -c 'import json,pathlib; p=pathlib.Path("assets/experiments/3d-reconstruction/marches_hache/hunyuan3d-2mv"); a=p/"report.json"; b=p/"prediction.json"; print(json.dumps(json.loads(a.read_text()) if a.exists() else json.loads(b.read_text()) if b.exists() else {"status":"No prediction submitted"}, indent=2))' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload 3D file and report even if GitHub push fails
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: marches-axeman-hunyuan3d-multiview
+          path: assets/experiments/3d-reconstruction/marches_hache/hunyuan3d-2mv/
+          retention-days: 7
+          if-no-files-found: ignore
