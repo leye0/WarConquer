@@ -272,14 +272,13 @@
       state.idle.start(true,1,state.idle.from,state.idle.to);
       state.idle.goToFrame(state.idle.from);
       state.currentMotion=state.idle;
-    }
+    } else if(state.attack)restPose();
     // From this fully initialized pose onward, blend naturally when a new
     // movement or gesture starts instead of snapping back to a rig rest pose.
     for(const group of groups)for(const track of group.targetedAnimations||[]){
       track.animation.enableBlending=true;
       track.animation.blendingSpeed=.15;
     }
-    else if(state.attack)restPose();
     text("activeMotionMetric",state.currentMotion?.name||"Aucune animation");
     const gait=state.walk&&state.run?"Marche ET course réelles détectées":
       state.walk?"Marche réelle détectée":state.run?"Course réelle détectée":"Marche absente : déplacements seulement";
