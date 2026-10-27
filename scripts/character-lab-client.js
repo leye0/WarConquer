@@ -209,10 +209,10 @@
     camera.alpha=-Math.PI/4;
     camera.beta=Math.PI/3.25;
     camera.radius=13;
-    camera.orthoTop=3.6;
-    camera.orthoBottom=-3.6;
-    camera.orthoLeft=-3.6*size;
-    camera.orthoRight=3.6*size;
+    camera.orthoTop=2.7;
+    camera.orthoBottom=-2.7;
+    camera.orthoLeft=-2.7*size;
+    camera.orthoRight=2.7*size;
     const p=state.character?.position;
     camera.setTarget(new BABYLON.Vector3(p?.x||0,.85,p?.z||0));
     state.follow=true;
@@ -231,6 +231,7 @@
     state.currentMotion=null;
     if(state.idle){state.idle.start(true,1,state.idle.from,state.idle.to);state.currentMotion=state.idle;}
     else if(state.attack)restPose();
+    text("activeMotionMetric",state.currentMotion?.name||"Aucune animation");
     const gait=state.walk&&state.run?"Marche ET course réelles détectées":
       state.walk?"Marche réelle détectée":state.run?"Course réelle détectée":"Marche absente : déplacements seulement";
     text("walkMetric",gait);
@@ -416,6 +417,7 @@
     state.attacking=true;
     group.stop();
     group.start(false,1,group.from,group.to);
+    text("activeMotionMetric",group.name);
     group.onAnimationGroupEndObservable.addOnce(()=>{
       state.attacking=false;
       state.currentMotion=null; // update() returns to walk, run or idle.
@@ -429,7 +431,7 @@
     // An orthographic ArcRotateCamera changes radius on wheel; update the
     // orthographic extents so wheel zoom actually changes visible scale.
     if (state.camera && state.engine) {
-      const half=3.6*state.camera.radius/13;
+      const half=2.7*state.camera.radius/13;
       const aspect=state.engine.getRenderWidth()/Math.max(1,state.engine.getRenderHeight());
       state.camera.orthoTop=half;
       state.camera.orthoBottom=-half;
@@ -467,6 +469,7 @@
           if(next) next.start(true,1,next.from,next.to);
           else if(state.attack) restPose();
           state.currentMotion=next||null;
+          text("activeMotionMetric",next?.name||"Aucune animation");
         }
       }
       if(moving!==state.moving) {
@@ -496,6 +499,7 @@
         state.currentMotion=null;
         if(state.idle){state.idle.start(true,1,state.idle.from,state.idle.to);state.currentMotion=state.idle;}
         else if(state.attack)restPose();
+        text("activeMotionMetric",state.currentMotion?.name||"Aucune animation");
       }
       setIsometricCamera();
       byId("world").focus();
