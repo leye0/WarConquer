@@ -1,0 +1,73 @@
+name: Rig-source turnaround · strict T-pose · OpenRouter Muse
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'rig-source-turnaround-request.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: marches-axeman-rig-source-tpose-v1
+  cancel-in-progress: false
+
+jobs:
+  create-tpose-views:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install existing Muse PNG processing dependencies
+        run: python -m pip install 'Pillow==11.3.0' 'numpy==2.2.6' 'scipy==1.16.2'
+      - name: Verify locked request and original WarConquer art without API charge
+        run: |
+          python -m py_compile scripts/generate-rig-source-turnaround.py
+          python scripts/generate-rig-source-turnaround.py --dry-run
+      - name: Generate up to four orthographic T-pose views with Muse
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_IMAGE_MODEL: ${{ secrets.OPENROUTER_IMAGE_MODEL }}
+          OMP_NUM_THREADS: '1'
+        run: python scripts/generate-rig-source-turnaround.py
+      - name: Preserve successful views, warnings and review image on main
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if [ -d assets/experiments/rig-source-turnaround/marches_hache/tpose-v1 ]; then
+            git add -A assets/experiments/rig-source-turnaround/marches_hache/tpose-v1
+            if ! git diff --cached --quiet; then
+              git commit -m 'assets: publish strict T-pose Muse turnaround for human QA'
+              git fetch origin main
+              git rebase origin/main
+              git push origin HEAD:main
+            fi
+          fi
+      - name: Summarize rig-source status
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          echo '## Strict T-pose four-view pilot' >> "$GITHUB_STEP_SUMMARY"
+          if [ -f assets/experiments/rig-source-turnaround/marches_hache/tpose-v1/report.json ]; then
+            python -m json.tool assets/experiments/rig-source-turnaround/marches_hache/tpose-v1/report.json >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'No image report produced; inspect failed step logs.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload raw output and retained results for visual inspection
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: marches-axeman-muse-tpose-v1
+          path: |
+            rig-source-output/
+            assets/experiments/rig-source-turnaround/marches_hache/tpose-v1/
+          if-no-files-found: ignore
+          retention-days: 7
