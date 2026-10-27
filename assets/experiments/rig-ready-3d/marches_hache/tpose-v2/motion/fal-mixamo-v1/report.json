@@ -3,8 +3,8 @@
   "source": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-textured.glb",
   "rigged_model": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/fal-rigged.glb",
   "playable_model": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/warconquer-textured-playable.glb",
-  "output_sha256": "9f444bbaefdb26cd50d213488c7bc300a1b3b04a58ac9c212ee0a686f6ef53b8",
-  "bytes": 5520136,
+  "output_sha256": "222606457fd4b59405c721c3329d1c095eb9788148aaab6bf1fd0c5c7fd01a5a",
+  "bytes": 5475764,
   "texture_method": "original fal.ai native embedded UV/PBR, no new projection",
   "rigging_model": "uthana/create-character-v1",
   "rigging_prediction": "61jjyxzansrmw0d1fqmvcy4axg",
@@ -26,16 +26,16 @@
   "animation_clips": [
     {
       "name": "Idle",
-      "fbx": "2hand_Idle.fbx",
-      "source_glb_sha256": "e672b6d2bdb575b3f43141e356a41aaba230fd2c1537015914fbad2bf25dd6f3",
-      "duration": 4.767,
-      "frames": 144,
+      "fbx": "Standard_Idle.fbx",
+      "source_glb_sha256": "557ad0006ad2bf5abf52eb5082535dc2f6b9d26cb7c784b4a407c7fadec69b75",
+      "duration": 3.0,
+      "frames": 91,
       "mapped_joints": 52,
       "rotation_channels": 52,
-      "largest_rotation_degrees": 9.49,
+      "largest_rotation_degrees": 6.53,
       "initial_upper_arm_offset_degrees": {
-        "leftarm": 83.25,
-        "rightarm": 51.98
+        "leftarm": 72.97,
+        "rightarm": 68.36
       }
     },
     {
