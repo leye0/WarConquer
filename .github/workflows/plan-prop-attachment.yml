@@ -30,15 +30,16 @@ jobs:
         run: python scripts/plan-prop-attachment.py
       - name: Validate output and exact source file hashes
         run: python scripts/plan-prop-attachment.py --check
-      - name: Commit approved semantic pose/scale/grip configuration
+      - name: Preserve charged response even when semantic validation fails
+        if: always()
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A assets/experiments/props/marches_hache/trellis-v1/grip-plan.json
+          git add -A assets/experiments/props/marches_hache/trellis-v1
           if ! git diff --cached --quiet; then
-            git commit -m 'assets: store AI vision prop-to-character attachment specifications'
+            git commit -m 'assets: preserve paid vision response and accepted attachment plan'
             git fetch origin main
             git rebase origin/main
             git push origin HEAD:main
