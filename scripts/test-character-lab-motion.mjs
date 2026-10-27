@@ -55,7 +55,8 @@ async function state() {
   idleOptions:document.getElementById("idleSelect")?.options.length||0,
   poseReturns:Number(document.getElementById("world")?.dataset.poseReturns||0),
   weapon:t("weaponMetric"),weaponGrip:document.getElementById("world")?.dataset.weaponGrip||"none",
-  weaponRatio:Number(document.getElementById("world")?.dataset.weaponGripHeadRatio||0)}})()`);
+  weaponRatio:Number(document.getElementById("world")?.dataset.weaponGripHeadRatio||0),
+  weaponScale:Number(document.getElementById("world")?.dataset.weaponGripScale||0)}})()`);
 }
 async function until(check,label,timeout=30000) {
   const end=Date.now()+timeout;let last;
@@ -176,7 +177,7 @@ try {
     s.walk.includes("Marche ET course"),
     "fal UV native texture + genuine idle/walk/run/attack in Babylon",45000);
   console.log("FAL_RIGGED_IDLE_PASS",JSON.stringify(texturedIdle));
-  const equipped=await until(s=>s.weaponGrip==="vision-geometry"&&s.weaponRatio>=1.23,
+  const equipped=await until(s=>s.weaponGrip==="vision-plan-geometry"&&s.weaponRatio>=1.23&&s.weaponScale>=.13,
     "3D axe grip guided by real vision landmarks and GLB shaft/head geometry",20000);
   console.log("AUTO_GRIP_PASS",JSON.stringify(equipped));
   await sleep(400);
