@@ -56,7 +56,9 @@ async function state() {
   poseReturns:Number(document.getElementById("world")?.dataset.poseReturns||0),
   weapon:t("weaponMetric"),weaponGrip:document.getElementById("world")?.dataset.weaponGrip||"none",
   weaponRatio:Number(document.getElementById("world")?.dataset.weaponGripHeadRatio||0),
-  weaponScale:Number(document.getElementById("world")?.dataset.weaponGripScale||0)}})()`);
+  weaponScale:Number(document.getElementById("world")?.dataset.weaponGripScale||0),
+  equipmentAction:document.getElementById("world")?.dataset.equipmentAction||"",
+  equipmentReady:document.getElementById("world")?.dataset.equipmentReady||""}})()`);
 }
 async function until(check,label,timeout=30000) {
   const end=Date.now()+timeout;let last;
@@ -179,7 +181,9 @@ try {
   console.log("FAL_RIGGED_IDLE_PASS",JSON.stringify(texturedIdle));
   const equipped=await until(s=>s.weaponGrip==="vision-plan-geometry"&&s.weaponRatio>=1.23&&s.weaponScale>=.13,
     "3D axe grip guided by real vision landmarks and GLB shaft/head geometry",20000);
-  console.log("AUTO_GRIP_PASS",JSON.stringify(equipped));
+  assert.equal(equipped.equipmentAction,"axe_chop", "axe should use the axe-specific motion profile");
+  assert.equal(equipped.equipmentReady,"true", "genuine attack animation must match equipped axe");
+  console.log("AUTO_GRIP_AND_EQUIPMENT_ACTION_PASS",JSON.stringify(equipped));
   await sleep(400);
   await screenshot("fal-animated-auto-grip-idle-live");
   await screenshot("fal-animated-idle-initial-live");
