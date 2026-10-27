@@ -1,0 +1,59 @@
+name: Props · vision grounding in original generation brief (v3)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'assets/experiments/props/marches_hache/trellis-v1/grip-request-v3.json'
+      - '.github/workflows/plan-prop-attachment-v3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prop-original-brief-v3
+  cancel-in-progress: false
+
+jobs:
+  vision-plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate source description and scale constraints (offline)
+        run: |
+          python -m py_compile scripts/plan-prop-attachment.py scripts/plan-prop-attachment-v3.py scripts/test-prop-identity-v3.py
+          python scripts/test-prop-identity-v3.py
+      - name: Analyze prop with its original generation prompt, once only
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python scripts/plan-prop-attachment-v3.py
+      - name: Verify accepted plan or fail closed on inconsistent scale
+        run: |
+          test -s assets/experiments/props/marches_hache/trellis-v1/grip-plan-v3.json
+          python scripts/plan-prop-attachment-v3.py --check
+      - name: Save original billable model response even when validation fails
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A assets/experiments/props/marches_hache/trellis-v1/grip-plan-v3.json
+          git add -A assets/experiments/props/marches_hache/trellis-v1/grip-plan-v3-response.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: retain provenance-aware visual grip and scale measurements'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: generation-aware-grip-plan-v3
+          path: |
+            assets/experiments/props/marches_hache/trellis-v1/grip-plan-v3.json
+            assets/experiments/props/marches_hache/trellis-v1/grip-plan-v3-response.json
+          retention-days: 7
+          if-no-files-found: ignore
