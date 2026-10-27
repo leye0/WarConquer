@@ -142,3 +142,10 @@ La bibliothèque `scripts/equipment-animation-policy.js` décrit douze catégori
 ## Inventaire audité des véritables animations
 
 Le manifeste [`data/motion-library.json`](../data/motion-library.json) indexe neuf FBX sources Mixamo connus, dont huit réellement utilisés dans le GLB fal.ai. [`scripts/audit-motion-library.mjs`](../scripts/audit-motion-library.mjs) compare automatiquement les huit animations aux noms présents dans le GLB, vérifie que l'attaque à la hache est compatible, et refuse d'assimiler cette attaque à un tir à l'arc. `node scripts/audit-motion-library.mjs bow` affiche les termes de recherche et les adaptateurs encore manquants. Aucun nouveau FBX n'est téléchargé et aucune IA payante n'est appelée par cet audit. Les gestes d'archerie restent **à acquérir et intégrer**, avec IK et événement de lâcher.
+
+
+## Contexte source transmis au modèle vision (v3)
+
+Le nouveau test `scripts/plan-prop-attachment-v3.py` relit `axe-image-request.json`, la description exacte ayant servi à créer la hache, et la transmet à Gemini avec l'illustration de l'objet et celle du guerrier. Il vérifie que la génération correspond au même fichier PNG, au même personnage et aux mêmes empreintes SHA. Le modèle doit identifier une prise sur manche et estimer l'échelle uniquement à partir du concept du porteur (jamais de la taille d'un objet isolé dans son cadre).
+
+**Résultat du pilote :** la description est bien transmise et le plan v3 est calculé, mais Gemini confirme encore une longueur de **1,10 × la hauteur du guerrier**. La validation v3 *interne au modèle* ne prouve donc pas l'exactitude de cette taille. `grip-plan-v3.json` est archivé avec `visual_qa.status=pending`. Le serveur local, la démo Pages et le Character Lab **conservent le plan v2** tant que le plan v3 ne reçoit pas une validation visuelle indépendante. Le nouveau modèle 3D n'a pas été regénéré. [Architecture détaillée](character-production-pipeline.md).
