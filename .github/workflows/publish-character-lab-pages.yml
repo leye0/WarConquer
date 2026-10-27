@@ -1,0 +1,73 @@
+name: Character Lab · GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'character-lab.html'
+      - 'scripts/character-lab-client.js'
+      - 'scripts/serve-character-lab.mjs'
+      - 'scripts/build-character-lab-pages.mjs'
+      - 'assets/experiments/rig-ready-3d/**'
+      - 'assets/experiments/rig-source-turnaround/**'
+      - 'assets/experiments/props/marches_hache/trellis-v1/axe.glb'
+      - 'assets/concepts/marches/units/hache.png'
+      - '.github/workflows/publish-character-lab-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: character-lab-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate client and static exporter
+        run: |
+          node --check scripts/character-lab-client.js
+          node --check scripts/serve-character-lab.mjs
+          node --check scripts/build-character-lab-pages.mjs
+      - name: Build minimal public Character Lab bundle
+        run: node scripts/build-character-lab-pages.mjs "$RUNNER_TEMP/character-lab-pages"
+      - name: Validate static catalog and bundled GLB
+        env:
+          PAGES_DIR: ${{ runner.temp }}/character-lab-pages
+        run: |
+          node --input-type=module -e '
+            import assert from "node:assert/strict";
+            import { readFileSync, existsSync } from "node:fs";
+            import { join } from "node:path";
+            const dir = process.env.PAGES_DIR;
+            assert(existsSync(join(dir, "index.html")));
+            assert(existsSync(join(dir, "scripts/character-lab-client.js")));
+            const data = JSON.parse(readFileSync(join(dir, "api/character-lab.json")));
+            assert(data.characters.length > 0);
+            const all = data.characters.flatMap(c => c.models);
+            assert(all.some(m => m.name.includes("fal.ai") && m.kind === "playable"), "Missing default rigged warrior");
+            for (const m of all) {
+              const p = join(dir, m.url.replace(/^\//, ""));
+              assert(existsSync(p), "Missing model " + m.url);
+              assert.equal(readFileSync(p).subarray(0,4).toString(), "glTF");
+            }
+            console.log("PASS: static catalog, playable GLB, entry point and assets");
+          '
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/character-lab-pages
+      - name: Publish Character Lab
+        id: deployment
+        uses: actions/deploy-pages@v4
