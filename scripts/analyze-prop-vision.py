@@ -21,7 +21,7 @@ TARGET = ROOT / "assets/experiments/props/marches_hache/trellis-v1/grip-vision.j
 MODEL = "openai/gpt-4.1-mini"
 URL = "https://openrouter.ai/api/v1/chat/completions"
 
-POINT = {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}
+POINT = {"type": "array", "items": {"type": "number"}}
 PROPERTIES = {
     "object_type": {"type": "string", "enum": ["axe", "sword", "spear", "staff", "hammer", "other"]},
     "holding_hand": {"type": "string", "enum": ["right", "left", "either"]},
