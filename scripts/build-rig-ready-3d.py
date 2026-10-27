@@ -17,8 +17,8 @@ from urllib.request import urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 REQUEST = ROOT / "rig-ready-3d-request.json"
-SOURCE = ROOT / "assets/experiments/rig-source-turnaround/marches_hache/tpose-v1"
-OUTPUT = ROOT / "assets/experiments/rig-ready-3d/marches_hache/tpose-v1"
+SOURCE = ROOT / "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2"
+OUTPUT = ROOT / "assets/experiments/rig-ready-3d/marches_hache/tpose-v2"
 ORDER = ("front", "back", "left", "right")
 MESH_MODEL = "tencent/hunyuan3d-2mv"
 RIG_MODEL = "uthana/create-character-v1"
