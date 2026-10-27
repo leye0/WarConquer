@@ -1,0 +1,24 @@
+{
+  "status": "motion-data-collected-awaiting-retarget",
+  "rig_target_sha256": "9bb357587de46032de203abe735b3eab140d32c982066b15da55c7c339439273",
+  "source_motion_sha256": "fbf9f2a7a934a8cef3154b47b968e06fbcc7458ac0c46cfb95c6ed06ed8f7a87",
+  "source_motion_bytes": 5461832,
+  "motion_model": "uthana/text-to-motion-diffusion-v2",
+  "model_version": "0ad729c8d6e63800404d6918c4d1e0a7be0e8ce94efe85afba9c397330174308",
+  "prompt_sha256": "9b77b310d5bd1edadebe4813b5f5f0a4579f19fad28f2ee57ac65aaafdb4847a",
+  "seed": 20261027,
+  "glb": {
+    "mesh_count": 1,
+    "node_count": 81,
+    "skin_count": 1,
+    "joint_count": 79,
+    "skinned_primitive_count": 1,
+    "animations_in_file": 1,
+    "has_materials": true,
+    "has_texture_images": true
+  },
+  "paid_predictions_submitted": 1,
+  "retargeted_to_warconquer": false,
+  "human_visual_review_required": true,
+  "note": "This is animation data on an Uthana default rig; it is not a WarConquer animation until skeleton retargeting and validation."
+}
