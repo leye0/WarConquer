@@ -41,26 +41,24 @@ def download(directory):
     print(json.dumps(report,indent=2))
 
 def convert(directory):
-    import bpy
+    """Use pinned precompiled FBX2glTF, no Blender or GPU required."""
+    import subprocess
+    binary=Path(os.environ.get("FBX2GLTF_BIN","node_modules/.bin/fbx2gltf"))
+    if not binary.is_file():
+        raise FileNotFoundError("FBX2glTF precompiled executable not installed: "+str(binary))
     for clip in CLIPS:
         src=directory/(clip+".fbx")
         dest=directory/(clip+".glb")
         if not src.is_file():
             raise FileNotFoundError(src)
-        bpy.ops.object.select_all(action="SELECT")
-        bpy.ops.object.delete(use_global=False)
-        for action in list(bpy.data.actions):
-            bpy.data.actions.remove(action)
-        bpy.ops.import_scene.fbx(filepath=str(src),use_anim=True)
-        armatures=[obj for obj in bpy.context.scene.objects if obj.type=="ARMATURE"]
-        if not armatures:
-            raise ValueError("FBX yielded no skeleton: "+clip)
-        bpy.context.scene.render.fps=30
-        bpy.ops.export_scene.gltf(filepath=str(dest),export_format="GLB",
-            export_animations=True,export_skins=True,export_yup=True,
-            export_image_format="AUTO")
+        command=[str(binary),"--binary","--anim-framerate","bake30",
+                 "--input",str(src),"--output",str(dest.with_suffix(""))]
+        subprocess.run(command,check=True,timeout=110)
         if not dest.is_file() or dest.stat().st_size<4096:
-            raise ValueError("FBX to GLB failed: "+clip)
+            raise ValueError("FBX2glTF failed: "+clip)
+        with dest.open("rb") as source:
+            if source.read(4)!=b"glTF":
+                raise ValueError("Invalid converted GLB: "+clip)
         print("CONVERTED",clip,src.stat().st_size,dest.stat().st_size,flush=True)
 
 if __name__=="__main__":
