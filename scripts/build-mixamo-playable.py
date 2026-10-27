@@ -3,7 +3,7 @@
 
 Source is the already-rigged, already-animated Hunyuan/Uthana character.
 No inference or paid calls; original skin joints and bind matrices remain.
-Four archived axe animations are retargeted after offline Blender FBX to GLB
+Four archived axe animations are retargeted after offline FBX2glTF FBX to GLB
 conversion; the experimental 4-view atlas is distinct from AI texture baking.
 """
 from __future__ import annotations
@@ -343,7 +343,7 @@ def main():
     import os
     folder=os.environ.get("MIXAMO_CONVERTED_DIR")
     if not folder:
-        raise ValueError("Set MIXAMO_CONVERTED_DIR to offline Blender-converted clips")
+        raise ValueError("Set MIXAMO_CONVERTED_DIR to offline FBX2glTF-converted clips")
     doc,buf=load_glb(SRC)
     saved=copy.deepcopy(doc.get("skins"))
     if len(saved or [])!=1 or len(saved[0].get("joints",[]))!=52:
@@ -363,7 +363,7 @@ def main():
             "output_sha256":hashlib.sha256(OUT.read_bytes()).hexdigest(),
             "rig_joint_count":52,
             "motion_origin":"real archived Adobe Mixamo FBX, not procedural or AI-generated",
-            "motion_conversion":"Blender FBX to GLB + world-rest-rotation retarget; local WASD handles translation",
+            "motion_conversion":"FBX2glTF binary FBX to GLB + world-rest-rotation retarget; local WASD handles translation",
             "animation_clips":clips,
             "texture_origin":"4 approved source images, orthographic UV projection, experimental",
             "texture_QA":"not artist-approved; may have seams/misalignment",
