@@ -2,40 +2,52 @@
   "status": "converted-awaiting-visual-QA",
   "source_mesh_and_rig": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/axe-chop-v1/warconquer-animated.glb",
   "output": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/mixamo-axe-v1/warconquer-playable.glb",
-  "output_sha256": "0c2dad70d6996be829c180dc20ba9ccac0e57f26dcc60ec9505c82b1094f909f",
+  "output_sha256": "16fdd7dbc4bdc58fa36b148f04dc47d56c29ddde65e4bb1e5d9e5fe8fba15d7f",
   "rig_joint_count": 52,
   "motion_origin": "real archived Adobe Mixamo FBX, not procedural or AI-generated",
-  "motion_conversion": "FBX2glTF binary FBX to GLB + world-rest-rotation retarget; local WASD handles translation",
+  "motion_conversion": "FBX2glTF + inverse-bind-pose world-rotation retarget; WASD handles translation",
   "animation_clips": [
     {
       "name": "Idle",
-      "fbx": "Standing_Idle_3.fbx",
-      "source_glb_sha256": "f8169d43f8d983251ab4a58b27a0d5e20fa78926b5de1f98687e24d0f883136f",
-      "duration": 1.833,
-      "frames": 56,
+      "fbx": "2hand_Idle.fbx",
+      "source_glb_sha256": "e672b6d2bdb575b3f43141e356a41aaba230fd2c1537015914fbad2bf25dd6f3",
+      "duration": 4.767,
+      "frames": 144,
       "mapped_joints": 52,
       "rotation_channels": 52,
-      "largest_rotation_degrees": 29.61
+      "largest_rotation_degrees": 9.49,
+      "initial_upper_arm_offset_degrees": {
+        "leftarm": 83.25,
+        "rightarm": 51.98
+      }
     },
     {
       "name": "Walk",
-      "fbx": "Standing_Walk_Forward_3.fbx",
-      "source_glb_sha256": "139cefe551fac9da5ac6986ceb066ed387178273dff6d95b539416f4805cd154",
-      "duration": 1.333,
-      "frames": 41,
+      "fbx": "Walking_21.fbx",
+      "source_glb_sha256": "ea39761e0a6d5274ee70141f1a3a90a97e63d51b04e269b9debaa19c18318353",
+      "duration": 1.233,
+      "frames": 38,
       "mapped_joints": 52,
       "rotation_channels": 52,
-      "largest_rotation_degrees": 54.02
+      "largest_rotation_degrees": 49.38,
+      "initial_upper_arm_offset_degrees": {
+        "leftarm": 69.34,
+        "rightarm": 67.49
+      }
     },
     {
       "name": "Run",
-      "fbx": "Standing_Run_Forward_3.fbx",
-      "source_glb_sha256": "5facbb4a22d371fed45e92eac0943a60fc7c550b03c4e321c71edb4052654cc4",
-      "duration": 0.7,
-      "frames": 22,
+      "fbx": "Run_With_Sword.fbx",
+      "source_glb_sha256": "58d815145cf31b801489842a9bcf7ca73d1400fe23c69dd9e4e31327f13de972",
+      "duration": 0.8,
+      "frames": 25,
       "mapped_joints": 52,
       "rotation_channels": 52,
-      "largest_rotation_degrees": 72.78
+      "largest_rotation_degrees": 99.35,
+      "initial_upper_arm_offset_degrees": {
+        "leftarm": 71.88,
+        "rightarm": 66.78
+      }
     },
     {
       "name": "Attack",
@@ -45,10 +57,14 @@
       "frames": 69,
       "mapped_joints": 52,
       "rotation_channels": 52,
-      "largest_rotation_degrees": 124.28
+      "largest_rotation_degrees": 124.28,
+      "initial_upper_arm_offset_degrees": {
+        "leftarm": 46.91,
+        "rightarm": 65.05
+      }
     }
   ],
-  "texture_origin": "4 approved source images, orthographic UV projection, experimental",
+  "texture_origin": "4 approved source images, orthographic UV projection, glTF upper-left UV convention",
   "texture_QA": "not artist-approved; may have seams/misalignment",
   "physical_weapon_attached": false,
   "triangle_count": 25000,
