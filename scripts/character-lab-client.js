@@ -35,6 +35,7 @@
     engine: null, character: null, imported: null, attack: null, walk: null, run: null, idle: null, currentMotion: null,
     animGroups: [], idleChoices: [], cast: null, loadedAsset: null, attacking: false, moving: false,
     sprintLatched: false, fireballs: [], castPending: null,
+    returningPose: null, actionSerial: 0, poseReturns: 0,
     ready: false, input: new Set(), touch: new Set(), follow: true,
     speed: 2.7, scale: 1, facingBias: 0, pendingLoad: 0,
     importUrl: null, weaponImport: null, weaponAnchor: null
@@ -264,9 +265,22 @@
     state.attack=groups.find(x=>isToken(x.name,"attack|axe|chop|strike|melee|swing"))||null;
     renderIdleOptions();
     if(!state.attack && groups.length===1 && !state.walk && !state.run && !state.idle) state.attack=groups[0];
-    for (const group of groups) group.stop();
+    for (const group of groups) {
+      group.stop();
+      // Babylon can blend from the last rendered pose into a new animation.
+      // Keep this generic for every humanoid GLB and all movement/action groups.
+      for(const track of group.targetedAnimations||[]){
+        track.animation.enableBlending=true;
+        track.animation.blendingSpeed=.15;
+      }
+    }
     state.currentMotion=null;
-    if(state.idle){state.idle.start(true,1,state.idle.from,state.idle.to);state.currentMotion=state.idle;}
+    if(state.idle){
+      state.idle.start(true,1,state.idle.from,state.idle.to);
+      // Apply the first valid pose synchronously, before displaying the mesh.
+      state.idle.goToFrame(state.idle.from);
+      state.currentMotion=state.idle;
+    }
     else if(state.attack)restPose();
     text("activeMotionMetric",state.currentMotion?.name||"Aucune animation");
     const gait=state.walk&&state.run?"Marche ET course réelles détectées":
@@ -362,6 +376,8 @@
   }
 
   function removeImported() {
+    state.actionSerial++;
+    cancelPoseReturn();
     clearWeapon();
     if (!state.imported) return;
     for (const a of state.imported.animationGroups || []) { a.stop();a.dispose(); }
@@ -371,7 +387,8 @@
     }
     for (const sk of state.imported.skeletons || []) sk.dispose();
     state.imported=null;state.character=null;state.animGroups=[];state.walk=null;state.run=null;state.idle=null;state.idleChoices=[];state.attack=null;state.cast=null;state.currentMotion=null;
-    state.attacking=false;state.castPending=null;
+    state.attacking=false;state.castPending=null;state.poseReturns=0;
+    byId("world").dataset.poseReturns="0";
     for(const fireball of state.fireballs){fireball.mesh.dispose();fireball.material.dispose();}
     state.fireballs=[];
   }
@@ -397,6 +414,7 @@
       }
       removeImported();
       const pivot=new BABYLON.TransformNode("wc-character-pivot",state.scene);
+      pivot.setEnabled(false); // Never expose the imported T-pose during initialization.
       // Hunyuan / Uthana GLBs can have a 0.01-scale Armature rotated 90 degrees.
       // Normalizing raw local mesh bounds leaves the real on-screen model tiny.
       const content=new BABYLON.TransformNode("wc-character-content",state.scene);
@@ -436,6 +454,7 @@
       state.character=pivot;
       state.imported=imported;
       lookForAnimations(imported.animationGroups||[]);
+      pivot.setEnabled(true);
       if (url && imported.skeletons?.length) void tryEquipAxe(imported,token);
       setIsometricCamera();
       text("modelMetric",vertices.length+" mesh · "+(imported.skeletons?.length||0)+" rig");
@@ -450,14 +469,82 @@
     }
   }
 
+  // A gesture may end in a completely different stance from the one in which
+  // it started. Remember the *actual* node-local pose, not a presumed T-pose or
+  // a hard-coded idle frame. This works with any imported humanoid animation.
+  function snapshotPose(group) {
+    const props=new Map();
+    const supported=new Set(["rotationQuaternion","position","scaling","rotation"]);
+    for(const entry of group.targetedAnimations||[]) {
+      const target=entry.target;
+      const path=entry.animation?.targetProperty;
+      if(!supported.has(path)||!target||!target[path]?.clone)continue;
+      if(!props.has(target))props.set(target,new Map());
+      props.get(target).set(path,target[path].clone());
+    }
+    return [...props].map(([target,values])=>({target,values}));
+  }
+
+  function cancelPoseReturn() {
+    const transition=state.returningPose;
+    if(!transition)return;
+    state.returningPose=null;
+    for(const a of transition.animatables)a.stop();
+  }
+
+  function returnToSavedPose(snapshot,actionToken) {
+    if(actionToken!==state.actionSerial || !state.character)return;
+    // A player already running should never be interrupted by pose restoration.
+    if(state.moving || !snapshot.length)return;
+    const B=BABYLON;
+    const transition={animatables:[],remaining:0};
+    const targets=[];
+    for(const {target,values} of snapshot) {
+      if(target.isDisposed?.())continue;
+      const animations=[];
+      for(const [path,desired] of values) {
+        const current=target[path];
+        if(!current?.clone)continue;
+        const kind=path==="rotationQuaternion"?B.Animation.ANIMATIONTYPE_QUATERNION:B.Animation.ANIMATIONTYPE_VECTOR3;
+        const animation=new B.Animation("wc-pose-return-"+path,path,30,kind,B.Animation.ANIMATIONLOOPMODE_CONSTANT);
+        animation.setKeys([{frame:0,value:current.clone()},{frame:12,value:desired.clone()}]);
+        const ease=new B.CubicEase();
+        ease.setEasingMode(B.EasingFunction.EASINGMODE_EASEINOUT);
+        animation.setEasingFunction(ease);
+        animations.push(animation);
+      }
+      if(animations.length)targets.push({target,animations});
+    }
+    if(!targets.length)return;
+    state.returningPose=transition;
+    transition.remaining=targets.length;
+    for(const {target,animations} of targets) {
+      const a=state.scene.beginDirectAnimation(target,animations,0,12,false,1,()=>{
+        if(state.returningPose!==transition)return;
+        if(--transition.remaining!==0)return;
+        state.returningPose=null;
+        state.poseReturns++;
+        byId("world").dataset.poseReturns=String(state.poseReturns);
+        setStatus("Prêt · pose de départ retrouvée","success");
+        // update() restarts the selected idle, blended from the recovered pose.
+      });
+      transition.animatables.push(a);
+    }
+  }
+
   function playAction(group,message) {
     if(!group||state.attacking)return false;
+    cancelPoseReturn();
+    const before=snapshotPose(group);
+    const actionToken=++state.actionSerial;
     if(state.currentMotion)state.currentMotion.stop();
     state.currentMotion=null;state.attacking=true;
     group.stop();group.start(false,1,group.from,group.to);
     text("activeMotionMetric",group.name);
     group.onAnimationGroupEndObservable.addOnce(()=>{
+      if(actionToken!==state.actionSerial)return;
       state.attacking=false;state.currentMotion=null;
+      returnToSavedPose(before,actionToken);
     });
     setStatus(message,"normal");
     return true;
@@ -546,7 +633,9 @@
           state.camera.setTarget(B.Vector3.Lerp(target,dest,Math.min(1,dt*6)));
         }
       }
-      if(!state.attacking) {
+      // Motion input takes priority over returning to a captured action pose.
+      if(moving && state.returningPose)cancelPoseReturn();
+      if(!state.attacking && !state.returningPose) {
         const fast=state.input.has("shift")||state.sprintLatched;
         const next= moving ? (fast ? (state.run||state.walk) : (state.walk||state.run)) : state.idle;
         if(next!==state.currentMotion) {
@@ -600,6 +689,11 @@
       else if(btn.dataset.command==="reset")byId("resetButton").click();
     }));
     byId("resetButton").addEventListener("click",()=>{
+      state.actionSerial++;
+      cancelPoseReturn();
+      state.attacking=false;
+      if(state.currentMotion)state.currentMotion.stop();
+      for(const group of [state.attack,state.cast])group?.stop();
       if(state.character) {
         state.character.position.x=0;state.character.position.z=0;
         state.character.rotation.y=0;
