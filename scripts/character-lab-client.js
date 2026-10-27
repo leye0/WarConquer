@@ -105,7 +105,7 @@
         state.loadedAsset = model;
         text("unitName", c.name);
         text("meshMetric", (c.metrics.faces || "—") + " triangles");
-        text("jointMetric", (c.metrics.joints || "—") + " os");
+        text("jointMetric", model.kind === "mesh" ? "0 os · sans rig" : (c.metrics.joints || "—") + " os");
         renderSources();
         return;
       }
