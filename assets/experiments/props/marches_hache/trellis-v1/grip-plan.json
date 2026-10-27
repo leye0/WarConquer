@@ -1,0 +1,54 @@
+{
+  "schema": 2,
+  "experiment": "marches-axe-grip-plan-v2",
+  "vision_model": "google/gemini-2.5-flash-lite",
+  "inputs": {
+    "object_image": "assets/concepts/marches/objects/hache_arme.png",
+    "character_image": "assets/concepts/marches/units/hache.png",
+    "object_glb": "assets/experiments/props/marches_hache/trellis-v1/axe.glb"
+  },
+  "input_hashes": {
+    "object_image_sha256": "061c18599da536c363ffa8bb10f648405d31c240f027c3867a46541d2b0d79bc",
+    "character_image_sha256": "40596135f14365c2a77258cd34fe8285c2968fc791816023fbe37cdb197982c7",
+    "prop_glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b"
+  },
+  "specifications": {
+    "object_kind": "axe",
+    "grip_geometry": "shaft",
+    "hold_mode": "two_hands",
+    "dominant_hand": "either",
+    "handle_butt": [
+      0.17,
+      0.89
+    ],
+    "handle_near_head": [
+      0.58,
+      0.45
+    ],
+    "grip_point": [
+      0.35,
+      0.7
+    ],
+    "head_center": [
+      0.7,
+      0.3
+    ],
+    "action_edge": [
+      0.75,
+      0.3
+    ],
+    "head_direction": "toward_fingers",
+    "edge_direction": "forward",
+    "length_relative_character_height": 1.1,
+    "palm_from_wrist": 0.5,
+    "confidence": 0.9,
+    "explanation": "The object is an axe with a wooden shaft. The character is holding it with two hands, which is anatomically natural for this type of weapon. The dominant hand is not clearly defined as the grip is symmetrical. The head extends away from the hands towards the fingers. The cutting edge faces forward relative to the character's walking direction. The axe length is slightly longer than the character's height. The grip point is positioned on the shaft, approximately halfway between the butt and the head, and the palm position is estimated to be in the middle of the grip."
+  },
+  "derived_image_geometry": {
+    "grip_fraction_from_butt": 0.43517,
+    "image_deviation": 0.00216,
+    "supported_by_current_geometry_fitter": true
+  },
+  "paid_vision_requests": 1,
+  "automatic_paid_retries": 0
+}
