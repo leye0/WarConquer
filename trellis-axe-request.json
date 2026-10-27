@@ -2,8 +2,8 @@
   "schema": 1,
   "experiment": "marches-axe-prop-trellis-v1",
   "source_image": "assets/concepts/marches/objects/hache_arme.png",
-  "source_sha256": null,
-  "source_visually_approved": false,
+  "source_sha256": "061c18599da536c363ffa8bb10f648405d31c240f027c3867a46541d2b0d79bc",
+  "source_visually_approved": true,
   "replicate_model": "firtoz/trellis",
   "replicate_version": "e8f6c45206993f297372f5436b90350817bd9b4a0d52d2a76df50c1c8afa2b3c",
   "model_inputs": {
