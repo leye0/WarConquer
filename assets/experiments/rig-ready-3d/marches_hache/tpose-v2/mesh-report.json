@@ -1,0 +1,22 @@
+{
+  "status": "technical-check-passed-awaiting-visual-QA",
+  "stage": "mesh",
+  "model": "tencent/hunyuan3d-2mv",
+  "model_version": "71798fbc3c9f7b7097e3bb85496e5a797d8b8f616b550692e7c3e176a8e9e5db",
+  "prediction_id": "w8p7c38mq9rmy0d1fcxb8w7gww",
+  "glb_bytes": 500072,
+  "glb_sha256": "1ce16dfd46991530343c2cdd4dff3de4a5c0cee7eb54c3fe1a1d753e97b06da1",
+  "glb_geometry": {
+    "mesh_count": 1,
+    "node_count": 2,
+    "skin_count": 0,
+    "joint_count": 0,
+    "skinned_primitive_count": 0,
+    "animations_in_file": 0,
+    "has_materials": false,
+    "has_texture_images": false
+  },
+  "paid_predictions_submitted": 1,
+  "human_review_required": true,
+  "limitations": "Joint placement, skin deformation, correct face direction and detailed texture not artist-approved."
+}
