@@ -323,6 +323,8 @@ def transfer_clips(target,buf,source_directory,clip_stems=None):
     target["animations"]=[]
     reports=[]
     for name,stem in clips:
+        if clip_stems:
+            stem = clip_stems.get(name, stem)
         src=source_directory/(stem+".glb")
         source,raw=load_glb(src)
         tracks,duration,m=mixamo_animation(source,raw)
