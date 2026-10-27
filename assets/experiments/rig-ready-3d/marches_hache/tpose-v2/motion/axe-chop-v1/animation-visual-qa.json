@@ -1,0 +1,109 @@
+{
+  "status": "software-skin-rendered-awaiting-human-motion-qa",
+  "mesh_vertices": 12442,
+  "faces_rendered": 12500,
+  "skin_joint_count": 52,
+  "samples": [
+    {
+      "stage": "start",
+      "time_seconds": 0.0,
+      "bounds": [
+        [
+          -82.4644,
+          -28.2671,
+          -101.3504
+        ],
+        [
+          85.4908,
+          38.7067,
+          100.5862
+        ]
+      ],
+      "max_vertex_shift_rest": 55.3634
+    },
+    {
+      "stage": "wind-up",
+      "time_seconds": 1.0,
+      "bounds": [
+        [
+          -42.2746,
+          -43.287,
+          -113.9499
+        ],
+        [
+          70.8266,
+          46.3033,
+          88.0381
+        ]
+      ],
+      "max_vertex_shift_rest": 178.982
+    },
+    {
+      "stage": "strike",
+      "time_seconds": 1.958,
+      "bounds": [
+        [
+          -82.4964,
+          -25.8435,
+          -95.6388
+        ],
+        [
+          68.8245,
+          51.4975,
+          82.3358
+        ]
+      ],
+      "max_vertex_shift_rest": 177.7033
+    },
+    {
+      "stage": "follow-through",
+      "time_seconds": 2.917,
+      "bounds": [
+        [
+          -42.3892,
+          -29.4781,
+          -98.1356
+        ],
+        [
+          65.0447,
+          61.5762,
+          96.4569
+        ]
+      ],
+      "max_vertex_shift_rest": 118.6054
+    },
+    {
+      "stage": "recovery",
+      "time_seconds": 3.917,
+      "bounds": [
+        [
+          -39.0881,
+          -29.7737,
+          -98.9219
+        ],
+        [
+          50.4278,
+          62.0385,
+          101.4982
+        ]
+      ],
+      "max_vertex_shift_rest": 121.0776
+    }
+  ],
+  "rest_bounds": [
+    [
+      -100.9701,
+      -25.5153,
+      -101.5267
+    ],
+    [
+      101.1464,
+      32.3158,
+      103.0414
+    ]
+  ],
+  "axis_vertical": 2,
+  "deformation_explosion_detected": false,
+  "preview": "animated-five-frames-front-side.png",
+  "photo_realism_or_motion_quality_approved": false
+}
