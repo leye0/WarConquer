@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leye0/WarConquer/blob/main/data/schemas/unit-manifest.schema.json",
+  "title": "WarConquer 3D unit production manifest",
+  "description": "One original character concept, optional equipment and 3D assembly pipeline; execution adapters are versioned separately.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "title",
+    "adapter",
+    "source",
+    "body",
+    "equipment"
+  ],
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "adapter": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "character_image",
+        "turnaround_request",
+        "views"
+      ],
+      "properties": {
+        "character_image": {
+          "$ref": "#/$defs/path"
+        },
+        "turnaround_request": {
+          "$ref": "#/$defs/path"
+        },
+        "views": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "front",
+            "back",
+            "left",
+            "right"
+          ],
+          "properties": {
+            "front": {
+              "$ref": "#/$defs/path"
+            },
+            "back": {
+              "$ref": "#/$defs/path"
+            },
+            "left": {
+              "$ref": "#/$defs/path"
+            },
+            "right": {
+              "$ref": "#/$defs/path"
+            }
+          }
+        }
+      }
+    },
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "glb",
+        "rigged_glb",
+        "playable_glb",
+        "animations"
+      ],
+      "properties": {
+        "glb": {
+          "$ref": "#/$defs/path"
+        },
+        "rigged_glb": {
+          "$ref": "#/$defs/path"
+        },
+        "playable_glb": {
+          "$ref": "#/$defs/path"
+        },
+        "animations": {
+          "$ref": "#/$defs/path"
+        }
+      }
+    },
+    "equipment": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "source_image",
+          "source_request",
+          "glb",
+          "trellis_request",
+          "physical_size_request",
+          "physical_size",
+          "grip_request",
+          "grip"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "source_image": {
+            "$ref": "#/$defs/path"
+          },
+          "source_request": {
+            "$ref": "#/$defs/path"
+          },
+          "glb": {
+            "$ref": "#/$defs/path"
+          },
+          "trellis_request": {
+            "$ref": "#/$defs/path"
+          },
+          "physical_size_request": {
+            "$ref": "#/$defs/path"
+          },
+          "physical_size": {
+            "$ref": "#/$defs/path"
+          },
+          "grip_request": {
+            "$ref": "#/$defs/path"
+          },
+          "grip": {
+            "$ref": "#/$defs/path"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[a-zA-Z0-9_./-]+$"
+    }
+  }
+}
