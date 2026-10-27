@@ -57,6 +57,8 @@ async function state() {
   weapon:t("weaponMetric"),weaponGrip:document.getElementById("world")?.dataset.weaponGrip||"none",
   weaponRatio:Number(document.getElementById("world")?.dataset.weaponGripHeadRatio||0),
   weaponScale:Number(document.getElementById("world")?.dataset.weaponGripScale||0),
+  weaponLengthCm:Number(document.getElementById("world")?.dataset.weaponLengthCm||0),
+  weaponScaleOrigin:document.getElementById("world")?.dataset.weaponScaleOrigin||"",
   equipmentAction:document.getElementById("world")?.dataset.equipmentAction||"",
   equipmentReady:document.getElementById("world")?.dataset.equipmentReady||""}})()`);
 }
@@ -181,6 +183,13 @@ try {
   console.log("FAL_RIGGED_IDLE_PASS",JSON.stringify(texturedIdle));
   const equipped=await until(s=>s.weaponGrip==="vision-plan-geometry"&&s.weaponRatio>=1.23&&s.weaponScale>=.13,
     "3D axe grip guided by real vision landmarks and GLB shaft/head geometry",20000);
+  // The original item estimate is in centimetres, NOT a prior ratio of 1.10.
+  const physical=JSON.parse(readFileSync("assets/experiments/props/marches_hache/trellis-v1/physical-size.json","utf8"));
+  assert.equal(equipped.weaponScaleOrigin,"source-design-physical-centimetres",
+    "physical centimetres must supersede old relative-vision guess");
+  assert.equal(equipped.weaponLengthCm,physical.estimated_length_cm);
+  assert(Math.abs(equipped.weaponScale-physical.estimated_length_cm/190)<.005,
+    "110 percent legacy scaling leaked into physical units");
   assert.equal(equipped.equipmentAction,"axe_chop", "axe should use the axe-specific motion profile");
   assert.equal(equipped.equipmentReady,"true", "genuine attack animation must match equipped axe");
   console.log("AUTO_GRIP_AND_EQUIPMENT_ACTION_PASS",JSON.stringify(equipped));
