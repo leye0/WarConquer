@@ -58,10 +58,11 @@ def approved():
         raise ValueError("Approved source PNG missing or changed")
     from PIL import Image
     with Image.open(IMAGE) as image:
-        if image.width!=1024 or image.height!=1024 or image.mode!="RGBA":
-            raise ValueError("Source must be a reviewed 1024x1024 RGBA PNG")
+        if (image.width,image.height) not in ((1024,1024),(1600,1600)) or image.mode!="RGBA":
+            raise ValueError("Source must be a reviewed square Muse RGBA PNG")
         bounds=image.getchannel("A").getbbox()
-        if not bounds or bounds[0]<5 or bounds[1]<5 or bounds[2]>1019 or bounds[3]>1019:
+        edge=round(image.width*.005)
+        if not bounds or bounds[0]<edge or bounds[1]<edge or bounds[2]>image.width-edge or bounds[3]>image.height-edge:
             raise ValueError("Axe silhouette cropped or empty")
     return cfg
 
