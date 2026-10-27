@@ -33,7 +33,8 @@
   const state = {
     catalog: FALLBACK, selected: null, scene: null, camera: null,
     engine: null, character: null, imported: null, attack: null, walk: null, run: null, idle: null, currentMotion: null,
-    animGroups: [], loadedAsset: null, attacking: false, moving: false,
+    animGroups: [], idleChoices: [], cast: null, loadedAsset: null, attacking: false, moving: false,
+    sprintLatched: false, fireballs: [], castPending: null,
     ready: false, input: new Set(), touch: new Set(), follow: true,
     speed: 2.7, scale: 1, facingBias: 0, pendingLoad: 0,
     importUrl: null, weaponImport: null, weaponAnchor: null
@@ -221,13 +222,46 @@
     byId("cameraMode").textContent="ISO · SUIVI";
   }
 
+  function renderIdleOptions() {
+    const select=byId("idleSelect");
+    const old=select.value;
+    select.replaceChildren();
+    const labels={Idle:"Repos debout",Idle_Relaxed:"Repos détendu",Idle_Wipe:"Essuie sa sueur",Idle_Magic:"Joue avec la magie"};
+    for(const group of state.idleChoices) {
+      const stem=group.name.split("_Mixamo")[0];
+      const opt=document.createElement("option");
+      opt.value=group.name;opt.textContent=labels[stem]||stem.replaceAll("_"," ");
+      select.append(opt);
+    }
+    if(state.cast) {
+      const opt=document.createElement("option");
+      opt.value=state.cast.name;
+      opt.textContent="✦ Lancer une boule de feu (une fois)";
+      select.append(opt);
+    }
+    select.disabled=!state.idleChoices.length;
+    const candidate=state.idleChoices.find(group=>group.name===old)
+      ||state.idleChoices.find(group=>group.name.startsWith("Idle_Mixamo"))||state.idleChoices[0];
+    state.idle=candidate||null;
+    if(candidate) select.value=candidate.name;
+  }
+
+  function updateSprintButtons() {
+    document.querySelectorAll('[data-command="sprint"]').forEach(btn=>{
+      btn.setAttribute("aria-pressed",String(state.sprintLatched));
+      btn.classList.toggle("active",state.sprintLatched);
+    });
+  }
+
   function lookForAnimations(groups) {
     state.animGroups=groups;
     const isToken=(name,terms)=>new RegExp("(?:^|[_ -])("+terms+")(?:$|[_ -])","i").test(name);
     state.walk=groups.find(x=>isToken(x.name,"walk|walking|marche"))||null;
     state.run=groups.find(x=>isToken(x.name,"run|running|course"))||null;
-    state.idle=groups.find(x=>isToken(x.name,"idle|rest"))||null;
+    state.idleChoices=groups.filter(x=>isToken(x.name,"idle|rest"));
+    state.cast=groups.find(x=>/^Cast[_ -]/i.test(x.name))||null;
     state.attack=groups.find(x=>isToken(x.name,"attack|axe|chop|strike|melee|swing"))||null;
+    renderIdleOptions();
     if(!state.attack && groups.length===1 && !state.walk && !state.run && !state.idle) state.attack=groups[0];
     for (const group of groups) group.stop();
     state.currentMotion=null;
@@ -239,6 +273,8 @@
     text("walkMetric",gait);
     text("clipMetric",groups.map(x=>x.name).join(" · ")||"Aucune animation");
     byId("attackButton").disabled=!state.attack;
+    byId("castButton").disabled=!state.cast;
+    document.querySelectorAll('[data-command="cast"]').forEach(btn=>btn.disabled=!state.cast);
   }
 
   function restPose() {
@@ -333,8 +369,10 @@
       if (!node.isDisposed()) node.dispose(false,true);
     }
     for (const sk of state.imported.skeletons || []) sk.dispose();
-    state.imported=null;state.character=null;state.animGroups=[];state.walk=null;state.run=null;state.idle=null;state.attack=null;state.currentMotion=null;
-    state.attacking=false;
+    state.imported=null;state.character=null;state.animGroups=[];state.walk=null;state.run=null;state.idle=null;state.idleChoices=[];state.attack=null;state.cast=null;state.currentMotion=null;
+    state.attacking=false;state.castPending=null;
+    for(const fireball of state.fireballs){fireball.mesh.dispose();fireball.material.dispose();}
+    state.fireballs=[];
   }
 
   async function loadModel(url,fileObject=null) {
@@ -411,20 +449,63 @@
     }
   }
 
-  function attack() {
-    if (!state.attack || state.attacking) return;
-    if (state.currentMotion) state.currentMotion.stop();
-    state.currentMotion=null;
-    const group=state.attack;
-    state.attacking=true;
-    group.stop();
-    group.start(false,1,group.from,group.to);
+  function playAction(group,message) {
+    if(!group||state.attacking)return false;
+    if(state.currentMotion)state.currentMotion.stop();
+    state.currentMotion=null;state.attacking=true;
+    group.stop();group.start(false,1,group.from,group.to);
     text("activeMotionMetric",group.name);
     group.onAnimationGroupEndObservable.addOnce(()=>{
-      state.attacking=false;
-      state.currentMotion=null; // update() returns to walk, run or idle.
+      state.attacking=false;state.currentMotion=null;
     });
-    setStatus("Attaque du guerrier", "normal");
+    setStatus(message,"normal");
+    return true;
+  }
+
+  function attack(){playAction(state.attack,"Attaque du guerrier");}
+
+  function castFireball(){
+    if(playAction(state.cast,"Sort de feu · incantation")){
+      state.castPending={time:0,launchAt:.55};
+    }
+  }
+
+  function spawnFireball(){
+    if(!state.character)return;
+    const B=BABYLON;
+    const mesh=B.MeshBuilder.CreateSphere("wc-fireball",{diameter:.27,segments:12},state.scene);
+    const material=new B.StandardMaterial("wc-fireball-glow",state.scene);
+    material.disableLighting=true;
+    material.emissiveColor=new B.Color3(1,.36,.055);
+    material.diffuseColor=new B.Color3(1,.26,.08);
+    mesh.material=material;
+    const angle=state.character.rotation.y;
+    const direction=new B.Vector3(Math.sin(angle),.08,Math.cos(angle)).normalize();
+    mesh.position.copyFrom(state.character.position);
+    mesh.position.addInPlace(new B.Vector3(0,1.26,0));
+    mesh.position.addInPlace(direction.scale(.45));
+    state.fireballs.push({mesh,material,direction,age:0,duration:1.1});
+  }
+
+  function updateFireballs(dt){
+    if(state.castPending){
+      state.castPending.time+=dt;
+      if(state.castPending.time>=state.castPending.launchAt){
+        state.castPending=null;
+        spawnFireball();
+      }
+    }
+    for(let i=state.fireballs.length-1;i>=0;i--){
+      const shot=state.fireballs[i];
+      shot.age+=dt;
+      shot.mesh.position.addInPlace(shot.direction.scale(5.2*dt));
+      const fraction=Math.min(1,shot.age/shot.duration);
+      shot.mesh.scaling.setAll(1+.6*fraction);
+      shot.material.alpha=1-fraction;
+      if(fraction>=1){
+        shot.mesh.dispose();shot.material.dispose();state.fireballs.splice(i,1);
+      }
+    }
   }
 
   function update(delta) {
@@ -441,6 +522,7 @@
       state.camera.orthoRight=half*aspect;
     }
     const pressed=key=>state.input.has(key)||state.touch.has(key);
+    updateFireballs(dt);
     const vertical=(pressed("w")||pressed("arrowup")?1:0)-(pressed("s")||pressed("arrowdown")?1:0);
     const horizontal=(pressed("d")||pressed("arrowright")?1:0)-(pressed("a")||pressed("arrowleft")?1:0);
     const moving=!!(vertical||horizontal);
@@ -450,7 +532,7 @@
         const forward=cam.getTarget().subtract(cam.position);forward.y=0;forward.normalize();
         const right=B.Vector3.Cross(forward,B.Axis.Y).normalize();
         const move=forward.scale(vertical).add(right.scale(horizontal)).normalize();
-        const fast=state.input.has("shift")?1.75:1;
+        const fast=(state.input.has("shift")||state.sprintLatched)?1.75:1;
         const speed=state.speed*fast;
         state.character.position.x=B.Scalar.Clamp(state.character.position.x+move.x*speed*dt,-14,14);
         state.character.position.z=B.Scalar.Clamp(state.character.position.z+move.z*speed*dt,-14,14);
@@ -464,7 +546,7 @@
         }
       }
       if(!state.attacking) {
-        const fast=state.input.has("shift");
+        const fast=state.input.has("shift")||state.sprintLatched;
         const next= moving ? (fast ? (state.run||state.walk) : (state.walk||state.run)) : state.idle;
         if(next!==state.currentMotion) {
           if(state.currentMotion) state.currentMotion.stop();
@@ -493,6 +575,29 @@
       if(f){text("unitName",f.name);loadModel(null,f);}
     });
     byId("attackButton").addEventListener("click",attack);
+    byId("castButton").addEventListener("click",castFireball);
+    byId("idleSelect").addEventListener("change",event=>{
+      const selected=state.idleChoices.find(x=>x.name===event.target.value);
+      if(selected){
+        state.idle=selected;
+        if(!state.moving&&!state.attacking){
+          if(state.currentMotion)state.currentMotion.stop();
+          state.idle.start(true,1,state.idle.from,state.idle.to);
+          state.currentMotion=state.idle;
+          text("activeMotionMetric",state.idle.name);
+        }
+      } else if(state.cast&&event.target.value===state.cast.name){
+        castFireball();
+        event.target.value=state.idle?.name||"";
+      }
+    });
+    document.querySelectorAll("[data-command]").forEach(btn=>btn.addEventListener("click",()=>{
+      if(btn.dataset.command==="sprint"){
+        state.sprintLatched=!state.sprintLatched;updateSprintButtons();
+      } else if(btn.dataset.command==="attack")attack();
+      else if(btn.dataset.command==="cast")castFireball();
+      else if(btn.dataset.command==="reset")byId("resetButton").click();
+    }));
     byId("resetButton").addEventListener("click",()=>{
       if(state.character) {
         state.character.position.x=0;state.character.position.z=0;
@@ -523,6 +628,7 @@
       if("wasd".includes(k)&&k.length===1 || k.startsWith("arrow") || k==="shift") {
         state.input.add(k);event.preventDefault();
       } else if(k===" "){event.preventDefault();attack();}
+      else if(k==="f"){event.preventDefault();castFireball();}
       else if(k==="r")byId("resetButton").click();
     };
     const up=event=>state.input.delete(event.key.toLowerCase());
