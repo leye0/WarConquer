@@ -16,7 +16,13 @@ Ces documents constituent une **proposition de conception en cours de discussion
 
 Le projet utilise désormais un pipeline 3D : quatre références en T-pose, reconstruction Hunyuan3D-2mv, auto-rig Uthana, génération de mouvement et transfert du squelette. Voir [l'expérience vérifiée](docs/rigged-characters-experiment.md) et le [contrat de pose canonique](docs/rig-pose-contract.md).
 
-Les personnages peuvent être observés sous n'importe quel angle dans une visionneuse 3D. Les mouvements sont attachés aux articulations, indépendamment de la caméra.
+Le [terrain de test isométrique jouable](character-lab.html) permet de déplacer un GLB avec **WASD**, d'attaquer avec le clip présent, de tourner autour du personnage, et d'importer un autre GLB. Il découvre les modèles de `assets/experiments/rig-ready-3d/` grâce à un petit serveur Node local :
+
+```bash
+node scripts/serve-character-lab.mjs
+```
+
+Ouvrir ensuite **http://127.0.0.1:4173/character-lab.html**. Aucun appel aux modèles payants n'est effectué. Important : le premier personnage possède un clip d'attaque, mais pas encore de véritable animation de marche (le déplacement WASD fonctionne sans cycle de jambes). Voir [la documentation du terrain](docs/character-lab.md).
 
 ---
 
