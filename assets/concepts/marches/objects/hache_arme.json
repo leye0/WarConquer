@@ -1,0 +1,58 @@
+{
+  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. References show OTHER subjects: do not reproduce their identity, equipment or add them to the image. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nSubject: A SINGLE ACTUAL HANDHELD TWO-HANDED FOREST AXE, LONG STRAIGHT SHAFT WITH ONE HEAVY STEEL AXEHEAD. Medieval realist blacksmith craft of the Marches faction: a long slender worn dark-oak wooden haft, reinforced with small tarnished copper rings, a single broad wedge-shaped iron chopping blade with a gently curved cutting edge, worn steel, restrained oxblood red leather wrapped only around the lower grip. ONE solid physically plausible object. Show the isolated complete axe nearly upright in a clean orthographic three-quarter view, its straight wooden handle visible from tip to butt, blade in the upper quarter, axe head and handle clearly connected. Entire silhouette crisp and unoccluded. NO character, hands, fingers, person, arm, body, face, shield, sword, second weapon, double-headed fantasy blade, extra projections, head duplication, metallic shaft, ribbon attached to blade, scenery, stand, ground or cast shadow. Preserve the shaft's length-to-width ratio (long thin handle), practical rather than oversized ornamental fantasy proportions. Use references ONLY for craftsmanship and faction palette; the character in the reference MUST NOT appear.\nCRITICAL FRAMING: show the ENTIRE isolated subject, 15 percent empty margin on all four sides, about 65 percent of square canvas occupied. Preserve the exact SUBJECT SHAPE specified above, use references for PAINTING STYLE only and do NOT imitate their geometry. No atmospheric haze. Background must be uniform white if alpha unavailable.",
+  "output": "assets/concepts/marches/objects/hache_arme.png",
+  "references": [
+    "assets/concepts/marches/units/hache.png",
+    "assets/concepts/marches/units/garde_lourd.png"
+  ],
+  "replaced_previous": false,
+  "status": "generated-awaiting-visual-review",
+  "model": "meta/muse-image",
+  "reference_sha256": {
+    "assets/concepts/marches/units/hache.png": "40596135f14365c2a77258cd34fe8285c2968fc791816023fbe37cdb197982c7",
+    "assets/concepts/marches/units/garde_lourd.png": "1cf8557742e5edc77b01580f1f7d084866f22fc549af780c5e20bdbf6db8c27e"
+  },
+  "background_removed": true,
+  "framing_adjustment": {
+    "scale": 0.75829,
+    "margin": 0.15,
+    "original_bbox": [
+      268,
+      71,
+      1352,
+      1548
+    ],
+    "final_bbox": [
+      389,
+      239,
+      1211,
+      1360
+    ],
+    "source_edge_contact": false
+  },
+  "size": [
+    1600,
+    1600
+  ],
+  "transparent_fraction": 0.887099609375,
+  "sha256": "061c18599da536c363ffa8bb10f648405d31c240f027c3867a46541d2b0d79bc",
+  "usage": {
+    "prompt_tokens": 540,
+    "completion_tokens": 2589,
+    "total_tokens": 3129,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 2589
+    }
+  }
+}
