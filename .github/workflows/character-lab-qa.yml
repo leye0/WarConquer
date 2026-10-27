@@ -23,6 +23,8 @@ jobs:
       - name: Check JavaScript grammar
         run: |
           node --check scripts/character-lab-client.js
+          node --check scripts/equipment-animation-policy.js
+          node scripts/test-equipment-animation-policy.mjs
           node --check scripts/weapon-grip-geometry.js
           node scripts/test-weapon-grip-geometry.mjs
           node --check scripts/serve-character-lab.mjs
