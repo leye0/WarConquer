@@ -3,7 +3,7 @@ name: Marches axe · TRELLIS image to textured GLB
 on:
   push:
     branches: [main]
-    paths: ['trellis-axe-request.json']
+    paths: ['trellis-axe-request.json', '.github/workflows/build-trellis-axe.yml']
   workflow_dispatch:
 
 permissions:
@@ -30,7 +30,7 @@ jobs:
           python scripts/build-trellis-axe.py --stage validate
       - name: Submit one approved TRELLIS image-to-3D prediction, never retry
         env:
-          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
         run: python scripts/build-trellis-axe.py --stage submit
       - name: Persist paid prediction ID before polling
         shell: bash
@@ -47,7 +47,7 @@ jobs:
           fi
       - name: Collect 3D textured GLB from existing prediction
         env:
-          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
         run: python scripts/build-trellis-axe.py --stage collect
       - name: Preserve separate axe mesh and validation report
         shell: bash
