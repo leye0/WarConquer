@@ -1,0 +1,85 @@
+{
+  "status": "generated-awaiting-live-browser-QA",
+  "source": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-textured.glb",
+  "rigged_model": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/fal-rigged.glb",
+  "playable_model": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/warconquer-textured-playable.glb",
+  "output_sha256": "9f444bbaefdb26cd50d213488c7bc300a1b3b04a58ac9c212ee0a686f6ef53b8",
+  "bytes": 5520136,
+  "texture_method": "original fal.ai native embedded UV/PBR, no new projection",
+  "rigging_model": "uthana/create-character-v1",
+  "rigging_prediction": "61jjyxzansrmw0d1fqmvcy4axg",
+  "animations_origin": "genuine archived Mixamo FBX converted with FBX2glTF",
+  "texture_and_skeleton": {
+    "valid": true,
+    "mesh_count": 1,
+    "primitive_count": 1,
+    "uv_primitives": 1,
+    "textured_primitives": 1,
+    "image_count": 1,
+    "embedded_images": 1,
+    "material_count": 1,
+    "skin_count": 1,
+    "joint_count": 52,
+    "skinned_primitives": 1,
+    "animation_count": 4
+  },
+  "animation_clips": [
+    {
+      "name": "Idle",
+      "fbx": "2hand_Idle.fbx",
+      "source_glb_sha256": "e672b6d2bdb575b3f43141e356a41aaba230fd2c1537015914fbad2bf25dd6f3",
+      "duration": 4.767,
+      "frames": 144,
+      "mapped_joints": 52,
+      "rotation_channels": 52,
+      "largest_rotation_degrees": 9.49,
+      "initial_upper_arm_offset_degrees": {
+        "leftarm": 83.25,
+        "rightarm": 51.98
+      }
+    },
+    {
+      "name": "Walk",
+      "fbx": "Walking_21.fbx",
+      "source_glb_sha256": "ea39761e0a6d5274ee70141f1a3a90a97e63d51b04e269b9debaa19c18318353",
+      "duration": 1.233,
+      "frames": 38,
+      "mapped_joints": 52,
+      "rotation_channels": 52,
+      "largest_rotation_degrees": 49.38,
+      "initial_upper_arm_offset_degrees": {
+        "leftarm": 69.34,
+        "rightarm": 67.49
+      }
+    },
+    {
+      "name": "Run",
+      "fbx": "Run_With_Sword.fbx",
+      "source_glb_sha256": "58d815145cf31b801489842a9bcf7ca73d1400fe23c69dd9e4e31327f13de972",
+      "duration": 0.8,
+      "frames": 25,
+      "mapped_joints": 52,
+      "rotation_channels": 52,
+      "largest_rotation_degrees": 99.35,
+      "initial_upper_arm_offset_degrees": {
+        "leftarm": 71.88,
+        "rightarm": 66.78
+      }
+    },
+    {
+      "name": "Attack",
+      "fbx": "Standing_Melee_Attack_Downward.fbx",
+      "source_glb_sha256": "4c3a6d2f3481422f6996baad82454a0480d5f4a040094b5cec412eba72af8e9e",
+      "duration": 2.267,
+      "frames": 69,
+      "mapped_joints": 52,
+      "rotation_channels": 52,
+      "largest_rotation_degrees": 124.28,
+      "initial_upper_arm_offset_degrees": {
+        "leftarm": 46.91,
+        "rightarm": 65.05
+      }
+    }
+  ],
+  "visual_QA": "pending: joints, materials, walk, run and axe require actual browser screenshots"
+}
