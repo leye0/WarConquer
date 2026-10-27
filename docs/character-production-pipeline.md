@@ -142,3 +142,18 @@ Le retour d'expérience sur la v4 a révélé un biais explicite : le prompt inc
 `scripts/review-prop-in-situ.py` utilise désormais par défaut `google/gemini-2.5-flash-lite` via `grip-render-review-request-v5.json`. L'appel reçoit **la description source et les quatre images**, mais ni la taille 1.1 ni aucune sortie des analyses précédentes. Les captures de l'arène sont recadrées à la scène pour exclure le panneau de statistiques. Un test dédié, `scripts/test-review-prop-unanchored.py`, vérifie l'absence d'ancienne échelle dans le prompt et le retrait du panneau UI des captures. Les plans antérieurs restent accessibles seulement pour la provenance et la comparaison locale **après la réponse**.
 
 Résultat facturé v5 : `0.0004382 USD` (OpenRouter : 1666 tokens entrée, 679 sortie, dont 375 de réflexion). **Malgré l'absence d'ancrage textuel, Flash-Lite a de nouveau proposé 1.1**, avec un diagnostic contradictoire : « manche trop court, à allonger » pour une longueur qui n'évolue pas. La réponse est **conservée en candidate non publiée**, et n'est pas une validation artistique. Aucun GLB n'a été regénéré, aucune prise n'a été automatiquement remplacée. Une meilleure mesure de la silhouette du personnage/objet, ou un autre protocole visuel, sera nécessaire si l'on veut une échelle convaincante.
+
+
+## Mesure correcte des proportions sur la fiche originale (v6)
+
+La fiche d'origine du guerrier des Marches **montre déjà son arme** : c'est la source principale des proportions. Elle est analysée avec la description originale de l'objet, sans plan vision antérieur ni capture d'une hache agrandie. Les images d'objet isolé servent à identifier la géométrie et la fabrication, **jamais** à donner une échelle physique absolue.
+
+Les essais v2, v3, v4 et v5 ont répété `1.1`, mais les premières analyses étaient ancrées dans leur propre résultat et les rendus déjà dimensionnés. Une autre erreur provenait de la **mesure diagonale du bout de manche jusqu'à la pointe extérieure d'une lame large**. Cette diagonale mélange la longueur utile de l'arme et la largeur de sa tête; elle ne doit pas devenir directement l'échelle uniforme du GLB.
+
+`scripts/measure-prop-scale-blind.py` demande donc des repères distincts sur la fiche source : tête/pieds du porteur, bout du manche, jonction manche/tête, extrémité de la tête **selon l'axe du manche** et pointe de lame **latérale**. Les calculs retournent séparément :
+- `shaft_length_ratio` — longueur du manche par rapport au personnage;
+- `projected_length_ratio` — longueur projetée manche+tête selon l'axe de l'arme;
+- `blade_lateral_extent_ratio` — largeur de la lame hors de cet axe;
+- `preferred_length_ratio` — choix du LLM, contrôlé par la mesure projetée.
+
+Le test `scripts/test-measure-prop-scale-blind.py` prouve que déplacer fortement la pointe de la lame **perpendiculairement au manche** ne modifie pas la longueur axiale calculée. [Vérification CI sans appel IA](https://github.com/leye0/WarConquer/actions/runs/40586675639) : réussie. Le premier essai payant v6 a échoué sur une limite OpenRouter HTTP 429, sans nouveau résultat validé; les prises existantes restent actives. Il ne faut pas inventer un nouveau rapport ni présenter les mesures géométriques comme une nouvelle décision du LLM avant une analyse aboutie.
