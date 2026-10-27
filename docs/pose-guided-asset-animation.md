@@ -41,3 +41,37 @@ The profile is SW-only today; generic file names describe the purpose of the sys
 The `character-motion-request.json` and `.github/workflows/character-motion.yml` pipeline for eight directions is **a separate historical image-to-video workflow** and remains untouched. Preserve its paid stills/videos and original standing-direction assets. The old Grok SW video tests also remain as comparison evidence, including cases where zoom, orientation or the axe failed despite a successful Action.
 
 The obsolete `sw-motion-driver-v1` through `sw-motion-driver-v5` *implementation files and generated intermediate directories* are superseded by this single named pose-guide entry point. Their earlier versions remain recoverable through Git history; they are not production APIs. Do not reintroduce one-off workflows for each adjustment.
+
+## Generative motion-transfer experiment — DreamActor M2.0 (2026-10-27)
+
+The approved **eight-second pose-control MP4 is already the driving video**; it must not
+be re-created or "converted" into another motion video. The original entire-character
+SW PNG is the appearance reference. Both approved inputs are unchanged.
+
+A **single** Replicate `bytedance/dreamactor-m2.0` prediction was run against these exact
+files (prediction ID `fna0t04wp9rmw0d1fbcrhcxr1g`). It succeeded:
+
+- Pilot request: [`motion-transfer-request.json`](../motion-transfer-request.json).
+- Resumable client: [`scripts/test-motion-transfer.py`](../scripts/test-motion-transfer.py).
+- Reusable, one-shot GitHub Action: [`.github/workflows/test-motion-transfer.yml`](../.github/workflows/test-motion-transfer.yml).
+- Video, 4-fps / 32-frame contact sheet, payment checkpoint and machine report:
+  [`assets/experiments/motion-transfer/marches_hache/SW/dreamactor-m2.0/`](../assets/experiments/motion-transfer/marches_hache/SW/dreamactor-m2.0/).
+- Output: **7.96 s, 960 × 960, 25 fps**. Estimated model charge:
+  **US$0.398** at US$0.05 per generated second (not an account billing receipt).
+  Input control: 8 s, 768 × 768, 12 fps.
+- The secret is named `REPLICATE_API_KEY` in GitHub Actions; only the runner maps it
+  to the standard Replicate `REPLICATE_API_TOKEN` environment variable. Never print
+  or commit it.
+- The prediction ID is committed **before polling** to prevent accidental duplicate
+  paid submissions during a workflow rerun. Changing the trial request should only
+  be done when an additional paid generation is authorized.
+
+**Initial visual inspection (32 sampled frames):** the full character's identity,
+clothing and axe are recognisable. The character moves toward SW during 0–4 s, and
+two axe windups/recoveries appear during 4–8 s, broadly following the approved
+driver. This shows useful **full-body transfer from a schematic guide**. It does
+*not* establish exact joint trajectories, perfect rigid-weapon geometry, or visual
+sprite approval. The generated MP4 has an opaque black background, requiring a
+separate matte/alpha extraction and review before use as a transparent game asset.
+Do not regenerate the approved motion or revert to the earlier manual cut-out rig
+as a substitute for this test.
