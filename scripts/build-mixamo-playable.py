@@ -299,7 +299,7 @@ def mixamo_animation(doc,binary):
         raise ValueError("Motion duration implausible")
     return tracks,duration,m
 
-def transfer_clips(target,buf,source_directory):
+def transfer_clips(target,buf,source_directory,clip_stems=None):
     from importlib import util
     spec=util.spec_from_file_location("wc_skeleton",ROOT/"scripts/inspect-rig-skeletons.py")
     sk=util.module_from_spec(spec)
