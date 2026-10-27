@@ -1,0 +1,22 @@
+{
+  "status": "technical-check-passed-awaiting-visual-QA",
+  "stage": "rig",
+  "model": "uthana/create-character-v1",
+  "model_version": "6b1fe45c55256a159804f4794afcdcdf9a54c5ca90e9883ddc725863153c727f",
+  "prediction_id": "m8abj22r75rmy0d1fcy9xzy1er",
+  "glb_bytes": 815904,
+  "glb_sha256": "9bb357587de46032de203abe735b3eab140d32c982066b15da55c7c339439273",
+  "glb_geometry": {
+    "mesh_count": 1,
+    "node_count": 54,
+    "skin_count": 1,
+    "joint_count": 52,
+    "skinned_primitive_count": 1,
+    "animations_in_file": 0,
+    "has_materials": false,
+    "has_texture_images": false
+  },
+  "paid_predictions_submitted": 1,
+  "human_review_required": true,
+  "limitations": "Joint placement, skin deformation, correct face direction and detailed texture not artist-approved."
+}
