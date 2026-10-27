@@ -69,6 +69,9 @@ jobs:
           python scripts/unit-pipeline.py list
           python scripts/unit-pipeline.py status --unit "$UNIT_ID"
           python scripts/unit-pipeline.py run --unit "$UNIT_ID" --stage "$PIPELINE_STAGE" --dry-run
+          # This full local integration checks the generated site catalog and
+          # all existing GLB links without any paid inference.
+          python scripts/unit-pipeline.py run --unit "$UNIT_ID" --stage integrate
       - name: Install only stage dependencies needed by the project
         if: github.event_name == 'workflow_dispatch'
         run: python scripts/unit-pipeline.py bootstrap --unit "$UNIT_ID" --stage "$PIPELINE_STAGE"
