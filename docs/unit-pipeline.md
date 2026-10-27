@@ -4,7 +4,7 @@ Le point d'entrée du pipeline est **scripts/unit-pipeline.py**. Il est propre a
 
 ## Sélectionner une unité
 
-Le premier exemple complet est **data/units/marches_hache.json**. Il lie la fiche originale 2D, les quatre profils, le corps texturé fal.ai, le squelette Uthana, les mouvements Mixamo et l'illustration, la géométrie, la taille en centimètres et la prise de la hache.
+Le premier exemple complet est **data/units/marches_hache.json**. Le format est décrit par **data/schemas/unit-manifest.schema.json** pour aider les éditeurs à valider et compléter les fiches. Il lie la fiche originale 2D, les quatre profils, le corps texturé fal.ai, le squelette Uthana, les mouvements Mixamo et l'illustration, la géométrie, la taille en centimètres et la prise de la hache.
 
 ~~~bash
 python scripts/unit-pipeline.py list
