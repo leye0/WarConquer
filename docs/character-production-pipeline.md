@@ -115,3 +115,22 @@ des appels payants de vision.
    tir réel, position de départ du projectile au moment du lâcher.
 5. Valider automatiquement plusieurs types de corps et d'objets,
    leur ajustement visuel, leurs contacts et leurs contraintes physiques.
+
+
+## Identité des objets : conserver le contexte depuis la génération
+
+**La description initiale de l'objet est une donnée métier, pas un simple prompt jetable.** Dans le pipeline actuel, elle figure dans `axe-image-request.json` : hache forestière utilitaire à deux mains, manche de chêne, une seule tête en fer, proportions crédibles. Elle a servi à générer `hache_arme.png`, en prenant `hache.png` comme référence du porteur.
+
+Le pipeline v3 `scripts/plan-prop-attachment-v3.py` retrouve automatiquement le brief d'origine via `grip-request-v3.json`, en vérifie la provenance (même image de sortie, référence du personnage, SHA-256 du brief/des images/du GLB) et envoie **le brief intégral** avec l'illustration de l'objet et le concept du porteur au LLM vision. Les points de prise et l'orientation demeurent calculés, et le solveur géométrique donne les vraies coordonnées du GLB.
+
+**Le brief ne donne cependant aucune longueur physique explicite.** Dans cette expérience, Gemini a de nouveau proposé **1,10× la hauteur du porteur**, même lorsqu'il avait la description d'origine : preuve que la continuité de contexte ne suffit pas à garantir l'échelle. On conserve son résultat v3, mais **on ne le déploie pas automatiquement** : le champ `visual_qa.status` doit valoir `approved` après comparaison indépendante entre l'illustration de l'unité et le rendu 3D équipé. La v2 reste active jusque-là. Ni bornage arbitraire à 80 %, ni réduction silencieuse sans preuve géométrique.
+
+À terme, la fiche d'unité doit matérialiser dès la **détection des objets sur le personnage** une identité immuable comprenant le type, sa description fonctionnelle, ses parties (manche, tête, tranchant, attaches), les rapports de dimensions visibles, les capacités et la provenance de génération. Les générations 2D/3D et les animations lisent cette identité. Le LLM vision apporte des repères et des validations, pas une nouvelle identité contradictoire.
+
+### Prévention des raccourcis
+
+- Jamais d'estimation d'échelle fondée sur les marges d'une PNG d'objet isolé : celle-ci n'a pas de référentiel physique.
+- Une mesure de longueur du même LLM répétée dans deux champs n'est **pas** une validation indépendante.
+- Comparer plutôt à l'image du personnage, puis vérifier la main, le diamètre de poignée, les bras et la pose sur un véritable rendu 3D.
+- Ne promouvoir une nouvelle prise que si la QA confirme que l'arme est utilisable pendant Idle, marche et attaque.
+- Conserver les versions v2/v3 et les réponses payantes intactes. Aucune nouvelle génération 3D n'est nécessaire pour améliorer l'assemblage.
