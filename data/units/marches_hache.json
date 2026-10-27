@@ -1,4 +1,5 @@
 {
+  "$schema": "../schemas/unit-manifest.schema.json",
   "schema": 1,
   "id": "marches_hache",
   "title": "Guerrier des Marches à la hache",
