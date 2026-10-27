@@ -52,7 +52,7 @@ function propPlans(unitId) {
     const plan = parseJson(planFile);
     if(plan?.schema !== 2) continue;
     const glbUrl = plan.inputs?.object_glb;
-    if(typeof glbUrl !== "string" || !/^assets\\/experiments\\/props\\/[a-z0-9_/-]+\\.glb$/.test(glbUrl))continue;
+    if(typeof glbUrl !== "string" || !/^assets\/experiments\/props\/[a-z0-9_/-]+\.glb$/.test(glbUrl))continue;
     const actual = resolve(REPO, glbUrl);
     if(!actual.startsWith(PROPS_ROOT + sep) || !existsSync(actual))continue;
     result.push({id:unitId+"/"+variant, name:plan.specifications?.object_kind||"Objet",
