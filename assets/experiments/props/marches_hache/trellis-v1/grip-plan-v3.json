@@ -60,5 +60,10 @@
     "reasoning": "The axe's length is approximately equal to the character's height, which is consistent with a two-handed axe designed for a large warrior. The isolated axe in Image 1 appears to be proportionally similar to the axe held by the character in Image 2."
   },
   "paid_vision_requests": 1,
-  "automatic_paid_retries": 0
+  "automatic_paid_retries": 0,
+  "visual_qa": {
+    "status": "pending",
+    "reason": "Generation-brief vision still estimates 1.10 of warrior height, same as the visually oversize v2; requires independent 3D/source-character size QA before promotion",
+    "approved_by": null
+  }
 }
