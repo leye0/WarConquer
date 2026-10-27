@@ -76,8 +76,8 @@ function inventory() {
       if (models.length) characters.push({
         id, pose, name: LABELS[id] || id.replaceAll("_", " "),
         original, views: refs, models,
-        metrics: { joints: report?.glb?.joint_count ?? report?.joint_count ?? null,
-                   faces: mesh?.geometry?.faces ?? 25000 },
+        metrics: { joints: report?.glb_geometry?.joint_count ?? report?.glb?.joint_count ?? report?.joint_count ?? null,
+                   faces: mesh?.glb_geometry?.faces ?? mesh?.geometry?.faces ?? 25000 },
       });
     }
   }
