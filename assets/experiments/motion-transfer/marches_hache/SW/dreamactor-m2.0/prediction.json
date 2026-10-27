@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "trial_id": "sw-approved-driver-dreamactor-m2-2026-10-27",
+  "model": "bytedance/dreamactor-m2.0",
+  "prediction_id": "fna0t04wp9rmw0d1fbcrhcxr1g",
+  "initial_status": "starting",
+  "inputs": {
+    "source_image_sha256": "901c17d9b7b484385fd764e9522ee2f1944c32498a33cf7365c00de0ae6615e9",
+    "driving_video_sha256": "e94fe5fe9395667fb87e2ab9acf9cdbf4c65d8f77803cdf5a8eb7d5434cbbed5",
+    "driving_video": {
+      "duration_seconds": 8.0,
+      "width": 768,
+      "height": 768,
+      "frame_rate": 12.0
+    }
+  },
+  "generative_calls_submitted": 1,
+  "expected_cost_usd": 0.4,
+  "note": "Paid prediction checkpoint. Never submit another for this trial ID."
+}
