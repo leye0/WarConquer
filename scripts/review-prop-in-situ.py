@@ -12,11 +12,11 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 ROOT=Path(__file__).resolve().parents[1]
-DEFAULT="assets/experiments/props/marches_hache/trellis-v1/grip-render-review-request.json"
+DEFAULT="assets/experiments/props/marches_hache/trellis-v1/grip-render-review-request-v5.json"
 ENDPOINT="https://openrouter.ai/api/v1/chat/completions"
-MODEL="google/gemini-3.1-pro-preview"
-REASONING_EFFORT="medium"
-MAX_OUTPUT_TOKENS=6000
+MODEL="google/gemini-2.5-flash-lite"
+REASONING_EFFORT="low"
+MAX_OUTPUT_TOKENS=2200
 MAX_IMAGE_EDGE=1152
 MAX_TOTAL_IMAGE_BYTES=2500000
 REQUIRED={"schema","experiment","generation_request","source_character",
@@ -45,18 +45,19 @@ PROMPT=(
  "and image 4 (the real Babylon axe attack). Judge the CURRENT ON-SCREEN "
  "RELATIVE SIZE of the equipped prop versus the wearer, handle contact, "
  "orientation of the head/blade, and practical physical plausibility. "
- "You are correcting a real rendered scene, NOT proposing a textbook weapon "
- "size and NOT accepting the previous model's ratio by default. Return a "
+ "Judge whether the equipment is appropriately proportioned to its wearer "
+ "and works ergonomically. Return a "
  "target_length_relative_character_height that YOU choose after evaluating "
- "both images and original design intent. Character mesh is rendered at "
- "exactly 1.9 world units tall; the geometric solver sets prop length to "
- "character_height * your target ratio (not to a fixed pixel size). "
+ "all images and the original design intent. The geometric solver sets "
+ "the prop length to wearer height multiplied by your selected ratio. "
+ "Choose the proper proportion from the artwork; do not copy the size "
+ "currently visible in the test scene if it appears wrong. "
  "Choose the desired grip fraction measured FROM THE HANDLE BUTT toward the "
  "head (fraction of FULL object axis, approximately 0.04..0.64), "
  "and one semantic head/edge direction from the JSON enumerations. "
  "The 3D solver computes quaternions, DO NOT supply Euler angles. "
  "If a visually credible adjustment cannot be inferred, set confidence low "
- "and explain the missing evidence. Do not blindly echo old values. "
+ "and explain the missing evidence. "
  "The purpose is a functional believable weapon resembling the unit concept. "
  "Ground the diagnosis in what is visibly wrong/right in the render."
 )
@@ -114,13 +115,18 @@ def valid(raw):
  if raw["confidence"]<.65:raise ValueError("Vision not confident enough for a 3D preview")
  return raw
 
-def image(p):
+def image(p, arena=False):
  # Modest, deterministic image budget; text and images only, never binary GLB.
  with Image.open(p) as original:
   rgba=original.convert("RGBA")
   background=Image.new("RGBA",rgba.size,"white")
   background.alpha_composite(rgba)
   ready=ImageOps.exif_transpose(background.convert("RGB"))
+  # Exclude the Character Lab sidebar/HUD from rendered-scene evidence.
+  # No textual feedback, model numbers, or size figures from the UI.
+  if arena:
+   w,h=ready.size
+   ready=ready.crop((round(w*.02),round(h*.15),round(w*.73),round(h*.83)))
   ready.thumbnail((MAX_IMAGE_EDGE,MAX_IMAGE_EDGE),Image.Resampling.LANCZOS)
   output=io.BytesIO()
   ready.save(output,format="JPEG",quality=85,optimize=True)
@@ -150,8 +156,7 @@ def run(request,check):
  else:
   key=os.environ.get("OPENROUTER_API_KEY","").strip()
   if not key:raise ValueError("Missing OPENROUTER_API_KEY")
-  old=current["specifications"]
-  images={key:image(paths[key]) for key in
+  images={key:image(paths[key],arena=key.startswith("current_render_")) for key in
     ("source_character","source_prop","current_render_idle","current_render_attack")}
   total_bytes=sum(size for _,size in images.values())
   if total_bytes>MAX_TOTAL_IMAGE_BYTES:raise ValueError("Image payload budget exceeded")
@@ -167,9 +172,9 @@ def run(request,check):
       {"role":"system","content":PROMPT},
       {"role":"user","content":[
         {"type":"text","text":"ORIGINAL GENERATION BRIEF:\n"+source["prompt"]+
-         "\nCURRENT ACTUAL RENDERED LENGTH/CHARACTER HEIGHT: "+str(old["length_relative_character_height"])+
-         "\nPrevious vision analysis (may be wrong): "+json.dumps(semantic["specifications"],ensure_ascii=False)+
-         "\nReturn your own corrected scale and orientation from visual evidence."},
+         "\nAnalyze the original designed proportions and equipped renders. "
+         "Choose the best proportional size, grip and orientation; "
+         "ignore game UI overlays and diagnose the visible equipment independently."},
         {"type":"text","text":"IMAGE 1: source unit with originally designed equipment"},images["source_character"][0],
         {"type":"text","text":"IMAGE 2: isolated prop rendering"},images["source_prop"][0],
         {"type":"text","text":"IMAGE 3: live 3D rendered arena IDLE"},images["current_render_idle"][0],
