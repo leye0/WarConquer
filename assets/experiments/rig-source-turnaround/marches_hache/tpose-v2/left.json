@@ -1,0 +1,60 @@
+{
+  "view": "left",
+  "status": "generated-needs-visual-review",
+  "model": "meta/muse-image",
+  "prompt_revision": "canonical-worldspace-tpose-v2",
+  "prompt": "ONE SAME WarConquer adult male Marches axeman. Copy his identity, face, beard, long dark-red tied hair, leather-and-dark-red-cloth outfit, patched fabric, charcoal armor, boots and proportions from the supplied character paintings. The prior images are appearance references, not invitations to change camera position.\n\nIMMUTABLE WORLD-SPACE 3D SKELETON: +Z vertical head-up; +Y body forward (nose); +X anatomically left; -X anatomically right. The head, neck, spine, pelvis are vertical; shoulders same height. The arms are physically extended from the shoulders along world axes +X and -X, elbows and wrists straight, hands OPEN and EMPTY. This is a true standard 3D T-pose, not a gesture toward the screen. Both legs straight, slight hip-width separation, feet flat at Z=0. NO altered arm rotation in any view. No axe, weapons, shield, held props or cape bridging limbs. Same body proportions in every view.\n\nORTHOGRAPHIC CAMERA at shoulder height, horizontal, no elevated/isometric RTS angle, no perspective distortion. The CAMERA ROTATES around the stationary body; the BODY NEVER TURNS or changes its skeletal pose. Full person alone centered on 1024 square frame, 12 percent margins, shared boot baseline, transparent background (else uniform pure white), neutral lighting. Detailed hand-painted WarConquer materials, not a stylized diagram. No scenery, ground shadow, labels, extra arms, text, collage, mirror duplicates.\n\n\nCAMERA AT THE CHARACTER'S EXACT LEFT SIDE: pure 90-degree orthographic profile; nose and toes point toward image LEFT. Only one side of the face and narrow side of chest is visible. Crucial 3D projection: BOTH ARMS ARE STILL EXTENDED SIDEWAYS ALONG THE CHARACTER'S X AXIS INTO/OUT OF THE CAMERA, so the image-side projection of these arms is strongly FORESHORTENED, largely OVERLAPPING the shoulder and upper torso, NOT a long arm sticking out in front of the person's nose or pointing toward image left/right. Shoulder armor and gloved hand may be partly occluded at shoulder level. Both elbows stay straight in 3D. Absolutely no long horizontal arm pointing toward the profile nose; no three-quarter chest, no two visible eyes, no diagonal body.",
+  "prompt_sha256": "49745dbdeb16cd98a2a76040b28af6e8191dd5e20ba7de76488713023d3b4e2e",
+  "input_sha256": {
+    "front": "ddaf1862304adc05d01157bda8caae57b8a549ade83ce70e3ace9638a8997d87",
+    "back": "c7d3a260fd9fddcdf8da5cb8551bedb971452fcff6abda8308dfbd1fb193dce3"
+  },
+  "seed": "not supplied: Muse provider-specific seed support unverified",
+  "maximum_new_paid_images": 2,
+  "image_sha256": "f29d996d5c071fea6f73168f4a9718e6fb2c0318569fd2c73fdc65389bd4e367",
+  "geometry": {
+    "bbox": [
+      432,
+      162,
+      592,
+      899
+    ],
+    "width_height_ratio": 0.217,
+    "width_px": 160,
+    "height_px": 737,
+    "profile_narrow_enough": true,
+    "safe_margins": true
+  },
+  "alpha_processing": "white-background-matte",
+  "placement": {
+    "raw_bbox": [
+      653,
+      197,
+      937,
+      1509
+    ],
+    "source_edge_contact": false,
+    "foreground_fraction": 0.10472,
+    "normalization_scale": 0.56195,
+    "feet_baseline_px": 899
+  },
+  "usage": {
+    "prompt_tokens": 547,
+    "completion_tokens": 2097,
+    "total_tokens": 2644,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 2097
+    }
+  }
+}

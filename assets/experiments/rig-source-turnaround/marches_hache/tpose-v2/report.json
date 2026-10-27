@@ -1,0 +1,53 @@
+{
+  "trial_id": "marches-axeman-orthographic-tpose-profiles-v2",
+  "prompt_contract": "docs/rig-pose-contract.md",
+  "prompt_revision": "canonical-worldspace-tpose-v2",
+  "new_paid_image_limit": 2,
+  "human_review_required": true,
+  "source_views": [
+    "front",
+    "back",
+    "left",
+    "right"
+  ],
+  "ready_for_mesh": false,
+  "results": [
+    {
+      "view": "left",
+      "status": "generated-needs-visual-review",
+      "sha256": "f29d996d5c071fea6f73168f4a9718e6fb2c0318569fd2c73fdc65389bd4e367",
+      "geometry": {
+        "bbox": [
+          432,
+          162,
+          592,
+          899
+        ],
+        "width_height_ratio": 0.217,
+        "width_px": 160,
+        "height_px": 737,
+        "profile_narrow_enough": true,
+        "safe_margins": true
+      }
+    },
+    {
+      "view": "right",
+      "status": "generated-needs-visual-review",
+      "sha256": "74d9d0d09e91413afa11f0bc45c540a986dec189cb3f7db80c54800066d348b2",
+      "geometry": {
+        "bbox": [
+          428,
+          162,
+          595,
+          899
+        ],
+        "width_height_ratio": 0.227,
+        "width_px": 167,
+        "height_px": 737,
+        "profile_narrow_enough": true,
+        "safe_margins": true
+      }
+    }
+  ],
+  "warning": "A prompt cannot guarantee anatomical 3D consistency; manually inspect side projections and all four silhouettes."
+}
