@@ -1,0 +1,100 @@
+{
+  "schema": 4,
+  "experiment": "marches-axe-in-situ-gemini31pro-v4",
+  "vision_model": "google/gemini-3.1-pro-preview",
+  "inputs": {
+    "object_image": "assets/concepts/marches/objects/hache_arme.png",
+    "character_image": "assets/concepts/marches/units/hache.png",
+    "object_glb": "assets/experiments/props/marches_hache/trellis-v1/axe.glb"
+  },
+  "input_hashes": {
+    "source_character_sha256": "40596135f14365c2a77258cd34fe8285c2968fc791816023fbe37cdb197982c7",
+    "current_render_idle_sha256": "61095d5427018a909ca8a6058e51687540143cd87d62be119a921dd81099ee7a",
+    "generation_request_sha256": "7292454751dbea7110a1817f371e5da086f18d3d0b7f578a4f10af92b259680c",
+    "semantic_plan_sha256": "76162c9b86b3e33eb29600fc4d505555aea794cdb9cf206ebc5bf59f6868ccdd",
+    "source_prop_sha256": "061c18599da536c363ffa8bb10f648405d31c240f027c3867a46541d2b0d79bc",
+    "current_plan_sha256": "6b3b202f4c9af78779b12f183a894ef60551b3b95f26410ad47cc673b56ae162",
+    "current_render_attack_sha256": "db290297601ae196f4e04be6f448aec2a7c23dbe7fb97569e766aeccde455018"
+  },
+  "source_provenance": {
+    "generation_request": "axe-image-request.json",
+    "generation_brief_sha256": "7292454751dbea7110a1817f371e5da086f18d3d0b7f578a4f10af92b259680c"
+  },
+  "specifications": {
+    "object_kind": "axe",
+    "grip_geometry": "shaft",
+    "hold_mode": "two_hands",
+    "dominant_hand": "either",
+    "handle_butt": [
+      0.85,
+      0.92
+    ],
+    "handle_near_head": [
+      0.4,
+      0.3
+    ],
+    "grip_point": [
+      0.6,
+      0.75
+    ],
+    "head_center": [
+      0.3,
+      0.2
+    ],
+    "action_edge": [
+      0.25,
+      0.2
+    ],
+    "head_direction": "toward_fingers",
+    "edge_direction": "forward",
+    "length_relative_character_height": 1.1,
+    "palm_from_wrist": 0.5,
+    "confidence": 0.9,
+    "explanation": "The axe is a two-handed weapon with a long wooden shaft. The character in Image 2 is holding the axe with both hands, with the primary grip point being roughly in the middle of the shaft. The axe head extends away from the character's body, and the cutting edge faces outward."
+  },
+  "derived_image_geometry": {
+    "grip_fraction_from_butt": 0.35,
+    "image_deviation": 0.10247,
+    "supported_by_current_geometry_fitter": true
+  },
+  "vision_review": {
+    "target_length_relative_character_height": 1.1,
+    "grip_fraction_from_butt": 0.35,
+    "head_direction": "toward_fingers",
+    "edge_direction": "forward",
+    "change_needed": true,
+    "confidence": 0.9,
+    "visual_diagnosis": "The axe is mounted backwards. The axe head is currently located near the character's hand and pointing backwards, while the bare handle extends forward.",
+    "proposed_correction_reason": "Flip the weapon orientation so the axe head is at the far end of the shaft. Move the grip point to the lower third of the handle to match the two-handed grip intent, and ensure the blade faces forward."
+  },
+  "visual_qa": {
+    "status": "candidate",
+    "reason": "LLM viewed live Idle and Attack; not yet independently checked after applying new transform"
+  },
+  "paid_vision_requests": 1,
+  "automatic_paid_retries": 0,
+  "usage": {
+    "prompt_tokens": 5248,
+    "completion_tokens": 925,
+    "total_tokens": 6173,
+    "cost": 0.021596,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.021596,
+      "upstream_inference_prompt_cost": 0.010496,
+      "upstream_inference_completions_cost": 0.0111
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 753,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  },
+  "observed_cost_usd": 0.021596
+}
