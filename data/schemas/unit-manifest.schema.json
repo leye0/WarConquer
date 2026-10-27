@@ -150,6 +150,9 @@
           }
         }
       }
+    },
+    "$schema": {
+      "type": "string"
     }
   },
   "$defs": {
