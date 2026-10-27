@@ -3,7 +3,7 @@ name: Marches axe · TRELLIS image to textured GLB
 on:
   push:
     branches: [main]
-    paths: ['trellis-axe-request.json', '.github/workflows/build-trellis-axe.yml']
+    paths: ['trellis-axe-request.json', 'scripts/build-trellis-axe.py', '.github/workflows/build-trellis-axe.yml']
   workflow_dispatch:
 
 permissions:
