@@ -6,11 +6,13 @@ on:
     paths:
       - 'character-lab.html'
       - 'scripts/character-lab-client.js'
+      - 'scripts/weapon-grip-geometry.js'
       - 'scripts/serve-character-lab.mjs'
       - 'scripts/build-character-lab-pages.mjs'
       - 'assets/experiments/rig-ready-3d/**'
       - 'assets/experiments/rig-source-turnaround/**'
       - 'assets/experiments/props/marches_hache/trellis-v1/axe.glb'
+      - 'assets/experiments/props/marches_hache/trellis-v1/grip-plan.json'
       - 'assets/concepts/marches/units/hache.png'
       - '.github/workflows/publish-character-lab-pages.yml'
   workflow_dispatch:
@@ -36,6 +38,7 @@ jobs:
       - name: Validate client and static exporter
         run: |
           node --check scripts/character-lab-client.js
+          node --check scripts/weapon-grip-geometry.js
           node --check scripts/serve-character-lab.mjs
           node --check scripts/build-character-lab-pages.mjs
       - name: Build minimal public Character Lab bundle
@@ -51,6 +54,9 @@ jobs:
             const dir = process.env.PAGES_DIR;
             assert(existsSync(join(dir, "index.html")));
             assert(existsSync(join(dir, "scripts/character-lab-client.js")));
+            assert(existsSync(join(dir, "scripts/weapon-grip-geometry.js")));
+            const grip=JSON.parse(readFileSync(join(dir,"assets/experiments/props/marches_hache/trellis-v1/grip-plan.json")));
+            assert.equal(grip.schema,2,"Missing generically analyzed vision attachment plan");
             const data = JSON.parse(readFileSync(join(dir, "api/character-lab.json")));
             assert(data.characters.length > 0);
             const all = data.characters.flatMap(c => c.models);
