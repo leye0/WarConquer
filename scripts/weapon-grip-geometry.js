@@ -108,11 +108,45 @@
     if(headCandidates.length<8)throw Error("No discernible weapon head vertices");
     const headCenter=centroid(headCandidates);
     const transverse=sub(sub(headCenter,grip),mul(signed,dot(sub(headCenter,grip),signed)));
-    const blade=unit(transverse);
-    if(!blade || norm(transverse)<trueLength*.02)
-      throw Error("Weapon head has no reliable side; manual review required");
+    let blade=unit(transverse);
+    let bladeMethod="asymmetric-head-centroid";
+    if(!blade || norm(transverse)<trueLength*.02) {
+      // A double-edged axe may be centred on the shaft. Its silhouette still
+      // has an oriented blade plane: solve the strongest perpendicular PCA
+      // direction within the head, not the centroid direction.
+      bladeMethod="head-transverse-covariance";
+      const base=Math.abs(signed[0])<.8 ? [1,0,0] : [0,1,0];
+      let candidate=unit(sub(base,mul(signed,dot(base,signed))));
+      const headCov=[0,0,0,0,0,0,0,0,0];
+      for(const p of headCandidates){
+        const d=sub(p,headCenter);
+        const v=sub(d,mul(signed,dot(d,signed)));
+        for(let i=0;i<3;i++)for(let j=0;j<3;j++)headCov[i*3+j]+=v[i]*v[j];
+      }
+      for(let iter=0;iter<45;iter++) {
+        const raw=[dot(headCov.slice(0,3),candidate),dot(headCov.slice(3,6),candidate),
+          dot(headCov.slice(6,9),candidate)];
+        const projected=sub(raw,mul(signed,dot(raw,signed)));
+        const next=unit(projected);
+        if(!next)throw Error("Weapon head has no dominant transverse plane");
+        candidate=next;
+      }
+      const other=unit(cross(signed,candidate));
+      const variance=vector=>headCandidates.reduce((sum,p)=>{
+        const n=dot(sub(p,headCenter),vector);
+        return sum+n*n;
+      },0);
+      const anisotropy=variance(candidate)/Math.max(1e-8,variance(other));
+      if(anisotropy<1.3)
+        throw Error("Weapon head is transversely symmetric: edge plane indeterminate");
+      // Pick a stable sign from its furthest extent; for a true double blade
+      // either sign presents an equivalent cutting direction.
+      const projections=headCandidates.map(p=>dot(sub(p,headCenter),candidate));
+      const extreme=Math.max(...projections)+Math.min(...projections);
+      blade=extreme<0 ? mul(candidate,-1) : candidate;
+    }
     return {grip,shaft:signed,blade,length:trueLength,headWidthRatio:spreadRatio,
-      gripFractionFromButt:gripFraction,vertexCount:points.length};
+      gripFractionFromButt:gripFraction,vertexCount:points.length,bladeMethod};
   }
   return {fitGrip,cross,dot,unit,sub,mul,add,norm};
 });
