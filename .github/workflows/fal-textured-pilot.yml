@@ -1,0 +1,80 @@
+name: Character Lab · one-shot fal.ai multiview textured pilot
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fal-textured-pilot.yml'
+  workflow_dispatch:
+    inputs:
+      resume_request_id:
+        description: 'Existing fal request ID to resume without another charge (optional)'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: warconquer-fal-multiview-textured-pilot
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Preflight: existing output, PNG references and secret availability
+        env:
+          FAL_KEY: ${{ secrets.FAL_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -s assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-textured.glb ]]; then
+            echo 'Existing output already committed: do not submit again.'
+            exit 0
+          fi
+          test -n "$FAL_KEY" || { echo 'Missing secret FAL_API_KEY in GitHub Actions'; exit 1; }
+          for view in front back left right; do
+            test -s "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/$view.png"
+          done
+      - name: Install small fal.ai Python client and check script syntax
+        run: |
+          python -m pip install 'fal-client==0.14.0'
+          python -m py_compile scripts/generate-fal-textured-pilot.py
+      - name: One paid Hunyuan3D multiview run with real UV textures
+        env:
+          FAL_KEY: ${{ secrets.FAL_API_KEY }}
+          FAL_RESUME_REQUEST_ID: ${{ inputs.resume_request_id || '' }}
+        run: python scripts/generate-fal-textured-pilot.py
+      - name: Commit approved pilot separately from the rigged character
+        shell: bash
+        run: |
+          set -euo pipefail
+          pilot='assets/experiments/rig-ready-3d/marches_hache/tpose-v2'
+          test -s "$pilot/fal-textured.glb"
+          test -s "$pilot/fal-texture-report.json"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$pilot/fal-textured.glb" "$pilot/fal-texture-report.json" "$pilot/fal-receipt.json"
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: preserve fal multiview UV-textured comparison mesh'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Preserve evidence even if the job fails after fal submission
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fal-hunyuan-textured-pilot
+          path: |
+            assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-receipt.json
+            assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-texture-report.json
+            assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-textured.glb
+          if-no-files-found: ignore
+          retention-days: 5
