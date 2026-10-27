@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install Replicate client and GLB validation tooling
-        run: python -m pip install 'replicate==1.0.7' 'Pillow==11.3.0'
+        run: python -m pip install 'replicate==1.0.7' 'Pillow==11.3.0' 'trimesh>=4.5,<5.0' 'numpy>=2.0,<3.0'
       - name: Validate explicit approval and all four image SHA fingerprints
         run: |
           python -m py_compile scripts/build-rig-ready-3d.py
@@ -81,6 +81,13 @@ jobs:
         env:
           REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
         run: python scripts/build-rig-ready-3d.py --stage rig-collect
+      - name: Render four-angle mesh and rig previews without API calls
+        if: ${{ always() }}
+        run: |
+          if [ -f assets/experiments/rig-ready-3d/marches_hache/tpose-v2/unrigged.glb ]; then
+            python -m py_compile scripts/preview-rig-ready-3d.py
+            python scripts/preview-rig-ready-3d.py
+          fi
       - name: Publish partial or complete 3D pipeline outputs on main
         if: ${{ always() }}
         shell: bash
