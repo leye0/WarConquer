@@ -44,6 +44,46 @@
       if(twice<dx){err+=dx;z+=sz;}
     }
   }
+  function movementCells(world,a,b,radius) {
+    const originX=world.originX||0,originZ=world.originZ||0;
+    return {
+      left:Math.floor(Math.min(a.x,b.x)-radius-originX),
+      right:Math.floor(Math.max(a.x,b.x)+radius-originX),
+      top:Math.floor(Math.min(a.z,b.z)-radius-originZ),
+      bottom:Math.floor(Math.max(a.z,b.z)+radius-originZ)
+    };
+  }
+  function touchesExpandedCell(world,a,b,c,radius) {
+    // Continuous swept-circle approximation: ray vs obstacle AABB expanded
+    // by the actor's radius. No sample gaps or diagonal corner tunnelling.
+    const x=(world.originX||0)+c.x,z=(world.originZ||0)+c.z;
+    let near=0,far=1;
+    for(const [from,delta,min,max] of [
+      [a.x,b.x-a.x,x-radius,x+1+radius],
+      [a.z,b.z-a.z,z-radius,z+1+radius]
+    ]){
+      if(Math.abs(delta)<1e-10){
+        if(from<min||from>max)return false;
+      }else{
+        const enter=(min-from)/delta,leave=(max-from)/delta;
+        near=Math.max(near,Math.min(enter,leave));
+        far=Math.min(far,Math.max(enter,leave));
+        if(near>far)return false;
+      }
+    }
+    return true;
+  }
+  function firstBlockedCell(world,from,to,radius=.28) {
+    // Authoritative sweep of the actual grid. The brain itself uses only
+    // remembered cells when assessing a prospective route.
+    const bounds=movementCells(world,from,to,radius);
+    for(let z=bounds.top;z<=bounds.bottom;z++)
+      for(let x=bounds.left;x<=bounds.right;x++){
+        const c={x,z};
+        if(wall(world,c)&&touchesExpandedCell(world,from,to,c,radius))return c;
+      }
+    return null;
+  }
   class Heap {
     constructor(){this.items=[];}
     push(v) {
@@ -182,7 +222,11 @@
       if(!inside(world,start)||!inside(world,end)||this.knownBlocked(world,end,nowMs))return null;
       const open=new Heap(),g=new Map(),parent=new Map();
       const startKey=key(start.x,start.z),endKey=key(end.x,end.z);
-      const heuristic=c=>Math.abs(c.x-end.x)+Math.abs(c.z-end.z);
+      // Octile distance keeps A* optimal for eight-way movement.
+      const heuristic=c=>{
+        const dx=Math.abs(c.x-end.x),dz=Math.abs(c.z-end.z);
+        return dx+dz+(Math.SQRT2-2)*Math.min(dx,dz);
+      };
       g.set(startKey,0);open.push({c:start,score:heuristic(start),cost:0});
       let expanded=0;
       while(open.size&&expanded++<2500) {
@@ -197,16 +241,34 @@
           }
           return result;
         }
-        for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+        for(const [dx,dz] of [
+          [1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]
+        ]) {
           const n={x:c.x+dx,z:c.z+dz},nk=key(n.x,n.z);
           if(this.knownBlocked(world,n,nowMs))continue;
-          const cost=current.cost+(this.cells.has(nk)?1:2.5);
+          // Never slip diagonally between two touching blocked cells.
+          if(dx&&dz&&(this.knownBlocked(world,{x:c.x+dx,z:c.z},nowMs)||
+              this.knownBlocked(world,{x:c.x,z:c.z+dz},nowMs)))continue;
+          const cost=current.cost+(dx&&dz?Math.SQRT2:1)*
+            (this.cells.has(nk)?1:2.5);
           if(cost>=(g.get(nk)??Infinity))continue;
           g.set(nk,cost);parent.set(nk,k);
           open.push({c:n,cost,score:cost+heuristic(n)});
         }
       }
       return null;
+    }
+    segmentClear(world,a,b,nowMs) {
+      // Straight-line steering uses only known obstructions, without asking
+      // for the unobserved terrain layout.
+      const radius=.28,bounds=movementCells(world,a,b,radius);
+      for(let z=bounds.top;z<=bounds.bottom;z++)
+        for(let x=bounds.left;x<=bounds.right;x++){
+          const c={x,z};
+          if(this.knownBlocked(world,c,nowMs)&&
+              touchesExpandedCell(world,a,b,c,radius))return false;
+        }
+      return true;
     }
     chooseEntity(filter) {
       return [...this.entities.values()].filter(filter).sort((a,b)=>
@@ -337,23 +399,44 @@
         }
         return response;
       }
-      const end=cell(world,target.x,target.z),routeKey=key(end.x,end.z);
-      if(!this.route||this.route.key!==routeKey||
-          this.route.cells.some(c=>this.knownBlocked(world,c,nowMs))) {
-        const cells=this.path(world,target,nowMs);
-        this.route=cells?{key:routeKey,cells}:null;
+      let waypoint=target;
+      if(this.segmentClear(world,this,target,nowMs)){
+        // Open terrain: walk toward the actual world-space goal, at any angle.
+        this.route=null;
+        response.path=[target];
+      }else{
+        // Only obstacles require waypoints. Smooth across visible free cells.
+        const end=cell(world,target.x,target.z),routeKey=key(end.x,end.z);
+        if(!this.route||this.route.key!==routeKey||
+            this.route.cells.some(c=>this.knownBlocked(world,c,nowMs))) {
+          const cells=this.path(world,target,nowMs);
+          this.route=cells?{key:routeKey,cells}:null;
+        }
+        if(!this.route){response.status="blocked";return response;}
+        while(this.route.cells.length&&
+          (this.route.cells[0].x===cell(world,this.x,this.z).x&&
+           this.route.cells[0].z===cell(world,this.x,this.z).z))
+          this.route.cells.shift();
+        if(!this.route.cells.length){
+          // A route can finish in the goal cell before reaching its exact point.
+          waypoint=target;
+        }else{
+          waypoint=center(world,this.route.cells[0]);
+          for(let i=this.route.cells.length-1;i>=0;i--){
+            const candidate=i===this.route.cells.length-1?target:center(world,this.route.cells[i]);
+            if(this.segmentClear(world,this,candidate,nowMs)){
+              waypoint=candidate;
+              break;
+            }
+          }
+        }
+        response.path=[waypoint,...this.route.cells.map(c=>center(world,c))];
       }
-      if(!this.route){response.status="blocked";return response;}
-      while(this.route.cells.length&&
-        (this.route.cells[0].x===cell(world,this.x,this.z).x&&
-         this.route.cells[0].z===cell(world,this.x,this.z).z))
-        this.route.cells.shift();
-      const waypoint=this.route.cells.length?center(world,this.route.cells[0]):target;
       const delta=dist(this,waypoint);
       if(delta<1e-8){response.status="arrived";return response;}
-      const step=Math.min(delta,dt*this.speed);
-      response.move={dx:(waypoint.x-this.x)/delta*step,dz:(waypoint.z-this.z)/delta*step};
-      response.path=this.route.cells.map(c=>center(world,c));
+      const distance=Math.min(delta,dt*this.speed);
+      response.move={dx:(waypoint.x-this.x)/delta*distance,
+        dz:(waypoint.z-this.z)/delta*distance};
       if(response.status!=="searching"&&response.status!=="fleeing")response.status="moving";
       return response;
     }
@@ -367,5 +450,5 @@
           entities:[...this.entities.values()].map(e=>({...e}))}};
     }
   }
-  return {Brain,cell,center,lineOfSight};
+  return {Brain,cell,center,lineOfSight,firstBlockedCell};
 });

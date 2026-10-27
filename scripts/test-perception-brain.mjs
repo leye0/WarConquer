@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import {createRequire} from "node:module";
 const require=createRequire(import.meta.url);
-const {Brain,cell,lineOfSight}=require("./perception-brain.js");
+const {Brain,cell,lineOfSight,firstBlockedCell}=require("./perception-brain.js");
 const grid=rows=>({originX:0,originZ:0,grid:rows,objects:[]});
 const clear=grid(Array.from({length:16},()=> ".".repeat(16)));
 const me=options=>new Brain({id:"scout",x:.5,z:.5,visionRange:7,...options});
@@ -137,4 +137,51 @@ const me=options=>new Brain({id:"scout",x:.5,z:.5,visionRange:7,...options});
   assert.notEqual(b.step(clear,{type:"hold"},100,500).status,"stuck","A new order resets the stall");
 }
 
-console.log("PASS: vision/occlusion, memory, A*, fear, interaction approach, collision feedback and no oscillation");
+// The renderer must enforce collisions along a moving capsule, not just at
+// its destination; a fast diagonal can intersect a corner mid-step.
+{
+  const w=grid(["....","..#.","....","...."]);
+  assert.deepEqual(firstBlockedCell(w,{x:1.5,z:.6},{x:2.6,z:1.6}),
+    {x:2,z:1});
+  assert.equal(firstBlockedCell(clear,{x:1.5,z:1.5},{x:2.5,z:2.5}),null);
+}
+// A free-world target is a point in continuous space, not a tile centre.
+{
+  const b=me({x:1.5,z:1.5});
+  const target={type:"goto",x:7.5,z:4.5};
+  const decision=b.step(clear,target,100,100);
+  assert.equal(decision.status,"moving");
+  assert(Math.abs(decision.move.dx/decision.move.dz-2)<1e-7,
+    "Steering should follow the true 6:3 direction, never snap to tile axes");
+  assert.deepEqual(decision.path,[{x:7.5,z:4.5}]);
+}
+// Routing around an obstacle must remain continuous and avoid corner cuts.
+{
+  const rows=Array.from({length:12},(_,z)=>Array.from({length:12},(_,x)=>
+    x===4&&z===2?"#":".").join(""));
+  const w=grid(rows),b=me({x:1.5,z:2.5,visionRange:9});
+  const order={type:"goto",x:9.5,z:2.5};
+  let collisions=0,steered=false,arrived=false;
+  for(let i=0;i<75;i++){
+    const decision=b.step(w,order,100,i*100);
+    if(decision.status==="arrived"){arrived=true;break;}
+    steered ||= Math.abs(decision.move.dz)>.001;
+    const x=b.x+decision.move.dx,z=b.z+decision.move.dz;
+    const blockedCell=firstBlockedCell(w,{x:b.x,z:b.z},{x,z});
+    const accepted=!blockedCell;
+    b.reportMoveResult({accepted,attempted:decision.move,
+      blockedCell,nowMs:i*100});
+    if(accepted){b.x=x;b.z=z;}else collisions++;
+  }
+  assert(arrived,"Must arrive beyond the obstacle");
+  assert(steered,"Must steer around the obstacle using angled movement");
+  assert.equal(collisions,0,"Known obstacle should not cause a collision");
+}
+{
+  const w=grid([".#","#."]),b=me({x:.5,z:.5});
+  b.step(w,{type:"hold"},100,100);
+  assert.equal(b.path(w,{x:1.5,z:1.5},100),null,
+    "A diagonal may not cut between two blocked orthogonal neighbours");
+}
+
+console.log("PASS: vision/occlusion, memory, eight-way A*, continuous steering, fear, interaction approach, collision feedback and no oscillation");

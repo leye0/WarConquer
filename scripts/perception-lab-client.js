@@ -23,7 +23,11 @@
   const state={items:[],seq:0,clock:0,paused:false,tool:null,pending:null,
     selected:null,order:{type:"hold"},decision:null,animation:{},currentClip:null,
     actionRunning:false,actor:null,brain:null,loadedModel:false,acc:0,
+    simPose:{x:0,z:0,yaw:0},prevPose:{x:0,z:0,yaw:0},
+    currentMotionMode:null,
     inventory:WCResources.inventory(),events:[],actionSerial:0,lastStatus:null};
+  // Same world-unit speeds and native 1x gait as the Character Lab.
+  const WALK_SPEED=2.7,RUN_SPEED=2.7*1.75;
   const point=(x,z)=>({x,z});
   const range=(x,min,max)=>Math.max(min,Math.min(max,x));
   const color=hex=>B.Color3.FromHexString(hex);
@@ -105,13 +109,15 @@
     addItem("resource",-3,3,{name:"Gisement de minerai",resourceType:"ore"});
     addItem("unit",-2,-5,{name:"Soldat allié",team:"blue",threat:0});
     player.position.x=0;player.position.z=0;player.rotation.y=0;
+    state.simPose={x:0,z:0,yaw:0};state.prevPose={...state.simPose};
+    state.acc=0;
     state.brain=new Brain({id:"scout",team:"blue",x:0,z:0,
       visionRange:Number($("visionRange").value),memoryTtlMs:20000});
     state.clock=0;state.order={type:"hold"};state.decision=null;
     state.inventory=WCResources.inventory();state.events=[];state.lastStatus=null;
     state.actionSerial++;state.actionRunning=false;
     for(const clip of state.animation.groups||[])clip.stop();
-    state.currentClip=null;motion("idle");
+    state.currentClip=null;state.currentMotionMode=null;motion("idle");
     state.tool=null;state.pending=null;
     state.paused=false;$("playPause").textContent="Pause";
     selectItem(null);syncMode();
@@ -141,7 +147,7 @@
   }
   function drawPath(result){
     if(routeMesh){routeMesh.dispose();routeMesh=null;}
-    const path=[{x:player.position.x,z:player.position.z},...(result.path||[])];
+    const path=[{x:state.simPose.x,z:state.simPose.z},...(result.path||[])];
     if(path.length<2)return;
     routeMesh=B.MeshBuilder.CreateLines("planned-route",{
       points:path.map(p=>new B.Vector3(p.x,.075,p.z))},scene);
@@ -160,12 +166,31 @@
   }
   function motion(name){
     if(state.actionRunning)return;
-    const clip=state.animation[name]||state.animation.idle||null;
-    if(clip===state.currentClip)return;
+    if(state.paused&&name!=="idle")name="idle";
+    const clip=name==="walk"?(state.animation.walk||state.animation.run||state.animation.idle):
+      name==="run"?(state.animation.run||state.animation.walk||state.animation.idle):
+      (state.animation[name]||state.animation.idle)||null;
+    // Use the Character Lab's 1x gait for matching clips. If a walk/run
+    // clip is missing, scale the available gait to the actual world speed.
+    const speedRatio=name==="walk"&&clip===state.animation.run?WALK_SPEED/RUN_SPEED:
+      name==="run"&&clip===state.animation.walk?RUN_SPEED/WALK_SPEED:1;
+    if(clip===state.currentClip){
+      if(clip&&state.currentMotionMode!==name)clip.speedRatio=speedRatio;
+      state.currentMotionMode=name;
+      return;
+    }
     state.currentClip?.stop();
-    state.currentClip=clip;
-    if(clip)clip.start(true,1,clip.from,clip.to);
+    state.currentClip=clip;state.currentMotionMode=name;
+    if(clip)clip.start(true,speedRatio,clip.from,clip.to);
     $("animationState").textContent=clip?.name||"Aucun clip";
+  }
+  function renderPose(alpha){
+    const t=range(alpha,0,1),a=state.prevPose,b=state.simPose;
+    player.position.x=a.x+(b.x-a.x)*t;
+    player.position.z=a.z+(b.z-a.z)*t;
+    const rotation=Math.atan2(Math.sin(b.yaw-a.yaw),Math.cos(b.yaw-a.yaw));
+    player.rotation.y=a.yaw+rotation*t;
+    sight.position.x=player.position.x;sight.position.z=player.position.z;
   }
   function recordEvent(value) {
     state.events.unshift(value);
@@ -180,7 +205,7 @@
       const reach=Math.max(1.25,Number(state.order.distance)||0);
       const outcome=WCResources.collect({
         items:state.items,bag:state.inventory,entityId:id,
-        actor:{x:player.position.x,z:player.position.z},reach
+        actor:{x:state.simPose.x,z:state.simPose.z},reach
       });
       if(!outcome.ok){
         recordEvent("Ramassage refusé : "+outcome.reason);
@@ -221,22 +246,23 @@
   function tick(){
     state.clock+=100;
     const world=makeWorld();
-    state.brain.speed=state.order.type==="flee"?4.6:2.5;
-    state.brain.setPose({x:player.position.x,z:player.position.z});
+    state.brain.speed=state.order.type==="flee"?RUN_SPEED:WALK_SPEED;
+    const before=state.simPose,after={...before};
+    state.brain.setPose({x:before.x,z:before.z});
     const decision=state.brain.step(world,state.order,100,state.clock);
     state.decision=decision;
     const attempted=decision.move;
     const wantsMove=Math.hypot(attempted.dx,attempted.dz)>.0001;
     let moved=false;
     if(wantsMove&&!state.actionRunning){
-      const nx=player.position.x+attempted.dx,nz=player.position.z+attempted.dz;
-      const next=WCPerception.cell(world,nx,nz);
-      const accepted=next.x>=0&&next.z>=0&&next.x<32&&next.z<32&&
-        world.grid[next.z][next.x]!=="#";
-      state.brain.reportMoveResult({accepted,attempted,blockedCell:accepted?null:next,nowMs:state.clock});
+      const nx=before.x+attempted.dx,nz=before.z+attempted.dz;
+      const blockedCell=WCPerception.firstBlockedCell(world,before,{x:nx,z:nz});
+      const accepted=!blockedCell;
+      state.brain.reportMoveResult({accepted,attempted,blockedCell,nowMs:state.clock});
       if(accepted){
-        moved=true;player.position.x=nx;player.position.z=nz;
-        player.rotation.y=Math.atan2(attempted.dx,attempted.dz);
+        moved=true;after.x=nx;after.z=nz;
+        const yaw=Math.atan2(attempted.dx,attempted.dz);
+        after.yaw=before.yaw+Math.atan2(Math.sin(yaw-before.yaw),Math.cos(yaw-before.yaw));
         state.brain.heading=Math.atan2(attempted.dz,attempted.dx);
       }else{
         decision.status=state.brain.stallCount>=3?"stuck":"replanning";
@@ -244,13 +270,14 @@
         decision.move={dx:0,dz:0};
       }
     }
+    // Perception/collision at 10 Hz, GLB motion interpolated at render FPS.
+    state.prevPose=before;state.simPose=after;
     if(decision.action)act(decision.action);
     else if(moved)motion(decision.status==="fleeing"?"run":"walk");
     else motion("idle");
     if(decision.status==="stuck"&&state.lastStatus!=="stuck")
       recordEvent("Chemin bloqué après plusieurs essais : un nouvel ordre est nécessaire.");
     state.lastStatus=decision.status;
-    sight.position.x=player.position.x;sight.position.z=player.position.z;
     sight.scaling.setAll(state.brain.range/7);
     drawPath(decision);
     updateHud();
@@ -423,8 +450,14 @@
   $("selectMode").addEventListener("click",()=>{state.pending=null;state.tool=null;syncMode();});
   $("playPause").addEventListener("click",()=>{
     state.paused=!state.paused;$("playPause").textContent=state.paused?"Reprendre":"Pause";
+    state.acc=0;
+    if(state.paused){renderPose(1);motion("idle");}
+    else state.prevPose={...state.simPose};
   });
-  $("singleStep").addEventListener("click",()=>{state.paused=true;$("playPause").textContent="Reprendre";tick();});
+  $("singleStep").addEventListener("click",()=>{
+    state.paused=true;$("playPause").textContent="Reprendre";
+    state.acc=0;tick();renderPose(1);motion("idle");
+  });
   $("resetDemo").addEventListener("click",resetDemo);
   $("visionRange").addEventListener("input",e=>{state.brain.range=Number(e.target.value);updateHud();});
   $("collectNearest").addEventListener("click",()=>{
@@ -484,7 +517,8 @@
     if(!state.paused){
       state.acc+=dt;
       while(state.acc>=.1){tick();state.acc-=.1;}
-    }
+      renderPose(state.acc/.1);
+    }else renderPose(1);
     scene.render();
   });
 })();

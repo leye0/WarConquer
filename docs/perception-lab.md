@@ -22,13 +22,17 @@ Le monde contient originX, originZ, grid (lignes de points et # bloquants), occl
 | Ordre structuré | Effet |
 | --- | --- |
 | {type:"hold"} | Observer sans bouger |
-| {type:"goto",x:3,z:1} | A* vers la destination |
+| {type:"goto",x:3,z:1} | Marche directement vers ce point, avec détour si nécessaire |
 | {type:"relative",direction:"left",distance:4,id:7} | Orientation relative au début de l'ordre |
 | {type:"approach",entityId:"enemy-1",distance:1.2} | Se rapprocher d'une entité connue |
 | {type:"find",kind:"resource"} | Chercher dans les souvenirs et explorer l'inconnu adjacent |
 | {type:"flee"} | Choisir une position plus sûre |
 | {type:"attack",entityId:"enemy-1",distance:1.35} | Approcher puis émettre l'intention attack |
 | {type:"collect",entityId:"wood-1",distance:.95} | Approcher puis émettre l'intention collect |
+
+Le déplacement utilise des coordonnées continues : **un ordre « aller à (x,z) » donne une direction réelle vers ce point**, sans imposer une succession de pas horizontaux/verticaux. Lorsqu'un obstacle est déjà observé, le cervelet anticipe le détour : A* à huit voisins (sans couper les angles de deux murs), suivi d'un lissage des segments praticables. Les cellules de la grille servent à la connaissance et aux collisions, pas à limiter les directions de marche. Le moteur vérifie chaque déplacement sur toute sa trajectoire, avec une marge corporelle, et peut encore le refuser si un obstacle nouvellement découvert le coupe.
+
+Le moteur de perception prend ses décisions à **10 Hz**, tandis que la position et l'orientation du personnage sont interpolées **à chaque image** pour éliminer les sauts de 100 ms. Les vitesses de marche (2,7 m/s) et de course (×1,75) reprennent le Character Lab, avec ses clips joués à vitesse normale lorsqu'ils correspondent au mouvement. Si seul un des deux clips existe, la cadence est adaptée à la vitesse du déplacement. Le calcul du ramassage et des collisions reste fondé sur la position logique, pas sur la position visuelle légèrement interpolée.
 
 La reconnaissance utilise géométrie, champ de vision, occlusion, mémoire spatiale individuelle et dernière position des objets. Les souvenirs sont plafonnés, et ceux des entités dynamiques expirent. A* planifie **uniquement sur les cellules mémorisées** en pénalisant l'inconnu, tandis que le moteur tranche les collisions réelles. La peur augmente près des ennemis, puis décroît. En mode d’ordres manuels, la peur est une information et **ne détourne plus automatiquement** l’ordre actif. La fuite s’active sur commande explicite; un futur planificateur LLM pourra aussi la décider.
 
@@ -45,6 +49,6 @@ node scripts/test-perception-brain.mjs
 node scripts/test-resource-inventory.mjs
 ~~~
 
-Les tests couvrent le champ de vision, les murs, le brouillard de guerre, A*, la mémoire bornée, les ordres relatifs, la peur, les positions d’interaction, les collisions refusées, l’arrêt après blocage et 100 cervelets. Les tests de ressources vérifient la collecte exactement une fois, les distances et les quantités. Le moteur de mouvement signale chaque refus au cerveau, qui peut replanifier puis remonter un état bloqué. Le benchmark est indicatif : il ne remplace pas un profilage RTS complet.
+Les tests couvrent le champ de vision, les murs, le brouillard de guerre, A* à huit directions, la marche angulaire libre, le contournement anticipé d’un mur connu sans collision, la mémoire bornée, les ordres relatifs, la peur, les positions d’interaction, les collisions refusées, l’arrêt après blocage et 100 cervelets. Les tests de ressources vérifient la collecte exactement une fois, les distances et les quantités. Le moteur de mouvement signale chaque refus au cerveau, qui peut replanifier puis remonter un état bloqué. Le benchmark est indicatif : il ne remplace pas un profilage RTS complet.
 
 Prototype 2D sur plan X/Z avec obstacles simplifiés en disques, sans relief, sans foule multi-agent persistante, sans sauvegarde longue durée. Le champ de vision par défaut est volontairement à 360° pour les premiers tests; l'exploration ne garantit pas de trouver tous les objets cachés. Un LLM très léger pourra plus tard lire snapshot() et produire un ordre structuré, mais n'aura pas à calculer chaque pas.

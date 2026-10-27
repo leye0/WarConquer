@@ -42,6 +42,22 @@
     },
     {
       "action": "click",
+      "selector": "#playPause"
+    },
+    {
+      "action": "wait",
+      "ms": 750
+    },
+    {
+      "action": "screenshot",
+      "name": "02b-natural-steering"
+    },
+    {
+      "action": "click",
+      "selector": "#playPause"
+    },
+    {
+      "action": "click",
       "selector": "#collectNearest"
     },
     {
