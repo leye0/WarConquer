@@ -212,7 +212,7 @@
     camera.alpha=-Math.PI/4;
     camera.beta=Math.PI/3.25;
     // A narrower screen needs more headroom above the character and its touch HUD.
-    camera.radius=window.matchMedia('(max-width:520px)').matches?19:13;
+    camera.radius=window.matchMedia('(max-width:520px)').matches?10.5:13;
     camera.orthoTop=2.7;
     camera.orthoBottom=-2.7;
     camera.orthoLeft=-2.7*size;
