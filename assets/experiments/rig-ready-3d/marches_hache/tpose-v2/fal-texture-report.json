@@ -1,0 +1,48 @@
+{
+  "status": "textured-unrigged-awaiting-visual-QA",
+  "model": "fal-ai/hunyuan3d/v2/multi-view",
+  "request_id": "01a17d78-2b2e-74e1-91b6-64956ab4adfd",
+  "estimated_cost_usd": 0.48,
+  "seed": 20261027,
+  "input_images": {
+    "front": {
+      "path": "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/front.png",
+      "sha256": "ddaf1862304adc05d01157bda8caae57b8a549ade83ce70e3ace9638a8997d87",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 346165
+    },
+    "back": {
+      "path": "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/back.png",
+      "sha256": "c7d3a260fd9fddcdf8da5cb8551bedb971452fcff6abda8308dfbd1fb193dce3",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 336482
+    },
+    "left": {
+      "path": "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/left.png",
+      "sha256": "f29d996d5c071fea6f73168f4a9718e6fb2c0318569fd2c73fdc65389bd4e367",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 241474
+    },
+    "right_unused_by_api": {
+      "path": "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/right.png",
+      "sha256": "74d9d0d09e91413afa11f0bc45c540a986dec189cb3f7db80c54800066d348b2",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 253717
+    }
+  },
+  "output": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-textured.glb",
+  "bytes": 4876656,
+  "sha256": "6f297890dc42f25640049b63a4c55ca12494bee62f37a590eb57573e68c8afb2",
+  "note": "Separate non-rigged pilot; face and topology still require visual QA.",
+  "mesh_count": 1,
+  "primitive_count": 1,
+  "uv_primitives": 1,
+  "texture_images": 1,
+  "textured_materials": 1,
+  "skin_count": 0,
+  "animation_count": 0
+}
