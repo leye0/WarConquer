@@ -55,14 +55,16 @@ jobs:
             assert(existsSync(join(dir, "index.html")));
             assert(existsSync(join(dir, "scripts/character-lab-client.js")));
             assert(existsSync(join(dir, "scripts/weapon-grip-geometry.js")));
+            const data = JSON.parse(readFileSync(join(dir, "api/character-lab.json")));
             const props=data.characters.flatMap(c=>c.props||[]);
             assert(props.length>0,"No generic vision attachment plans discovered");
             for(const p of props) {
-              const plan=JSON.parse(readFileSync(join(dir,p.gripPlan.replace(/^\\//,""))));
+              const planPath=p.gripPlan.startsWith("/")?p.gripPlan.slice(1):p.gripPlan;
+              const modelPath=p.model.startsWith("/")?p.model.slice(1):p.model;
+              const plan=JSON.parse(readFileSync(join(dir,planPath)));
               assert.equal(plan.schema,2,"Invalid grip plan for "+p.id);
-              assert(existsSync(join(dir,p.model.replace(/^\\//,""))),"Missing prop "+p.id);
+              assert(existsSync(join(dir,modelPath)),"Missing prop "+p.id);
             }
-            const data = JSON.parse(readFileSync(join(dir, "api/character-lab.json")));
             assert(data.characters.length > 0);
             const all = data.characters.flatMap(c => c.models);
             assert(all.some(m => m.name.includes("fal.ai") && m.kind === "playable"), "Missing default rigged warrior");
