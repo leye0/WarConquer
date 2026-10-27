@@ -163,7 +163,7 @@ def atlas_and_uv(doc,buf):
             py=ib[1]+fy*(ib[3]-ib[1])
             quadrant=ORDER.index(name)
             uv.append(((px+(quadrant%2)*1024)/2048,
-                       1-(py+(quadrant//2)*1024)/2048))
+                       (py+(quadrant//2)*1024)/2048))
     newattrs={}
     for key,values in rewritten.items():
         old=doc["accessors"][orig[key]]
@@ -264,9 +264,9 @@ def transfer_clips(target,buf,source_directory):
     if any(k not in target_joints for k in required):
         raise ValueError("Target legs or arms missing")
     clips=[
-      ("Idle","Standing_Idle_3"),
-      ("Walk","Standing_Walk_Forward_3"),
-      ("Run","Standing_Run_Forward_3"),
+      ("Idle","2hand_Idle"),
+      ("Walk","Walking_21"),
+      ("Run","Run_With_Sword"),
       ("Attack","Standing_Melee_Attack_Downward")
     ]
     target["animations"]=[]
@@ -328,6 +328,16 @@ def transfer_clips(target,buf,source_directory):
                               for v in poses))
         if max(angles)<5:
             raise ValueError(stem+" produces no meaningful skeletal movement")
+        upper_arms={}
+        for shoulder in ("leftarm","rightarm"):
+            idx=target_joints[shoulder]
+            q0=samples[idx][0]
+            qrest=tr[idx]
+            dot=min(1,abs(sum(x*y for x,y in zip(q0,qrest))))
+            upper_arms[shoulder]=round(2*math.degrees(math.acos(dot)),2)
+        # Reject candidate walks that leave either arm in its original T-pose.
+        if name in ("Idle","Walk","Run") and min(upper_arms.values())<13:
+            raise ValueError(stem+" still has T-pose upper arm at frame 0: "+str(upper_arms))
         target["animations"].append({"name":name+"_Mixamo_WithAxe",
            "samplers":samplers,"channels":channels,
            "extras":{"source":"Mixamo archived FBX, with axe",
@@ -336,7 +346,8 @@ def transfer_clips(target,buf,source_directory):
         reports.append({"name":name,"fbx":stem+".fbx","source_glb_sha256":hashlib.sha256(src.read_bytes()).hexdigest(),
                         "duration":round(duration,3),"frames":frames,
                         "mapped_joints":len(common),"rotation_channels":len(channels),
-                        "largest_rotation_degrees":round(max(angles),2)})
+                        "largest_rotation_degrees":round(max(angles),2),
+                        "initial_upper_arm_offset_degrees":upper_arms})
     return reports
 
 def main():
@@ -365,7 +376,7 @@ def main():
             "motion_origin":"real archived Adobe Mixamo FBX, not procedural or AI-generated",
             "motion_conversion":"FBX2glTF binary FBX to GLB + world-rest-rotation retarget; local WASD handles translation",
             "animation_clips":clips,
-            "texture_origin":"4 approved source images, orthographic UV projection, experimental",
+            "texture_origin":"4 approved source images, orthographic UV projection, glTF upper-left UV convention",
             "texture_QA":"not artist-approved; may have seams/misalignment",
             "physical_weapon_attached":False,**tex}
     REPORT.write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n")
