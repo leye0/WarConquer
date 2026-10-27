@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "source": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-textured.glb",
+  "source_sha256": "6f297890dc42f25640049b63a4c55ca12494bee62f37a590eb57573e68c8afb2",
+  "rig_model": "uthana/create-character-v1",
+  "maximum_new_paid_rig_predictions": 1,
+  "require_textured_output": true,
+  "motion_source": "archived_mixamo_fbx"
+}
