@@ -36,7 +36,9 @@ Le déplacement n'utilise pas de sprites : un pivot 3D est déplacé dans une sc
 - **Animation d'attaque** : axe-chop-v1/warconquer-animated.glb, retargeté, sélectionné par défaut.
 - **Déplacement WASD** : implémenté sur un terrain isométrique, avec caméra et attaque déclenchable.
 - **Marche/course réelle des jambes** : **pas encore produite**. Sans un clip Walk/Run/Marche, le personnage se déplace spatialement (il glisse) ; la plateforme l'annonce clairement.
-- **Texture et arme physique** : pas encore intégrées au premier GLB; le mesh est non texturé. La qualité du coup de hache est provisoire, comme l'explique [l'expérience 3D](rigged-characters-experiment.md).
+- **Texture du corps** : le GLB initial reste sans texture. Un atlas UV projeté depuis les quatre vues est en cours de construction avec la bibliothèque de mouvements Mixamo ; la qualité doit être évaluée visuellement.
+- **Arme physique indépendante** : `assets/experiments/props/marches_hache/trellis-v1/axe.glb` est un **vrai modèle TRELLIS texturé** (~1,36 Mo), reconstruit depuis `assets/concepts/marches/objects/hache_arme.png` via une prédiction Replicate unique. Le labo tente de l'attacher au nœud de main droite des rigs GLB ; prise, position et rotation sont expérimentales. La capture du terrain permettra de vérifier visuellement l'ensemble.
+- **Animations réelles** : un pipeline séparé importe les FBX Mixamo existants `Standing_Idle_3`, `Standing_Walk_Forward_3`, `Standing_Run_Forward_3` et `Standing_Melee_Attack_Downward`, puis les retargete sur le rig du guerrier ; son artefact n'est pas déclaré disponible tant que le workflow n'a pas fini et les clips n'ont pas été vérifiés.
 
 L'objectif de ce labo est de voir les limites du résultat en situation de jeu avant d'engager d'autres dépenses. La page ne génère aucune animation et ne déclenche aucun appel à Replicate ou OpenRouter.
 
