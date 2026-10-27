@@ -1,0 +1,58 @@
+{
+  "review_status": "NOT_HUMAN_APPROVED",
+  "note": "Silhouette renders cannot certify skinning, textures, joint angles or sword/axe deformation.",
+  "models": {
+    "mesh": {
+      "status": "rendered-awaiting-human-visual-qa",
+      "preview": "unrigged-four-angles.png",
+      "geometry": {
+        "mesh_count": 1,
+        "faces": 25000,
+        "vertices": 12440,
+        "bounds": [
+          [
+            -0.99718,
+            -0.99804,
+            -0.25451
+          ],
+          [
+            0.99033,
+            0.98957,
+            0.26513
+          ]
+        ],
+        "watertight": true,
+        "visual_kinds": [
+          "vertex"
+        ],
+        "has_texture_visuals": false
+      }
+    },
+    "rig": {
+      "status": "rendered-awaiting-human-visual-qa",
+      "preview": "rigged-four-angles.png",
+      "geometry": {
+        "mesh_count": 1,
+        "faces": 25000,
+        "vertices": 12442,
+        "bounds": [
+          [
+            -0.0101,
+            -0.00323,
+            -0.0103
+          ],
+          [
+            0.01011,
+            0.00255,
+            0.01015
+          ]
+        ],
+        "watertight": false,
+        "visual_kinds": [
+          "vertex"
+        ],
+        "has_texture_visuals": false
+      }
+    }
+  }
+}
