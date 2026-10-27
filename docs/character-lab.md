@@ -42,6 +42,10 @@ Le déplacement n'utilise pas de sprites : un pivot 3D est déplacé dans une sc
 
 L'objectif de ce labo est de voir les limites du résultat en situation de jeu avant d'engager d'autres dépenses. La page ne génère aucune animation et ne déclenche aucun appel à Replicate ou OpenRouter.
 
+## Pilote de texture UV fal.ai (27 octobre 2026)
+
+Le modèle **fal-ai/hunyuan3d/v2/multi-view** a été exécuté **une seule fois** (requête `01a17d78-2b2e-74e1-91b6-64956ab4adfd`) à coût estimé de **0,48 $ US**, avec les vues face, dos, gauche en T-pose. Résultat indépendant : `assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-textured.glb` (4,88 Mo), comportant un maillage, des UV et un matériau PBR avec texture incluse. **Aucun rig ni clip de mouvement** : le GLB Mixamo jouable original reste la variante par défaut. Le Character Lab expose le pilote comme `05 · fal.ai · Texture UV (sans rig)` et la QA Chrome sauvegarde également les gros plans `fal-textured-*-detail-live.png` pour évaluer le visage et les coutures. Le rendu doit être vérifié sur les gros plans avant toute décision de rigging.
+
 ## Compatibilité du catalogue
 
 Le serveur découvre automatiquement la hiérarchie :
