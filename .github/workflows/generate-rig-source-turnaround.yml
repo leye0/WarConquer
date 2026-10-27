@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'rig-source-turnaround-request.json'
+      - 'rig-source-turnaround-right-fix-request.json'
   workflow_dispatch:
 
 permissions:
@@ -34,7 +35,22 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           OPENROUTER_IMAGE_MODEL: ${{ secrets.OPENROUTER_IMAGE_MODEL }}
           OMP_NUM_THREADS: '1'
-        run: python scripts/generate-rig-source-turnaround.py
+        run: |
+          if [ -f rig-source-turnaround-right-fix-request.json ]; then
+            echo "Original four-view pilot already exists; skip initial paid view generation."
+          else
+            python scripts/generate-rig-source-turnaround.py
+          fi
+      - name: Apply the targeted right-side profile correction if requested
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_IMAGE_MODEL: ${{ secrets.OPENROUTER_IMAGE_MODEL }}
+          OMP_NUM_THREADS: '1'
+        run: |
+          if [ -f rig-source-turnaround-right-fix-request.json ]; then
+            python -m py_compile scripts/fix-rig-source-right.py
+            python scripts/fix-rig-source-right.py
+          fi
       - name: Preserve successful views, warnings and review image on main
         if: ${{ always() }}
         shell: bash
