@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "trial_id": "marches-axeman-tpose-right-profile-correction-v1",
+  "reason": "right view was three-quarter, not orthographic side profile",
+  "original_view_sha256": {
+    "front": "ddaf1862304adc05d01157bda8caae57b8a549ade83ce70e3ace9638a8997d87",
+    "back": "c7d3a260fd9fddcdf8da5cb8551bedb971452fcff6abda8308dfbd1fb193dce3",
+    "left": "466d72dad88b8bd4da82c26da760e58b9450cbe457745497f446c3a5f2219c28",
+    "right": "c014122823cc8ba9a5cfee864151faf4bb0a5580db8812f988ddc99b6d71b6f7"
+  },
+  "maximum_new_paid_images": 1,
+  "automatic_paid_retries": 0
+}
