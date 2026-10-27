@@ -1,0 +1,86 @@
+name: Character Lab · playable 3D smoke and screenshot
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/character-lab.md'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: character-lab-qa
+  cancel-in-progress: false
+
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check JavaScript grammar
+        run: |
+          node --check scripts/character-lab-client.js
+          node --check scripts/serve-character-lab.mjs
+      - name: Start the repository-backed localhost game server
+        run: |
+          node scripts/serve-character-lab.mjs > "$RUNNER_TEMP/character-lab-server.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/character-lab-server.pid"
+      - name: Verify model catalog and actual GLB bytes
+        run: |
+          node --input-type=module -e '
+            import assert from "node:assert/strict";
+            const base = "http://127.0.0.1:4173";
+            let response;
+            for (let i=0;i<30;i++) {
+              try { response = await fetch(base+"/api/character-lab"); break; }
+              catch { await new Promise(r=>setTimeout(r,200)); }
+            }
+            assert(response?.ok, "server never became ready");
+            const catalog = await response.json();
+            assert(catalog.characters.length>0, "no rigged character found");
+            const character = catalog.characters.find(c=>c.id==="marches_hache");
+            assert(character, "Marches axeman missing");
+            assert(character.models.some(m=>m.kind==="animation"), "animated GLB missing");
+            assert(Object.keys(character.views).length===4, "expected four T-pose references");
+            const model=character.models.find(m=>m.kind==="animation");
+            const glb=await fetch(base+model.url);
+            assert(glb.ok, "animation model could not be served");
+            assert.equal(new TextDecoder().decode((await glb.arrayBuffer()).slice(0,4)), "glTF");
+            const js=await fetch(base+"/scripts/character-lab-client.js");
+            assert(js.ok, "browser logic could not be served");
+            const html=await fetch(base+"/character-lab.html");
+            assert(html.ok && (await html.text()).includes("id=\"world\""), "playable canvas missing");
+            const blocked=await fetch(base+"/.github/workflows/websuite.yml");
+            assert.equal(blocked.status,404,"private workflow exposed");
+            console.log("PASS: catalog, four references, animated GLB magic, browser script, terrain canvas and restricted paths");
+          '
+      - name: Render the live terrain in a real Chrome browser
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p assets/experiments/character-lab-qa
+          google-chrome --headless=new --no-sandbox --enable-unsafe-swiftshader --disable-dev-shm-usage --no-first-run --no-default-browser-check --hide-scrollbars --window-size=1280,800 --virtual-time-budget=12000 --screenshot=assets/experiments/character-lab-qa/terrain-live.png http://127.0.0.1:4173/character-lab.html
+          test -s assets/experiments/character-lab-qa/terrain-live.png
+      - name: Save screenshot as a reviewable repository artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/experiments/character-lab-qa/terrain-live.png
+          if ! git diff --cached --quiet; then
+            git commit -m 'qa: capture playable character lab terrain screenshot'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: character-lab-live
+          path: assets/experiments/character-lab-qa/terrain-live.png
+          if-no-files-found: ignore
+          retention-days: 3
