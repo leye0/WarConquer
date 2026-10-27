@@ -10,6 +10,7 @@ import argparse
 import hashlib
 import json
 import os
+import sys
 from pathlib import Path
 import urllib.request
 
@@ -66,5 +67,6 @@ if __name__=="__main__":
     p=argparse.ArgumentParser()
     p.add_argument("stage",choices=["download","convert"])
     p.add_argument("directory",type=Path)
-    arg=p.parse_args()
+    argv=sys.argv[sys.argv.index("--")+1:] if "--" in sys.argv else None
+    arg=p.parse_args(argv)
     (download if arg.stage=="download" else convert)(arg.directory)
