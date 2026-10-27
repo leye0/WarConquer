@@ -21,7 +21,6 @@ jobs:
     timeout-minutes: 18
     env:
       WARCONQUER_STANDARD_IDLE: '1'
-      MIXAMO_CONVERTED_DIR: "${{ runner.temp }}/warconquer-mixamo"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -39,14 +38,16 @@ jobs:
           test -s assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/fal-rigged.glb
           test -s fal-motion-request.json
       - name: Download original YBot Mixamo motions including Standard Idle
-        run: python scripts/convert-mixamo-fbx.py download "$MIXAMO_CONVERTED_DIR"
+        run: python scripts/convert-mixamo-fbx.py download "$RUNNER_TEMP/warconquer-mixamo"
       - name: Convert five real FBX clips to GLB
         run: |
-          python scripts/convert-mixamo-fbx.py convert "$MIXAMO_CONVERTED_DIR"
+          python scripts/convert-mixamo-fbx.py convert "$RUNNER_TEMP/warconquer-mixamo"
           for clip in Standard_Idle 2hand_Idle Walking_21 Run_With_Sword Standing_Melee_Attack_Downward; do
-            test -s "$MIXAMO_CONVERTED_DIR/$clip.glb"
+            test -s "$RUNNER_TEMP/warconquer-mixamo/$clip.glb"
           done
       - name: Regenerate textured skinned fal playable GLB without inference
+        env:
+          MIXAMO_CONVERTED_DIR: "${{ runner.temp }}/warconquer-mixamo"
         run: python scripts/build-fal-rig-playable.py --stage animate
       - name: Publish revised animation and documented clip provenance
         run: |
