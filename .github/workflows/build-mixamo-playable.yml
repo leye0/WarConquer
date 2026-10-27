@@ -34,7 +34,7 @@ jobs:
       - name: Convert Mixamo FBX animations to GLB using FBX2glTF
         run: |
           python scripts/convert-mixamo-fbx.py convert "$RUNNER_TEMP/warconquer-mixamo"
-          for clip in Standing_Idle_3 Standing_Walk_Forward_3 Standing_Run_Forward_3 Standing_Melee_Attack_Downward; do
+          for clip in 2hand_Idle Walking_21 Run_With_Sword Standing_Melee_Attack_Downward; do
             test -s "$RUNNER_TEMP/warconquer-mixamo/$clip.glb"
           done
       - name: Retarget authentic skeleton clips to approved WarConquer 52-bone mesh and UV texture
