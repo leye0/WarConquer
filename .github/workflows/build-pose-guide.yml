@@ -4,6 +4,10 @@ on:
     branches: [main]
     paths:
       - 'pose-guide-request.json'
+      - 'rigged-asset-request.json'
+      - 'scripts/build-pose-guide.py'
+      - 'scripts/build-rigged-asset.py'
+      - '.github/workflows/build-pose-guide.yml'
   workflow_dispatch:
 
 permissions:
@@ -28,16 +32,20 @@ jobs:
         run: |
           python -m py_compile scripts/build-pose-guide.py
           python scripts/build-pose-guide.py
-      - name: Publish guide media, control points, and QA on main
+      - name: Rig the original SW painting to the approved control (no API calls)
+        run: |
+          python -m py_compile scripts/build-rigged-asset.py
+          python scripts/build-rigged-asset.py
+      - name: Publish approved guide plus painted SW rig preview and QA on main
         if: ${{ success() }}
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add assets/experiments/pose-guides
+          git add assets/experiments/pose-guides assets/experiments/asset-animations
           if ! git diff --cached --quiet; then
-            git commit -m 'assets: publish deterministic pose guide'
+            git commit -m 'assets: publish original-art SW rig preview and pose guide'
             git fetch origin main
             git rebase origin/main
             git push origin HEAD:main
@@ -46,4 +54,5 @@ jobs:
         if: ${{ always() }}
         run: |
           echo '## Deterministic pose guide (no generative model)' >> "$GITHUB_STEP_SUMMARY"
-          python -c 'import json,pathlib; q=json.load(open("pose-guide-request.json")); p=pathlib.Path(q["output_dir"])/"metrics.json"; print("Missing report" if not p.exists() else "Geometry: "+str(json.loads(p.read_text()).get("status")))' >> "$GITHUB_STEP_SUMMARY"
+          python -c 'import json,pathlib; q=json.load(open("pose-guide-request.json")); p=pathlib.Path(q["output_dir"])/"metrics.json"; print("Missing guide report" if not p.exists() else "Guide geometry: "+str(json.loads(p.read_text()).get("status")))' >> "$GITHUB_STEP_SUMMARY"
+          python -c 'import json,pathlib; q=json.load(open("rigged-asset-request.json")); p=pathlib.Path(q["output_dir"])/"metrics.json"; print("Missing rig report" if not p.exists() else "Original-art rig: "+str(json.loads(p.read_text()).get("status")))' >> "$GITHUB_STEP_SUMMARY"
