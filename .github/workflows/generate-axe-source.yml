@@ -1,0 +1,58 @@
+name: Marches axe · draw isolated source with Muse
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'axe-image-request.json'
+      - '.github/workflows/generate-axe-source.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: marches-axe-muse
+  cancel-in-progress: false
+
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Muse postprocessing dependencies
+        run: python -m pip install 'Pillow==11.3.0' 'rembg[cpu]==2.0.67'
+      - name: Validate isolated weapon source request, no API call
+        run: python scripts/generate-image.py --request axe-image-request.json --dry-run
+      - name: One Muse source image generation if not already present
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_IMAGE_MODEL: ${{ secrets.OPENROUTER_IMAGE_MODEL }}
+          OMP_NUM_THREADS: '1'
+        run: python scripts/generate-image.py --request axe-image-request.json
+      - name: Commit isolated axe to main for artistic inspection
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/concepts/marches/objects/hache_arme.png assets/concepts/marches/objects/hache_arme.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'art: render isolated Marches axe source for Trellis 3D'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marches-axe-muse-source
+          path: |
+            image-output/
+            assets/concepts/marches/objects/hache_arme.*
+          retention-days: 7
+          if-no-files-found: ignore
