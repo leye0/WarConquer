@@ -50,7 +50,9 @@ async function state() {
   return js(`(()=>{const t=id=>document.getElementById(id)?.textContent?.trim()||"";
   return {motion:t("activeMotionMetric"),clips:t("clipMetric"),walk:t("walkMetric"),
   movement:t("movementMetric"),position:t("positionMetric"),status:t("statusText"),
-  canvas:!!document.getElementById("world")}})()`);
+  canvas:!!document.getElementById("world"),
+  fireball:typeof BABYLON!=="undefined"&&!!BABYLON.EngineStore.LastCreatedEngine?.scenes[0]?.meshes.some(m=>m.name==="wc-fireball"&&!m.isDisposed()),
+  idleOptions:document.getElementById("idleSelect")?.options.length||0}})()`);
 }
 async function until(check,label,timeout=30000) {
   const end=Date.now()+timeout;let last;
@@ -173,6 +175,14 @@ try {
   console.log("FAL_RIGGED_IDLE_PASS",JSON.stringify(texturedIdle));
   await sleep(750);
   await screenshot("fal-animated-idle-live");
+  assert((await state()).idleOptions>=5,"four Mixamo idle options + fireball must be selectable in arena");
+  const idleMagic=await js("(()=>{const e=document.getElementById('idleSelect');const o=[...e.options].find(x=>x.value.startsWith('Idle_Magic'));if(!o)return '';e.value=o.value;e.dispatchEvent(new Event('change',{bubbles:true}));return e.value;})()");
+  assert(idleMagic.startsWith("Idle_Magic"),"magic idle option missing");
+  await until(s=>s.motion.startsWith("Idle_Magic"),"real magic idle selected inside arena",10000);
+  await sleep(650);
+  await screenshot("fal-animated-idle-magic-live");
+  await js("(()=>{const e=document.getElementById('idleSelect');e.value=[...e.options].find(x=>x.value.startsWith('Idle_Mixamo')).value;e.dispatchEvent(new Event('change',{bubbles:true}));})()");
+  await until(s=>s.motion.startsWith("Idle_Mixamo"),"return to neutral idle after menu selection",10000);
   const texturedBefore=texturedIdle.position;
   await down("w","KeyW",87);
   const texturedWalking=await until(s=>s.motion.startsWith("Walk_Mixamo")&&
@@ -197,6 +207,14 @@ try {
   console.log("FAL_RIGGED_ATTACK_PASS",JSON.stringify(texturedAttack));
   await sleep(300);
   await screenshot("fal-animated-attack-live");
+  await until(s=>s.motion.startsWith("Idle_"),"attack ends before fireball",16000);
+  await js("document.getElementById('castButton').click()");
+  await until(s=>s.motion.startsWith("Cast_Fireball"),"actual Mixamo casting gesture from button",10000);
+  console.log("CAST_PASS");
+  await screenshot("fal-animated-cast-live");
+  await until(s=>s.fireball,"visible fireball emitted inside arena",16000);
+  await screenshot("fal-animated-fireball-live");
+  await until(s=>s.motion.startsWith("Idle_"),"casting returns to selected idle",16000);
   await js("document.getElementById('resetButton').click()");
   await until(s=>s.motion.startsWith("Idle_Mixamo"),"fal idle after reset",10000);
   await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.alpha=Math.PI/2;c.beta=Math.PI/2.12;c.setTarget(new BABYLON.Vector3(0,1.15,0));c.lowerRadiusLimit=2.8;c.radius=5.5;return true})()");
@@ -206,7 +224,20 @@ try {
   await sleep(650);
   assert(Math.abs((await js("BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera.alpha")) + Math.PI/2) < .05, "actual face camera heading was overwritten");
   await screenshot("fal-animated-idle-face-live");
-  console.log("PASS: legacy plus default fal PBR 52-bone, four real Mixamo clips, true face/texture screenshots");
+  await request("Emulation.setDeviceMetricsOverride",{width:390,height:844,deviceScaleFactor:1,mobile:true});
+  await sleep(900);
+  await screenshot("fal-mobile-controls-idle-live");
+  const sprintOn=await js("(()=>{const b=document.getElementById('runButton');b.click();return b.getAttribute('aria-pressed');})()");
+  assert.equal(sprintOn,"true","tactile run button must latch sprint");
+  await down("w","KeyW",87);
+  await until(s=>s.motion.startsWith("Run_Mixamo"),"mobile run button + displacement triggers run animation",10000);
+  await screenshot("fal-mobile-controls-run-live");
+  await up("w","KeyW",87);
+  await js("document.getElementById('runButton').click()");
+  assert.equal(await js("document.getElementById('runButton').getAttribute('aria-pressed')"),"false","mobile run can turn off");
+  await until(s=>s.motion.startsWith("Idle_"),"mobile control returns to idle",12000);
+  console.log("MOBILE_BUTTONS_PASS");
+  console.log("PASS: textured fal 52-bone model, eight archived Mixamo animations, idle selector, casting/fireball, mobile sprint controls and screenshots");
 } finally {
   try{socket?.close();}catch{}
   browser.kill("SIGTERM");
