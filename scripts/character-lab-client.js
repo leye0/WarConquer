@@ -4,8 +4,6 @@
 (() => {
   "use strict";
   const byId = id => document.getElementById(id);
-  const TRELLIS_AXE_URL = "assets/experiments/props/marches_hache/trellis-v1/axe.glb";
-  const TRELLIS_GRIP_URL = "assets/experiments/props/marches_hache/trellis-v1/grip-plan.json";
   // Resolve asset URLs under both localhost / and GitHub Pages /WarConquer/.
   const assetUrl = path => path?.startsWith("/assets/") ? "." + path : path;
   const FALLBACK = {
@@ -13,6 +11,7 @@
     characters: [{
       id: "marches_hache", pose: "tpose-v2", name: "Guerrier à la hache · Marches",
       original: "assets/concepts/marches/units/hache.png",
+      props: [{gripPlan:"assets/experiments/props/marches_hache/trellis-v1/grip-plan.json"}],
       views: {
         front: "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/front.png",
         back: "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/back.png",
@@ -367,11 +366,11 @@
     return B.Quaternion.FromRotationMatrix(rotation).normalize();
   }
 
-  async function tryEquipProp(imported,token) {
+  async function tryEquipProp(imported,token,planUrl) {
     const B=BABYLON;
     let prop,anchor;
     try {
-      const response=await fetch(TRELLIS_GRIP_URL,{cache:"no-store"});
+      const response=await fetch(assetUrl(planUrl),{cache:"no-store"});
       if(!response.ok) {
         text("weaponMetric","Analyse visuelle de la prise en attente · pas de fixation arbitraire");
         return;
@@ -555,7 +554,9 @@
       state.imported=imported;
       lookForAnimations(imported.animationGroups||[]);
       pivot.setEnabled(true);
-      if (url && imported.skeletons?.length) void tryEquipProp(imported,token);
+      const propPlan=state.selected?.props?.[0]?.gripPlan;
+      if (url && propPlan && imported.skeletons?.length)
+        void tryEquipProp(imported,token,propPlan);
       setIsometricCamera();
       text("modelMetric",vertices.length+" mesh · "+(imported.skeletons?.length||0)+" rig");
       setStatus("Prêt · WASD pour se déplacer", "success");
