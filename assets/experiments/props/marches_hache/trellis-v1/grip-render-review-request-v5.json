@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "experiment": "marches-axe-in-situ-flash-lite-no-anchor-v5",
+  "generation_request": "axe-image-request.json",
+  "source_character": "assets/concepts/marches/units/hache.png",
+  "source_prop": "assets/concepts/marches/objects/hache_arme.png",
+  "current_render_idle": "assets/experiments/character-lab-qa/fal-animated-auto-grip-idle-live.png",
+  "current_render_attack": "assets/experiments/character-lab-qa/fal-animated-attack-live.png",
+  "current_plan": "assets/experiments/props/marches_hache/trellis-v1/grip-plan.json",
+  "semantic_plan": "assets/experiments/props/marches_hache/trellis-v1/grip-plan-v3.json",
+  "output_path": "assets/experiments/props/marches_hache/trellis-v1/grip-plan-v5.json",
+  "vision_model": "google/gemini-2.5-flash-lite",
+  "maximum_paid_requests": 1,
+  "automatic_paid_retries": 0
+}
