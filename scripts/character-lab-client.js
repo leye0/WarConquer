@@ -312,6 +312,7 @@
     byId("world").dataset.weaponGripHeadRatio="";
     byId("world").dataset.weaponGripScale="";
     byId("world").dataset.weaponScaleOrigin="";
+    byId("world").dataset.weaponLengthCm="";
     byId("world").dataset.equipmentAction="";
     byId("world").dataset.equipmentReady="";
     byId("world").dataset.equipmentMissing="";
@@ -380,6 +381,21 @@
         return;
       }
       const vision=await response.json();
+      // A cheap LLM estimates approximate real-world length in centimetres
+      // from the original design. The rigging plan still decides grip/orientation,
+      // but its old relative-height guess does not override physical dimensions.
+      const physicalSizePath=state.selected?.props?.find(p=>p.gripPlan===planUrl)?.physicalSize;
+      let estimatedLengthCm=null;
+      if(physicalSizePath) {
+        const sizeResponse=await fetch(assetUrl(physicalSizePath),{cache:"no-store"});
+        if(!sizeResponse.ok)throw Error("Fiche de dimensions indisponible");
+        const size=await sizeResponse.json();
+        if(size.schema!==1 || size.units!=="cm" ||
+          !Number.isFinite(size.estimated_length_cm) ||
+          size.estimated_length_cm<2 || size.estimated_length_cm>1000)
+          throw Error("Estimation physique invalide");
+        estimatedLengthCm=size.estimated_length_cm;
+      }
       const spec=vision?.specifications;
       const gripFraction=vision?.derived_image_geometry?.grip_fraction_from_butt;
       const side=spec?.dominant_hand==="left"?"left":"right";
@@ -455,7 +471,10 @@
       if(!Number.isFinite(unitScale)||unitScale<1e-7)throw Error("Échelle de main invalide");
       // Only the grip is parented to the animated hand. The weapon shaft
       // extends toward the forearm and the cutting edge toward the avatar's front.
-      const desiredLength=1.9*spec.length_relative_character_height;
+      // Character Lab normalizes the warrior to 1.9 scene units; within
+      // this scene we use 1 unit = 1 metre. A 115 cm axe is 1.15 units.
+      const desiredLength=estimatedLengthCm===null
+        ? 1.9*spec.length_relative_character_height : estimatedLengthCm/100;
       anchor=new B.TransformNode("wc-auto-grip-"+side+"-hand",state.scene);
       anchor.parent=hand;
       let palmWorld=handPosition;
@@ -477,11 +496,16 @@
       state.weaponAnchor=anchor;
       text("weaponMetric","Prise auto · Gemini Vision + GLB · main "+side+
         (spec.hold_mode==="two_hands"?" (seconde main non pilotée)":"")+
-        " · objet/hauteur "+spec.length_relative_character_height.toFixed(2));
+        (estimatedLengthCm===null
+          ? " · ancienne échelle "+spec.length_relative_character_height.toFixed(2)
+          : " · longueur estimée "+estimatedLengthCm.toFixed(0)+" cm"));
       byId("world").dataset.weaponGrip="vision-plan-geometry";
-      byId("world").dataset.weaponGripScale=spec.length_relative_character_height.toFixed(3);
-      byId("world").dataset.weaponScaleOrigin=vision.schema===3
-        ? "provenance-and-character-image" : "legacy-vision-only";
+      byId("world").dataset.weaponGripScale=(desiredLength/1.9).toFixed(3);
+      byId("world").dataset.weaponLengthCm=estimatedLengthCm===null
+        ? "" : estimatedLengthCm.toFixed(1);
+      byId("world").dataset.weaponScaleOrigin=estimatedLengthCm!==null
+        ? "source-design-physical-centimetres"
+        : (vision.schema===3 ? "provenance-and-character-image" : "legacy-vision-only");
       byId("world").dataset.weaponGripHeadRatio=frame.headWidthRatio.toFixed(3);
       // Enforce genuine equipment-specific motions once the prop is fitted.
       // A bow must never inherit a generic axe animation by default.
