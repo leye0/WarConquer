@@ -149,3 +149,12 @@ Le manifeste [`data/motion-library.json`](../data/motion-library.json) indexe ne
 Le nouveau test `scripts/plan-prop-attachment-v3.py` relit `axe-image-request.json`, la description exacte ayant servi à créer la hache, et la transmet à Gemini avec l'illustration de l'objet et celle du guerrier. Il vérifie que la génération correspond au même fichier PNG, au même personnage et aux mêmes empreintes SHA. Le modèle doit identifier une prise sur manche et estimer l'échelle uniquement à partir du concept du porteur (jamais de la taille d'un objet isolé dans son cadre).
 
 **Résultat du pilote :** la description est bien transmise et le plan v3 est calculé, mais Gemini confirme encore une longueur de **1,10 × la hauteur du guerrier**. La validation v3 *interne au modèle* ne prouve donc pas l'exactitude de cette taille. `grip-plan-v3.json` est archivé avec `visual_qa.status=pending`. Le serveur local, la démo Pages et le Character Lab **conservent le plan v2** tant que le plan v3 ne reçoit pas une validation visuelle indépendante. Le nouveau modèle 3D n'a pas été regénéré. [Architecture détaillée](character-production-pipeline.md).
+
+
+## Dimension physique simplifiée (pipeline actif)
+
+Le modèle vision léger (`google/gemini-2.5-flash-lite`) reçoit uniquement la **description de génération originale**, le PNG de l'objet isolé et la fiche du personnage avec cet objet. On lui demande seulement une **estimation approximative de la longueur en centimètres** et sa confiance. Il ne reçoit aucune image de l'objet déjà agrandi dans l'arène et **aucun ratio 1,1**. Une requête unique, puis une réponse mise en cache.
+
+Le résultat initial de notre hache est **110 cm** (`assets/experiments/props/marches_hache/trellis-v1/physical-size.json`) pour un coût OpenRouter de **0,0001421 $ US**. C'est une estimation grossière, pas une mesure certifiée. Le jeu adopte 1 unité = 1 mètre (avatar affiché à 1,9 unité) et transforme les centimètres en mètres pour normaliser le GLB. Le plan de prise existant sert uniquement à choisir la main, la position et l'orientation, **sans imposer son ancienne longueur de 110 %**.
+
+Le script actif est `scripts/estimate-prop-physical-size.py` ; la définition d'entrée se trouve dans `assets/experiments/props/marches_hache/trellis-v1/physical-size-request.json`. L'ancien système de mesures comparatives (v3-v6) reste archivé pour référence mais ne pilote pas la taille. Les tests Chrome comparent la longueur utilisée dans l'arène à celle enregistrée en centimètres.
