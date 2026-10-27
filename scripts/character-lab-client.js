@@ -4,6 +4,7 @@
 (() => {
   "use strict";
   const byId = id => document.getElementById(id);
+  const TRELLIS_AXE_URL = "/assets/experiments/props/marches_hache/trellis-v1/axe.glb";
   const FALLBACK = {
     schema: 1,
     characters: [{
@@ -33,7 +34,7 @@
     animGroups: [], loadedAsset: null, attacking: false, moving: false,
     ready: false, input: new Set(), touch: new Set(), follow: true,
     speed: 2.7, scale: 1, facingBias: 0, pendingLoad: 0,
-    importUrl: null
+    importUrl: null, weaponImport: null, weaponAnchor: null
   };
   const viewLabels = { front: "Face", back: "Dos", left: "Profil gauche", right: "Profil droit" };
 
@@ -246,7 +247,76 @@
     group.goToFrame(group.from);
   }
 
+  function clearWeapon() {
+    if (state.weaponImport) {
+      for (const item of [...(state.weaponImport.meshes||[]), ...(state.weaponImport.transformNodes||[])]) {
+        if (!item.isDisposed()) item.dispose(false,true);
+      }
+    }
+    if (state.weaponAnchor && !state.weaponAnchor.isDisposed()) state.weaponAnchor.dispose(false,true);
+    state.weaponImport=null;
+    state.weaponAnchor=null;
+    text("weaponMetric","—");
+  }
+
+  // A TRELLIS GLB is an unrigged prop, not a body replacement. Attach it to the
+  // *animated right hand node* already present in the four-clip character GLB.
+  async function tryEquipAxe(imported, token) {
+    const B=BABYLON;
+    const hand=[...(imported.transformNodes||[]),...(imported.meshes||[])]
+      .find(node=>(node.name||"").toLowerCase().replace(/[^a-z0-9]/g,"").endsWith("righthand"));
+    if (!hand) { text("weaponMetric","Main droite introuvable"); return; }
+    let prop;
+    try {
+      prop=await B.SceneLoader.ImportMeshAsync(null,"",TRELLIS_AXE_URL,state.scene);
+      if (token!==state.pendingLoad) {
+        for (const node of [...prop.meshes,...prop.transformNodes]) if (!node.isDisposed()) node.dispose(false,true);
+        return;
+      }
+      const solids=prop.meshes.filter(mesh=>mesh.getTotalVertices&&mesh.getTotalVertices()>0);
+      if (!solids.length) throw new Error("Le GLB TRELLIS ne contient aucun maillage");
+      const lo=new B.Vector3(Infinity,Infinity,Infinity);
+      const hi=new B.Vector3(-Infinity,-Infinity,-Infinity);
+      for (const mesh of solids) {
+        mesh.computeWorldMatrix(true);
+        const b=mesh.getBoundingInfo().boundingBox;
+        lo.minimizeInPlace(b.minimumWorld);
+        hi.maximizeInPlace(b.maximumWorld);
+      }
+      const dimension=hi.subtract(lo);
+      const dims=[dimension.x,dimension.y,dimension.z];
+      const longAxis=dims.indexOf(Math.max(...dims));
+      if (!Number.isFinite(dims[longAxis])||dims[longAxis]<.001) throw new Error("Bornes de la hache invalides");
+      const worldScale=new B.Vector3();
+      hand.computeWorldMatrix(true).decompose(worldScale);
+      const handUnit=Math.max(.00001,(Math.abs(worldScale.x)+Math.abs(worldScale.y)+Math.abs(worldScale.z))/3);
+      const anchor=new B.TransformNode("wc-trellis-axe-right-hand",state.scene);
+      const offset=new B.TransformNode("wc-trellis-axe-shaft-grip",state.scene);
+      const roots=[...prop.meshes,...prop.transformNodes].filter(x=>!x.parent);
+      for (const root of roots) root.parent=offset;
+      offset.parent=anchor;
+      anchor.parent=hand;
+      anchor.scaling.setAll(Math.min(500,Math.max(.0001,.95/(dims[longAxis]*handUnit))));
+      // Grip at the lower quarter of the shaft, rather than at mesh centre.
+      const grip=lo.add(dimension.scale(.5));
+      if (longAxis===0) grip.x=lo.x+dimension.x*.22;
+      if (longAxis===1) grip.y=lo.y+dimension.y*.22;
+      if (longAxis===2) grip.z=lo.z+dimension.z*.22;
+      offset.position.copyFrom(grip.scale(-1));
+      if (longAxis===0) anchor.rotation.z=Math.PI/2;
+      if (longAxis===2) anchor.rotation.x=-Math.PI/2;
+      state.weaponImport=prop;
+      state.weaponAnchor=anchor;
+      text("weaponMetric","Hache TRELLIS texturée · prise provisoire");
+    } catch(err) {
+      if (prop) for (const node of [...prop.meshes,...prop.transformNodes]) if (!node.isDisposed()) node.dispose(false,true);
+      text("weaponMetric","Hache indisponible : "+String(err.message||err).slice(0,90));
+      console.warn("TRELLIS axe attachment failed",err);
+    }
+  }
+
   function removeImported() {
+    clearWeapon();
     if (!state.imported) return;
     for (const a of state.imported.animationGroups || []) { a.stop();a.dispose(); }
     if (state.character) state.character.dispose(false,true);
@@ -318,6 +388,7 @@
       state.character=pivot;
       state.imported=imported;
       lookForAnimations(imported.animationGroups||[]);
+      if (url && url.includes("/motion/mixamo-axe-v1/")) void tryEquipAxe(imported,token);
       setIsometricCamera();
       text("modelMetric",vertices.length+" mesh · "+(imported.skeletons?.length||0)+" rig");
       setStatus("Prêt · WASD pour se déplacer", "success");
