@@ -78,8 +78,8 @@
     camera.orthoLeft=-2.7*aspect;camera.orthoRight=2.7*aspect;
     camera.setTarget(new B.Vector3(target?.x||0,.85,target?.z||0));
   }
-  function refreshCameraScale(camera,engine) {
-    const half=2.7*camera.radius/13;
+  function refreshCameraScale(camera,engine,halfAtRadius13=2.7) {
+    const half=halfAtRadius13*camera.radius/13;
     const aspect=engine.getRenderWidth()/Math.max(1,engine.getRenderHeight());
     camera.orthoTop=half;camera.orthoBottom=-half;
     camera.orthoLeft=-half*aspect;camera.orthoRight=half*aspect;

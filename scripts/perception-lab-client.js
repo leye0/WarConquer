@@ -10,7 +10,14 @@
     $("engineBadge").textContent="Moteur indisponible";
     return;
   }
-  const arena=WCArena.create($("world"),B),{scene,engine,camera}=arena;
+  let arena;
+  try { arena=WCArena.create($("world"),B); }
+  catch(error) {
+    $("engineBadge").textContent="WebGL indisponible";
+    $("status").textContent="Impossible de créer la scène 3D : "+error.message;
+    return;
+  }
+  const {scene,engine,camera}=arena;
   const Brain=WCPerception.Brain;
   const colors={unitBlue:"#55c4d4",unitRed:"#d96c5f",resource:"#efc267",obstacle:"#aeb6ba"};
   const state={items:[],seq:0,clock:0,paused:false,tool:null,pending:null,
@@ -385,6 +392,8 @@
   function fit(){
     WCArena.fitCamera(camera,engine,B,player.position,
       window.matchMedia("(max-width:520px)").matches);
+    camera.lowerRadiusLimit=9;
+    camera.upperRadiusLimit=27;
     camera.radius=window.innerWidth<820?15:17;
   }
   fit();
@@ -392,7 +401,7 @@
   resetDemo();loadAvatar();
   engine.runRenderLoop(()=>{
     const dt=Math.min(.1,engine.getDeltaTime()/1000);
-    WCArena.refreshCameraScale(camera,engine);
+    WCArena.refreshCameraScale(camera,engine,6.2);
     if(!state.paused){
       state.acc+=dt;
       while(state.acc>=.1){tick();state.acc-=.1;}
