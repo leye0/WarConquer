@@ -181,7 +181,7 @@ def animate():
     original_materials = json.dumps(doc.get("materials", []), sort_keys=True)
     original_textures = json.dumps(doc.get("textures", []), sort_keys=True)
     original_images = json.dumps(doc.get("images", []), sort_keys=True)
-    clips = glb.transfer_clips(doc, binary, Path(folder))
+    clips = glb.transfer_clips(doc, binary, Path(folder), clip_stems={"Idle": "Standard_Idle"})
     if len(clips) != 4 or len(doc.get("animations", [])) != 4:
         raise RuntimeError("Four authentic Mixamo clips required")
     if (json.dumps(doc["skins"], sort_keys=True) != original_skins or
