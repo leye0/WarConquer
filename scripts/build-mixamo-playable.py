@@ -26,7 +26,7 @@ VIEWS=ROOT/"assets/experiments/rig-source-turnaround/marches_hache/tpose-v2"
 ORDER=("front","back","left","right")
 AXES={"front":(0,0,1),"back":(0,0,-1),"left":(-1,0,0),"right":(1,0,0)}
 COMPONENT={5120:("b",1),5121:("B",1),5122:("h",2),5123:("H",2),5125:("I",4),5126:("f",4)}
-DIM={"SCALAR":1,"VEC2":2,"VEC3":3,"VEC4":4}
+DIM={"SCALAR":1,"VEC2":2,"VEC3":3,"VEC4":4,"MAT4":16}
 
 def load_glb(path):
     raw=path.read_bytes()
@@ -211,6 +211,57 @@ def qaxis(axis,degrees):
     return tuple(v*s for v in axis)+(math.cos(math.radians(degrees)/2),)
 Q=(0.,0.,0.,1.)
 
+def quat_from_matrix_cols(cols):
+    # glTF MAT4 columns are column-major. Strip uniform bind-scale before
+    # recovering the joint orientation (the inverse of this rotation is used).
+    basis=[]
+    for column in cols:
+        length=math.sqrt(sum(v*v for v in column))
+        if not math.isfinite(length) or length<1e-10:
+            raise ValueError("Degenerate source inverse-bind rotation")
+        basis.append([v/length for v in column])
+    a,b,c=basis
+    r00,r10,r20=a
+    r01,r11,r21=b
+    r02,r12,r22=c
+    trace=r00+r11+r22
+    if trace>0:
+        s=math.sqrt(trace+1)*2
+        q=((r21-r12)/s,(r02-r20)/s,(r10-r01)/s,.25*s)
+    elif r00>r11 and r00>r22:
+        s=math.sqrt(1+r00-r11-r22)*2
+        q=(.25*s,(r01+r10)/s,(r02+r20)/s,(r21-r12)/s)
+    elif r11>r22:
+        s=math.sqrt(1+r11-r00-r22)*2
+        q=((r01+r10)/s,.25*s,(r12+r21)/s,(r02-r20)/s)
+    else:
+        s=math.sqrt(1+r22-r00-r11)*2
+        q=((r02+r20)/s,(r12+r21)/s,.25*s,(r10-r01)/s)
+    return qnorm(q)
+
+def source_bind_world_orientations(doc,raw):
+    # Animation FBX importers often initialize node.rotation to the FIRST
+    # ANIMATED frame, NOT the T-pose. Subtracting that as 'rest' erased the
+    # arm posture. glTF skin.inverseBindMatrices provides the true bind pose.
+    skins=[s for s in doc.get("skins",[]) if "inverseBindMatrices" in s]
+    if not skins:
+        raise ValueError("Mixamo YBot animated GLB has no inverse-bind matrices")
+    orientations={}
+    for skin in skins:
+        bind=accessor(doc,raw,skin["inverseBindMatrices"])
+        if len(bind)!=len(skin["joints"]):
+            raise ValueError("Mixamo inverse-bind count differs from skin joints")
+        for joint,matrix in zip(skin["joints"],bind):
+            inverse_rotation=quat_from_matrix_cols([
+                matrix[0:3],matrix[4:7],matrix[8:11]])
+            original=qinv(inverse_rotation)
+            if joint in orientations:
+                discrepancy=abs(sum(x*y for x,y in zip(original,orientations[joint])))
+                if discrepancy<.999:
+                    raise ValueError("Conflicting Mixamo inverse-bind rest transforms")
+            orientations[joint]=original
+    return orientations
+
 
 def mixamo_animation(doc,binary):
     import importlib.util
@@ -285,8 +336,10 @@ def transfer_clips(target,buf,source_directory):
         sp=sk.parent_map(source)
         sr=[m.normq(node.get("rotation",Q)) for node in sn]
         tr=[m.normq(node.get("rotation",Q)) for node in tn]
-        srw=m.world_orientations(sn,sp,sr)
+        srw=source_bind_world_orientations(source,raw)
         trw=m.world_orientations(tn,tp,tr)
+        if any(si not in srw for si in common.values()):
+            raise ValueError(stem+" source skin is missing mapped bind joints")
         frames=max(8,int(round(duration*30))+1)
         times=[duration*i/(frames-1) for i in range(frames)]
         samples={i:[] for i in common}
@@ -358,7 +411,7 @@ def transfer_clips(target,buf,source_directory):
            "samplers":samplers,"channels":channels,
            "extras":{"source":"Mixamo archived FBX, with axe",
                      "file":stem+".fbx",
-                     "retargeting":"rest-world delta to 52-joint WarConquer rig; root travel excluded"}})
+                     "retargeting":"inverse-bind-world rest delta to 52-joint WarConquer rig; root travel excluded"}})
         reports.append({"name":name,"fbx":stem+".fbx","source_glb_sha256":hashlib.sha256(src.read_bytes()).hexdigest(),
                         "duration":round(duration,3),"frames":frames,
                         "mapped_joints":len(common),"rotation_channels":len(channels),
@@ -390,7 +443,7 @@ def main():
             "output_sha256":hashlib.sha256(OUT.read_bytes()).hexdigest(),
             "rig_joint_count":52,
             "motion_origin":"real archived Adobe Mixamo FBX, not procedural or AI-generated",
-            "motion_conversion":"FBX2glTF binary FBX to GLB + world-rest-rotation retarget; local WASD handles translation",
+            "motion_conversion":"FBX2glTF + inverse-bind-pose world-rotation retarget; WASD handles translation",
             "animation_clips":clips,
             "texture_origin":"4 approved source images, orthographic UV projection, glTF upper-left UV convention",
             "texture_QA":"not artist-approved; may have seams/misalignment",
