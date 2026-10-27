@@ -37,6 +37,22 @@ for(const [label,transform] of [
   assert(obj.headWidthRatio>1.23,label+": head/handle asymmetry must be measurable");
   console.log("PASS",label,JSON.stringify({grip:obj.grip,shaft:obj.shaft,ratio:obj.headWidthRatio}));
 }
+// The head may be symmetric around the shaft: centroid-only heuristics fail.
+const doubleBlade=[];
+for(let i=0;i<=90;i++)for(let j=0;j<32;j++){
+  const y=-1+1.78*i/90,a=j*Math.PI*2/32;
+  doubleBlade.push([.032*Math.cos(a),y,.032*Math.sin(a)]);
+}
+for(let i=0;i<34;i++)for(let j=0;j<30;j++){
+  const y=.70+i*.011,x=-.34+j*.023;
+  for(const z of [-.021,.021])doubleBlade.push([x,y,z]);
+}
+const centered=fitGrip(doubleBlade,.19,"axe");
+assert.equal(centered.bladeMethod,"head-transverse-covariance",
+  "symmetric head must use geometric blade plane instead of invented centroid side");
+assert(Math.abs(dot(centered.blade,[1,0,0]))>.85,
+  "blade plane must still be recovered from head cross-section");
+console.log("PASS symmetric-double-axe",centered.bladeMethod);
 const plain=[];
 for(let i=0;i<120;i++)for(let j=0;j<10;j++){
   const a=j*Math.PI/5;
