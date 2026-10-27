@@ -9,14 +9,18 @@ Final acceptance also requires rendered, human visual QA.
 """
 import bisect
 import hashlib
+import importlib.util
 import json
 import math
 from pathlib import Path
 import struct
 import sys
 
-sys.path.insert(0,str(Path(__file__).resolve().parent))
-from inspect_rig_skeletons import read_glb, joint_table, parent_map
+helper_path=Path(__file__).resolve().parent/"inspect-rig-skeletons.py"
+helper_spec=importlib.util.spec_from_file_location("warconquer_rig_inspection",helper_path)
+helper=importlib.util.module_from_spec(helper_spec)
+helper_spec.loader.exec_module(helper)
+read_glb,joint_table,parent_map=helper.read_glb,helper.joint_table,helper.parent_map
 
 ROOT=Path(__file__).resolve().parents[1]
 DIR=ROOT/"assets/experiments/rig-ready-3d/marches_hache/tpose-v2"
