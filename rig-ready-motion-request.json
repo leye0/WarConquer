@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "trial_id": "marches-axeman-one-axe-chop-motion-v1",
+  "source_rigged_glb": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/rigged.glb",
+  "source_rig_sha256": "9bb357587de46032de203abe735b3eab140d32c982066b15da55c7c339439273",
+  "model": "uthana/text-to-motion-diffusion-v2",
+  "model_input": {
+    "prompt": "A medieval warrior holding an imaginary heavy two-handed axe in front of the body. From a stable shoulder-width stance, raise both hands together above the right shoulder, shift weight toward the left leg and perform ONE powerful controlled diagonal downward chopping swing from the right shoulder to the left hip, then recover to a balanced ready stance. One clean readable axe attack, no spinning, no repeated strikes, feet grounded, complete full-body natural human biomechanics.",
+    "character": "Tar",
+    "output_ext": "GLB",
+    "fps": 24,
+    "no_mesh": false,
+    "foot_ik": true,
+    "internal_ik": true,
+    "motion_length": 4,
+    "seed": 20261027,
+    "cfg_scale": 2.5
+  },
+  "maximum_paid_predictions": 1,
+  "automatic_paid_retries": 0,
+  "output_directory": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/axe-chop-v1",
+  "retargeting": "separate_validation_required"
+}
