@@ -1,27 +1,27 @@
 {
-  "schema": 1,
-  "trial_id": "marches-axeman-rig-ready-tpose-v1",
-  "source_directory": "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2",
-  "visually_approved": true,
-  "reviewed_source_sha256": {
-    "front": "ddaf1862304adc05d01157bda8caae57b8a549ade83ce70e3ace9638a8997d87",
-    "back": "c7d3a260fd9fddcdf8da5cb8551bedb971452fcff6abda8308dfbd1fb193dce3",
-    "left": "f29d996d5c071fea6f73168f4a9718e6fb2c0318569fd2c73fdc65389bd4e367",
-    "right": "74d9d0d09e91413afa11f0bc45c540a986dec189cb3f7db80c54800066d348b2"
-  },
-  "mesh_model": "tencent/hunyuan3d-2mv",
-  "mesh_settings": {
-    "steps": 30,
-    "guidance_scale": 5,
-    "octree_resolution": 256,
-    "target_face_num": 25000,
-    "remove_background": false,
-    "randomize_seed": false,
-    "seed": 1234,
-    "file_type": "glb"
-  },
-  "rig_model": "uthana/create-character-v1",
-  "maximum_mesh_predictions": 1,
-  "maximum_rig_predictions": 1,
-  "output_directory": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2"
+    "schema": 1,
+    "trial_id": "marches-axeman-rig-ready-tpose-v1",
+    "source_directory": "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2",
+    "visually_approved": true,
+    "reviewed_source_sha256": {
+        "front": "ddaf1862304adc05d01157bda8caae57b8a549ade83ce70e3ace9638a8997d87",
+        "back": "c7d3a260fd9fddcdf8da5cb8551bedb971452fcff6abda8308dfbd1fb193dce3",
+        "left": "f29d996d5c071fea6f73168f4a9718e6fb2c0318569fd2c73fdc65389bd4e367",
+        "right": "74d9d0d09e91413afa11f0bc45c540a986dec189cb3f7db80c54800066d348b2"
+    },
+    "mesh_model": "tencent/hunyuan3d-2mv",
+    "mesh_settings": {
+        "steps": 30,
+        "guidance_scale": 5,
+        "octree_resolution": 256,
+        "target_face_num": 25000,
+        "remove_background": false,
+        "randomize_seed": false,
+        "seed": 1234,
+        "file_type": "glb"
+    },
+    "rig_model": "uthana/create-character-v1",
+    "maximum_mesh_predictions": 1,
+    "maximum_rig_predictions": 1,
+    "output_directory": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2"
 }
