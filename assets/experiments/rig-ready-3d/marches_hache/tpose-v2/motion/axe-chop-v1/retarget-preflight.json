@@ -1,0 +1,989 @@
+{
+  "purpose": "Read-only skeletal retarget compatibility, not proof of valid deformation",
+  "target": {
+    "joint_count": 52,
+    "joint_names": [
+      "head",
+      "hips",
+      "leftarm",
+      "leftfoot",
+      "leftforearm",
+      "lefthand",
+      "lefthandindex1",
+      "lefthandindex2",
+      "lefthandindex3",
+      "lefthandmiddle1",
+      "lefthandmiddle2",
+      "lefthandmiddle3",
+      "lefthandpinky1",
+      "lefthandpinky2",
+      "lefthandpinky3",
+      "lefthandring1",
+      "lefthandring2",
+      "lefthandring3",
+      "lefthandthumb1",
+      "lefthandthumb2",
+      "lefthandthumb3",
+      "leftleg",
+      "leftshoulder",
+      "lefttoebase",
+      "leftupleg",
+      "neck",
+      "rightarm",
+      "rightfoot",
+      "rightforearm",
+      "righthand",
+      "righthandindex1",
+      "righthandindex2",
+      "righthandindex3",
+      "righthandmiddle1",
+      "righthandmiddle2",
+      "righthandmiddle3",
+      "righthandpinky1",
+      "righthandpinky2",
+      "righthandpinky3",
+      "righthandring1",
+      "righthandring2",
+      "righthandring3",
+      "righthandthumb1",
+      "righthandthumb2",
+      "righthandthumb3",
+      "rightleg",
+      "rightshoulder",
+      "righttoebase",
+      "rightupleg",
+      "spine",
+      "spine1",
+      "spine2"
+    ],
+    "root_nodes": [
+      {
+        "node": 53,
+        "name": "Armature",
+        "rotation": [
+          0.70710688829422,
+          0,
+          0,
+          0.7071066498756409
+        ],
+        "scale": [
+          0.009999999776482582,
+          0.009999999776482582,
+          0.009999999776482582
+        ]
+      }
+    ]
+  },
+  "source": {
+    "joint_count": 79,
+    "joint_names": [
+      "balll",
+      "ballr",
+      "calfl",
+      "calfr",
+      "calftwist01l",
+      "calftwist01r",
+      "calftwist02l",
+      "calftwist02r",
+      "claviclel",
+      "clavicler",
+      "footl",
+      "footr",
+      "handl",
+      "handr",
+      "head",
+      "index01l",
+      "index01r",
+      "index02l",
+      "index02r",
+      "index03l",
+      "index03r",
+      "indexmetacarpall",
+      "indexmetacarpalr",
+      "lowerarml",
+      "lowerarmr",
+      "lowerarmtwist01l",
+      "lowerarmtwist01r",
+      "lowerarmtwist02l",
+      "lowerarmtwist02r",
+      "middle01l",
+      "middle01r",
+      "middle02l",
+      "middle02r",
+      "middle03l",
+      "middle03r",
+      "middlemetacarpall",
+      "middlemetacarpalr",
+      "neck01",
+      "neck02",
+      "pelvis",
+      "pinky01l",
+      "pinky01r",
+      "pinky02l",
+      "pinky02r",
+      "pinky03l",
+      "pinky03r",
+      "pinkymetacarpall",
+      "pinkymetacarpalr",
+      "ring01l",
+      "ring01r",
+      "ring02l",
+      "ring02r",
+      "ring03l",
+      "ring03r",
+      "ringmetacarpall",
+      "ringmetacarpalr",
+      "spine01",
+      "spine02",
+      "spine03",
+      "spine04",
+      "spine05",
+      "thighl",
+      "thighr",
+      "thightwist01l",
+      "thightwist01r",
+      "thightwist02l",
+      "thightwist02r",
+      "thumb01l",
+      "thumb01r",
+      "thumb02l",
+      "thumb02r",
+      "thumb03l",
+      "thumb03r",
+      "upperarml",
+      "upperarmr",
+      "upperarmtwist01l",
+      "upperarmtwist01r",
+      "upperarmtwist02l",
+      "upperarmtwist02r"
+    ],
+    "root_nodes": [
+      {
+        "node": 80,
+        "name": "UE5_Manny_DEFORM.004",
+        "scale": [
+          0.011593899689614773,
+          0.011593900620937347,
+          0.011593900620937347
+        ]
+      }
+    ]
+  },
+  "common_joint_count": 1,
+  "common_joint_names": [
+    "head"
+  ],
+  "target_joints_absent_in_source": [
+    "hips",
+    "leftarm",
+    "leftfoot",
+    "leftforearm",
+    "lefthand",
+    "lefthandindex1",
+    "lefthandindex2",
+    "lefthandindex3",
+    "lefthandmiddle1",
+    "lefthandmiddle2",
+    "lefthandmiddle3",
+    "lefthandpinky1",
+    "lefthandpinky2",
+    "lefthandpinky3",
+    "lefthandring1",
+    "lefthandring2",
+    "lefthandring3",
+    "lefthandthumb1",
+    "lefthandthumb2",
+    "lefthandthumb3",
+    "leftleg",
+    "leftshoulder",
+    "lefttoebase",
+    "leftupleg",
+    "neck",
+    "rightarm",
+    "rightfoot",
+    "rightforearm",
+    "righthand",
+    "righthandindex1",
+    "righthandindex2",
+    "righthandindex3",
+    "righthandmiddle1",
+    "righthandmiddle2",
+    "righthandmiddle3",
+    "righthandpinky1",
+    "righthandpinky2",
+    "righthandpinky3",
+    "righthandring1",
+    "righthandring2",
+    "righthandring3",
+    "righthandthumb1",
+    "righthandthumb2",
+    "righthandthumb3",
+    "rightleg",
+    "rightshoulder",
+    "righttoebase",
+    "rightupleg",
+    "spine",
+    "spine1",
+    "spine2"
+  ],
+  "source_joints_absent_in_target": [
+    "balll",
+    "ballr",
+    "calfl",
+    "calfr",
+    "calftwist01l",
+    "calftwist01r",
+    "calftwist02l",
+    "calftwist02r",
+    "claviclel",
+    "clavicler",
+    "footl",
+    "footr",
+    "handl",
+    "handr",
+    "index01l",
+    "index01r",
+    "index02l",
+    "index02r",
+    "index03l",
+    "index03r",
+    "indexmetacarpall",
+    "indexmetacarpalr",
+    "lowerarml",
+    "lowerarmr",
+    "lowerarmtwist01l",
+    "lowerarmtwist01r",
+    "lowerarmtwist02l",
+    "lowerarmtwist02r",
+    "middle01l",
+    "middle01r",
+    "middle02l",
+    "middle02r",
+    "middle03l",
+    "middle03r",
+    "middlemetacarpall",
+    "middlemetacarpalr",
+    "neck01",
+    "neck02",
+    "pelvis",
+    "pinky01l",
+    "pinky01r",
+    "pinky02l",
+    "pinky02r",
+    "pinky03l",
+    "pinky03r",
+    "pinkymetacarpall",
+    "pinkymetacarpalr",
+    "ring01l",
+    "ring01r",
+    "ring02l",
+    "ring02r",
+    "ring03l",
+    "ring03r",
+    "ringmetacarpall",
+    "ringmetacarpalr",
+    "spine01",
+    "spine02",
+    "spine03",
+    "spine04",
+    "spine05",
+    "thighl",
+    "thighr",
+    "thightwist01l",
+    "thightwist01r",
+    "thightwist02l",
+    "thightwist02r",
+    "thumb01l",
+    "thumb01r",
+    "thumb02l",
+    "thumb02r",
+    "thumb03l",
+    "thumb03r",
+    "upperarml",
+    "upperarmr",
+    "upperarmtwist01l",
+    "upperarmtwist01r",
+    "upperarmtwist02l",
+    "upperarmtwist02r"
+  ],
+  "highlights": {
+    "hips": {
+      "source": null,
+      "target": {
+        "name": "mixamorig:Hips",
+        "rotation": [
+          -0.6797990798950195,
+          0.0040062894113361835,
+          0.0037543210200965405,
+          0.7333778142929077
+        ],
+        "translation": [
+          -5.960464477539063e-08,
+          1.4901159417490817e-08,
+          5.9604641222676946e-08
+        ],
+        "scale": [
+          0.9999998807907104,
+          1,
+          1
+        ]
+      },
+      "source_parent": null,
+      "target_parent": "Armature"
+    },
+    "spine": {
+      "source": null,
+      "target": {
+        "name": "mixamorig:Spine",
+        "rotation": [
+          0.02750447392463684,
+          -0.004492535255849361,
+          0.017154401168227196,
+          0.9994643926620483
+        ],
+        "translation": [
+          0.13719090819358826,
+          12.93542194366455,
+          0.19303877651691437
+        ],
+        "scale": [
+          0.9999999403953552,
+          0.9999997615814209,
+          0.9999998807907104
+        ]
+      },
+      "source_parent": null,
+      "target_parent": "mixamorig:Hips"
+    },
+    "leftarm": {
+      "source": null,
+      "target": {
+        "name": "mixamorig:LeftArm",
+        "rotation": [
+          -0.09018466621637344,
+          0.3752147853374481,
+          0.10251136124134064,
+          0.9168271422386169
+        ],
+        "translation": [
+          -0.044678688049316406,
+          15.2547607421875,
+          0.6244149804115295
+        ],
+        "scale": [
+          0.9999999403953552,
+          1,
+          0.9999999403953552
+        ]
+      },
+      "source_parent": null,
+      "target_parent": "mixamorig:LeftShoulder"
+    },
+    "rightarm": {
+      "source": null,
+      "target": {
+        "name": "mixamorig:RightArm",
+        "rotation": [
+          -0.08606985211372375,
+          -0.24417811632156372,
+          -0.09649120271205902,
+          0.9610715508460999
+        ],
+        "translation": [
+          -0.23254460096359253,
+          15.36864948272705,
+          0.5834109783172607
+        ],
+        "scale": [
+          0.9999998211860657,
+          0.9999998807907104,
+          0.9999999403953552
+        ]
+      },
+      "source_parent": null,
+      "target_parent": "mixamorig:RightShoulder"
+    },
+    "leftforearm": {
+      "source": null,
+      "target": {
+        "name": "mixamorig:LeftForeArm",
+        "rotation": [
+          -0.015016749501228333,
+          0.04164164140820503,
+          -0.029273459687829018,
+          0.9985907673835754
+        ],
+        "translation": [
+          0.07476532459259033,
+          23.518802642822266,
+          -0.0438532829284668
+        ],
+        "scale": [
+          1,
+          1.0000001192092896,
+          1
+        ]
+      },
+      "source_parent": null,
+      "target_parent": "mixamorig:LeftArm"
+    },
+    "rightforearm": {
+      "source": null,
+      "target": {
+        "name": "mixamorig:RightForeArm",
+        "rotation": [
+          -0.013154649175703526,
+          -0.013630018569529057,
+          0.0004079376521985978,
+          0.9998204708099365
+        ],
+        "translation": [
+          -0.3221346139907837,
+          25.666255950927734,
+          0.22081422805786133
+        ],
+        "scale": [
+          0.9999998807907104,
+          1,
+          0.9999998807907104
+        ]
+      },
+      "source_parent": null,
+      "target_parent": "mixamorig:RightArm"
+    },
+    "leftupleg": {
+      "source": null,
+      "target": {
+        "name": "mixamorig:LeftUpLeg",
+        "rotation": [
+          -0.00018030217324849218,
+          0.03788578882813454,
+          0.9992669820785522,
+          0.005487452726811171
+        ],
+        "translation": [
+          12.115385055541992,
+          -6.513914108276367,
+          0.7004545331001282
+        ],
+        "scale": [
+          1,
+          0.9999997019767761,
+          1.0000081062316895
+        ]
+      },
+      "source_parent": null,
+      "target_parent": "mixamorig:Hips"
+    },
+    "rightupleg": {
+      "source": null,
+      "target": {
+        "name": "mixamorig:RightUpLeg",
+        "rotation": [
+          -0.00018433590594213456,
+          0.03788963332772255,
+          0.9992668628692627,
+          0.005487299524247646
+        ],
+        "translation": [
+          -12.777693748474121,
+          -6.270994186401367,
+          0.6316450238227844
+        ],
+        "scale": [
+          1,
+          0.9999992847442627,
+          1.000008225440979
+        ]
+      },
+      "source_parent": null,
+      "target_parent": "mixamorig:Hips"
+    }
+  },
+  "animation_count": 1,
+  "animation_channel_count": 80,
+  "animation_channels": [
+    {
+      "bone": "pelvis",
+      "normalized": "pelvis",
+      "path": "translation",
+      "in_target": false
+    },
+    {
+      "bone": "pelvis",
+      "normalized": "pelvis",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "spine_01",
+      "normalized": "spine01",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "spine_02",
+      "normalized": "spine02",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "spine_03",
+      "normalized": "spine03",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "spine_04",
+      "normalized": "spine04",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "spine_05",
+      "normalized": "spine05",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "neck_01",
+      "normalized": "neck01",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "neck_02",
+      "normalized": "neck02",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "head",
+      "normalized": "head",
+      "path": "rotation",
+      "in_target": true
+    },
+    {
+      "bone": "clavicle_l",
+      "normalized": "claviclel",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "upperarm_l",
+      "normalized": "upperarml",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "lowerarm_l",
+      "normalized": "lowerarml",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "lowerarm_twist_02_l",
+      "normalized": "lowerarmtwist02l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "lowerarm_twist_01_l",
+      "normalized": "lowerarmtwist01l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "hand_l",
+      "normalized": "handl",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "index_metacarpal_l",
+      "normalized": "indexmetacarpall",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "index_01_l",
+      "normalized": "index01l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "index_02_l",
+      "normalized": "index02l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "index_03_l",
+      "normalized": "index03l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "middle_metacarpal_l",
+      "normalized": "middlemetacarpall",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "middle_01_l",
+      "normalized": "middle01l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "middle_02_l",
+      "normalized": "middle02l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "middle_03_l",
+      "normalized": "middle03l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "thumb_01_l",
+      "normalized": "thumb01l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "thumb_02_l",
+      "normalized": "thumb02l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "thumb_03_l",
+      "normalized": "thumb03l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "pinky_metacarpal_l",
+      "normalized": "pinkymetacarpall",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "pinky_01_l",
+      "normalized": "pinky01l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "pinky_02_l",
+      "normalized": "pinky02l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "pinky_03_l",
+      "normalized": "pinky03l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "ring_metacarpal_l",
+      "normalized": "ringmetacarpall",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "ring_01_l",
+      "normalized": "ring01l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "ring_02_l",
+      "normalized": "ring02l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "ring_03_l",
+      "normalized": "ring03l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "upperarm_twist_01_l",
+      "normalized": "upperarmtwist01l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "upperarm_twist_02_l",
+      "normalized": "upperarmtwist02l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "clavicle_r",
+      "normalized": "clavicler",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "upperarm_r",
+      "normalized": "upperarmr",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "lowerarm_r",
+      "normalized": "lowerarmr",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "lowerarm_twist_02_r",
+      "normalized": "lowerarmtwist02r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "lowerarm_twist_01_r",
+      "normalized": "lowerarmtwist01r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "hand_r",
+      "normalized": "handr",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "pinky_metacarpal_r",
+      "normalized": "pinkymetacarpalr",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "pinky_01_r",
+      "normalized": "pinky01r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "pinky_02_r",
+      "normalized": "pinky02r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "pinky_03_r",
+      "normalized": "pinky03r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "ring_metacarpal_r",
+      "normalized": "ringmetacarpalr",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "ring_01_r",
+      "normalized": "ring01r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "ring_02_r",
+      "normalized": "ring02r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "ring_03_r",
+      "normalized": "ring03r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "middle_metacarpal_r",
+      "normalized": "middlemetacarpalr",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "middle_01_r",
+      "normalized": "middle01r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "middle_02_r",
+      "normalized": "middle02r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "middle_03_r",
+      "normalized": "middle03r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "index_metacarpal_r",
+      "normalized": "indexmetacarpalr",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "index_01_r",
+      "normalized": "index01r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "index_02_r",
+      "normalized": "index02r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "index_03_r",
+      "normalized": "index03r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "thumb_01_r",
+      "normalized": "thumb01r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "thumb_02_r",
+      "normalized": "thumb02r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "thumb_03_r",
+      "normalized": "thumb03r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "upperarm_twist_01_r",
+      "normalized": "upperarmtwist01r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "upperarm_twist_02_r",
+      "normalized": "upperarmtwist02r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "thigh_r",
+      "normalized": "thighr",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "calf_r",
+      "normalized": "calfr",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "foot_r",
+      "normalized": "footr",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "ball_r",
+      "normalized": "ballr",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "calf_twist_02_r",
+      "normalized": "calftwist02r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "calf_twist_01_r",
+      "normalized": "calftwist01r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "thigh_twist_01_r",
+      "normalized": "thightwist01r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "thigh_twist_02_r",
+      "normalized": "thightwist02r",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "thigh_l",
+      "normalized": "thighl",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "calf_l",
+      "normalized": "calfl",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "foot_l",
+      "normalized": "footl",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "ball_l",
+      "normalized": "balll",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "calf_twist_02_l",
+      "normalized": "calftwist02l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "calf_twist_01_l",
+      "normalized": "calftwist01l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "thigh_twist_01_l",
+      "normalized": "thightwist01l",
+      "path": "rotation",
+      "in_target": false
+    },
+    {
+      "bone": "thigh_twist_02_l",
+      "normalized": "thightwist02l",
+      "path": "rotation",
+      "in_target": false
+    }
+  ],
+  "requires_rest_pose_alignment": true,
+  "ready_for_naive_name_mapping": false
+}
