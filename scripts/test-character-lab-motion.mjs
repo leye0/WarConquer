@@ -227,6 +227,7 @@ try {
   await js("document.getElementById('cameraButton').click()");
   await request("Emulation.setDeviceMetricsOverride",{width:390,height:844,deviceScaleFactor:1,mobile:true});
   await js("document.getElementById('cameraButton').click()");
+  assert(Math.abs((await js("BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera.radius"))-10.5)<.1,"mobile camera should frame character between HUD and touch actions");
   await sleep(900);
   await screenshot("fal-mobile-controls-idle-live");
   const sprintOn=await js("(()=>{const b=document.getElementById('runButton');b.click();return b.getAttribute('aria-pressed');})()");
