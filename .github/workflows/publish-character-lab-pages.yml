@@ -14,6 +14,7 @@ on:
       - 'assets/experiments/rig-source-turnaround/**'
       - 'assets/experiments/props/marches_hache/trellis-v1/axe.glb'
       - 'assets/experiments/props/marches_hache/trellis-v1/grip-plan.json'
+      - 'assets/experiments/props/marches_hache/trellis-v1/grip-plan-v3.json'
       - 'assets/concepts/marches/units/hache.png'
       - '.github/workflows/publish-character-lab-pages.yml'
   workflow_dispatch:
@@ -66,7 +67,11 @@ jobs:
               const planPath=p.gripPlan.startsWith("/")?p.gripPlan.slice(1):p.gripPlan;
               const modelPath=p.model.startsWith("/")?p.model.slice(1):p.model;
               const plan=JSON.parse(readFileSync(join(dir,planPath)));
-              assert.equal(plan.schema,2,"Invalid grip plan for "+p.id);
+              assert([2,3].includes(plan.schema),"Invalid grip plan for "+p.id);
+            if(plan.schema===3){
+              assert(plan.source_provenance?.generation_brief_sha256,"Unprovenanced grip plan");
+              assert(plan.scale_observation?.character_image_shows_full_object,"Scale not based on full character reference");
+            }
               assert(existsSync(join(dir,modelPath)),"Missing prop "+p.id);
             }
             assert(data.characters.length > 0);
