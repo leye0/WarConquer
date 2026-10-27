@@ -123,7 +123,7 @@ try {
   console.log("ATTACK_PASS",JSON.stringify(attacking));
   await sleep(300);
   await screenshot("attack-live");
-  const falUrl=await js("(()=>{const d=document.getElementById('modelSelect');const o=Array.from(d.options).find(x=>x.textContent.includes('fal.ai'));if(!o)return '';d.value=o.value;d.dispatchEvent(new Event('change',{bubbles:true}));return d.value;})()");
+  const falUrl=await js("(()=>{const d=document.getElementById('modelSelect');const o=Array.from(d.options).find(x=>x.value.includes('/fal-textured.glb'));if(!o)return '';d.value=o.value;d.dispatchEvent(new Event('change',{bubbles:true}));return d.value;})()");
   assert(falUrl.includes("fal-textured.glb"),"fal pilot missing from selector");
   const fal=await until(s=>s.status.startsWith("Prêt")&&
     s.walk.startsWith("Marche absente")&&s.motion==="Aucune animation",
