@@ -1,0 +1,69 @@
+name: Marches axe · TRELLIS image to textured GLB
+
+on:
+  push:
+    branches: [main]
+    paths: ['trellis-axe-request.json']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: marches-axe-trellis-v1
+  cancel-in-progress: false
+
+jobs:
+  trellis:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install light client dependencies (no GPU)
+        run: python -m pip install 'replicate>=1,<2' 'Pillow==11.3.0'
+      - name: Require visual review and exact SHA before spending
+        run: |
+          python -m py_compile scripts/build-trellis-axe.py
+          python scripts/build-trellis-axe.py --stage validate
+      - name: Submit one approved TRELLIS image-to-3D prediction, never retry
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
+        run: python scripts/build-trellis-axe.py --stage submit
+      - name: Persist paid prediction ID before polling
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A assets/experiments/props/marches_hache/trellis-v1/prediction.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'meta: preserve one submitted TRELLIS axe prediction'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Collect 3D textured GLB from existing prediction
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
+        run: python scripts/build-trellis-axe.py --stage collect
+      - name: Preserve separate axe mesh and validation report
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A assets/experiments/props/marches_hache/trellis-v1
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: collect independent TRELLIS 3D Marches axe'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marches-axe-trellis
+          path: assets/experiments/props/marches_hache/trellis-v1
+          retention-days: 7
+          if-no-files-found: ignore
