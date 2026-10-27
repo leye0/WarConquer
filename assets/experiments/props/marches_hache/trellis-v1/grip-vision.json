@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "source_image": "assets/concepts/marches/objects/hache_arme.png",
+  "source_sha256": "061c18599da536c363ffa8bb10f648405d31c240f027c3867a46541d2b0d79bc",
+  "vision_model": "openai/gpt-4.1-mini",
+  "analysis": {
+    "landmarks": {
+      "object_type": "axe",
+      "holding_hand": "right",
+      "handle_butt": [
+        0.28,
+        0.88
+      ],
+      "handle_near_head": [
+        0.57,
+        0.38
+      ],
+      "grip_center": [
+        0.4,
+        0.65
+      ],
+      "head_center": [
+        0.68,
+        0.38
+      ],
+      "striking_edge": [
+        0.78,
+        0.38
+      ],
+      "confidence": 0.95
+    },
+    "grip_fraction_from_butt": 0.44837,
+    "image_handle_deviation": 0.01159
+  },
+  "geometry_note": "2D semantics only; GLB principal axis, head end, shaft center and palm transform are calculated at runtime.",
+  "paid_vision_requests": 1
+}
