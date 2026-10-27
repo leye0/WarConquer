@@ -311,6 +311,9 @@
     byId("world").dataset.weaponGrip="none";
     byId("world").dataset.weaponGripHeadRatio="";
     byId("world").dataset.weaponGripScale="";
+    byId("world").dataset.equipmentAction="";
+    byId("world").dataset.equipmentReady="";
+    byId("world").dataset.equipmentMissing="";
   }
 
   // Vision decides the whole pose/scale/hand specification offline; geometry fits GLB.
@@ -465,6 +468,22 @@
       byId("world").dataset.weaponGrip="vision-plan-geometry";
       byId("world").dataset.weaponGripScale=spec.length_relative_character_height.toFixed(3);
       byId("world").dataset.weaponGripHeadRatio=frame.headWidthRatio.toFixed(3);
+      // Enforce genuine equipment-specific motions once the prop is fitted.
+      // A bow must never inherit a generic axe animation by default.
+      const policy=window.WCEquipmentActions?.resolve(spec,state.animGroups);
+      if(policy){
+        state.attack=policy.ready
+          ? state.animGroups.find(group=>group.name===policy.motion)||null : null;
+        byId("attackButton").disabled=!state.attack;
+        document.querySelectorAll('[data-command="attack"]').forEach(btn=>
+          btn.disabled=!state.attack);
+        byId("world").dataset.equipmentAction=policy.action||"unknown";
+        byId("world").dataset.equipmentReady=String(policy.ready);
+        byId("world").dataset.equipmentMissing=policy.missing.join(",");
+        if(!policy.ready){
+          text("weaponMetric","Objet chargé ; geste indisponible : "+policy.missing.join(", "));
+        }
+      }
     }catch(err){
       if(prop)for(const node of [...prop.meshes,...prop.transformNodes])
         if(!node.isDisposed())node.dispose(false,true);
