@@ -79,7 +79,7 @@ def submit(cfg):
         return
     with IMAGE.open("rb") as inp:
         prediction=api().predictions.create(version=VERSION,
-            input={**INPUTS,"image":inp})
+            input={**INPUTS,"images":[inp]})
     if not prediction.id:
         raise RuntimeError("Replicate accepted no prediction ID; do not auto retry")
     save(CHECKPOINT,{"model":MODEL,"version":VERSION,"prediction_id":prediction.id,
