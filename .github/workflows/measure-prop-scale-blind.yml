@@ -55,8 +55,10 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A assets/experiments/props/marches_hache/trellis-v1/grip-scale-blind-v6.json
-          git add -A assets/experiments/props/marches_hache/trellis-v1/grip-scale-blind-v6-response.json
+          for filename in grip-scale-blind-v6.json grip-scale-blind-v6-response.json; do
+            full="assets/experiments/props/marches_hache/trellis-v1/$filename"
+            if test -f "$full"; then git add -- "$full"; fi
+          done
           if ! git diff --cached --quiet; then
             git commit -m 'assets: archive blind source-art equipment measurements and billed tokens'
             git fetch origin main
