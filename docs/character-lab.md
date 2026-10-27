@@ -54,7 +54,7 @@ assets/experiments/rig-ready-3d/<unit>/<pose>/
 
 GET /api/character-lab fournit les modèles découverts, les références et les métriques connues. Un modèle futur ne nécessite donc pas de modifier la liste codée en dur. Le fichier peut aussi être importé par glisser-déposer sur le terrain.
 
-Pour une animation de déplacement réelle, le prochain jalon est de générer puis transférer une boucle de marche sur **le même squelette Mixamo** que le guerrier riggé. Le labo activera automatiquement un groupe d'animation nommé Walk, Run ou Marche. Il faudra alors vérifier les pieds (absence de glissement, déformation, contacts), le passage marche/arrêt et le combat. Une boucle de marche et une attaque en deux fichiers ne deviennent pas spontanément un seul modèle multi-clips.
+Pour une animation de déplacement réelle, le prochain jalon est de générer puis transférer une boucle de marche sur **le même squelette Mixamo** que le guerrier riggé. Le labo activera automatiquement un groupe d'animation nommé Walk, Run ou Marche (nom de clip distinct du nom de faction). La caméra démarre cadrée près du personnage pour inspecter les détails. Il faudra alors vérifier les pieds (absence de glissement, déformation, contacts), le passage marche/arrêt et le combat. Une boucle de marche et une attaque en deux fichiers ne deviennent pas spontanément un seul modèle multi-clips.
 
 ## Tests
 
