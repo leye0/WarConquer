@@ -1,0 +1,82 @@
+name: Character Lab · offline Mixamo neutral idle rebuild for fal UV warrior
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'fal-motion-request.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: warconquer-fal-offline-motion-rebuild
+  cancel-in-progress: false
+
+jobs:
+  animate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      WARCONQUER_STANDARD_IDLE: '1'
+      MIXAMO_CONVERTED_DIR: ${{ runner.temp }}/warconquer-mixamo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install file conversion dependencies only, no paid APIs
+        run: |
+          python -m pip install 'Pillow==11.3.0'
+          npm install --no-save --no-audit --no-fund 'fbx2gltf@0.9.7-p1'
+          chmod +x node_modules/fbx2gltf/bin/Linux/FBX2glTF
+      - name: Validate approved stored fal rig and chosen offline motion input
+        run: |
+          python -m py_compile scripts/build-fal-rig-playable.py scripts/build-mixamo-playable.py scripts/convert-mixamo-fbx.py
+          python scripts/build-fal-rig-playable.py --stage validate
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          src=Path('assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1')
+          assert (src/'fal-rigged.glb').is_file()
+          approved=json.loads(Path('fal-motion-request.json').read_text())
+          report=json.loads((src/'rig-qa.json').read_text())
+          assert approved == {
+            'schema':1,
+            'rigged_sha256':report['rigged_sha256'],
+            'idle_clip':'Standard_Idle',
+            'other_clips':['Walking_21','Run_With_Sword','Standing_Melee_Attack_Downward'],
+            'api_predictions':0,
+          }
+          print('Offline exact rig SHA and clip selection approved; no paid API')
+          PY
+      - name: Download original YBot Mixamo motions including Standard Idle
+        run: python scripts/convert-mixamo-fbx.py download "$MIXAMO_CONVERTED_DIR"
+      - name: Convert five real FBX clips to GLB
+        run: |
+          python scripts/convert-mixamo-fbx.py convert "$MIXAMO_CONVERTED_DIR"
+          for clip in Standard_Idle 2hand_Idle Walking_21 Run_With_Sword Standing_Melee_Attack_Downward; do
+            test -s "$MIXAMO_CONVERTED_DIR/$clip.glb"
+          done
+      - name: Regenerate textured skinned fal playable GLB without inference
+        run: python scripts/build-fal-rig-playable.py --stage animate
+      - name: Publish revised animation and documented clip provenance
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: fal native UV rig with real Standard Idle and Mixamo actions'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: warconquer-fal-uv-neutral-idle
+          path: assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/
+          retention-days: 3
+          if-no-files-found: ignore
