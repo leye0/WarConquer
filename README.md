@@ -16,7 +16,7 @@ Ces documents constituent une **proposition de conception en cours de discussion
 
 Le pilote de contrôle de mouvement SW approuvé est maintenant accessible depuis [le pipeline de guides de pose](docs/pose-guided-asset-animation.md). Un seul script, une seule GitHub Action et une seule requête servent d'entrée : `scripts/build-pose-guide.py`, `.github/workflows/build-pose-guide.yml`, `pose-guide-request.json`.
 
-Ces guides contiennent des articulations et une trajectoire d'arme rigide; **ils ne sont pas encore les sprites animés du jeu**. Les vidéos OpenRouter précédentes et le pipeline historique des huit directions sont conservés à des fins de comparaison.
+Ces guides contiennent des articulations et une trajectoire d'arme rigide. La même Action construit maintenant un **premier aperçu articulé de l'illustration SW d'origine** avec `scripts/build-rigged-asset.py` et `rigged-asset-request.json`; la vidéo et les 32 échantillons sont publiés sous `assets/experiments/asset-animations/marches_hache/SW/`. C'est une **prévisualisation à valider**, pas encore un sprite approuvé. Aucun appel génératif payant. Les vidéos OpenRouter précédentes et le pipeline historique des huit directions sont conservés à des fins de comparaison.
 
 ---
 
