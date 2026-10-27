@@ -93,6 +93,9 @@ try {
     width:1280,height:800,deviceScaleFactor:1,mobile:false
   });
   await request("Page.navigate",{url:"http://127.0.0.1:4173/character-lab.html"});
+  await until(s=>s.status.startsWith("Prêt"),"initial Character Lab GLB ready",45000);
+  const legacyPlayable=await js("(()=>{const d=document.getElementById('modelSelect');const o=Array.from(d.options).find(x=>x.value.includes('/mixamo-axe-v1/warconquer-playable.glb'));if(!o)return '';d.value=o.value;d.dispatchEvent(new Event('change',{bubbles:true}));return d.value;})()");
+  assert(legacyPlayable.includes("/mixamo-axe-v1/warconquer-playable.glb"), "legacy Mixamo fixture missing");
   const initial=await until(s=>s.motion.startsWith("Idle_")&&
     s.clips.includes("Walk_Mixamo")&&s.clips.includes("Run_Mixamo")&&
     s.clips.includes("Attack_Mixamo")&&s.walk.includes("Marche ET course"),
@@ -199,7 +202,10 @@ try {
   await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.alpha=Math.PI/2;c.beta=Math.PI/2.12;c.setTarget(new BABYLON.Vector3(0,1.15,0));c.lowerRadiusLimit=2.8;c.radius=5.5;return true})()");
   await sleep(700);
   await screenshot("fal-animated-idle-front-live");
-  console.log("PASS: original and fal-native UV rigged character, real Mixamo idle/walk/run/attack, texture screenshots");
+  await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.alpha=-Math.PI/2;c.beta=Math.PI/2.12;c.setTarget(new BABYLON.Vector3(0,1.15,0));c.lowerRadiusLimit=2.8;c.radius=5.5;return true})()");
+  await sleep(650);
+  await screenshot("fal-animated-idle-face-live");
+  console.log("PASS: legacy plus default fal PBR 52-bone, four real Mixamo clips, true face/texture screenshots");
 } finally {
   try{socket?.close();}catch{}
   browser.kill("SIGTERM");
