@@ -124,7 +124,7 @@ const server = createServer((req, res) => {
   }
   if (pathname === "/" || pathname === "/character-lab.html") {
     pathname = "/character-lab.html";
-  } else if (!["/scripts/character-lab-client.js","/scripts/weapon-grip-geometry.js"].includes(pathname) && !pathname.startsWith("/assets/")) {
+  } else if (!["/scripts/character-lab-client.js","/scripts/weapon-grip-geometry.js","/scripts/equipment-animation-policy.js"].includes(pathname) && !pathname.startsWith("/assets/")) {
     return send(res, 404, "Not found");
   }
   let absolute;
