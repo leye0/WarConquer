@@ -1,0 +1,43 @@
+{
+  "trial_id": "marches-axeman-tpose-right-profile-correction-v1",
+  "original_right_sha256": "c014122823cc8ba9a5cfee864151faf4bb0a5580db8812f988ddc99b6d71b6f7",
+  "model": "meta/muse-image",
+  "status": "geometric-profile-pass-needs-visual-review",
+  "prompt": "STRICT EXACT 90-DEGREE RIGHT PROFILE OF THE SAME WARCONQUER MALE AXEMAN IN T-POSE.\n\nFIRST PROVIDED IMAGE is a MIRRORED LEFT SIDE silhouette; it is the *mandatory exact camera and bodily pose geometry* reference. Generate the physical opposite side, without duplicating asymmetrical decorations blindly. The other references identify the same person's hair, beard, body proportions, dark red ragged Marches warrior costume, black leather armor, belt and boots. Keep the same identity and exact scale.\n\nREQUIRED CAMERA: pure orthographic EXACT RIGHT SIDE PROFILE, directly perpendicular to sagittal plane, 90 degrees from front. The man must look toward the RIGHT edge; only his ONE RIGHT SIDE eye and the nose profile visible. Torso must be SIDE-ON, an extremely NARROW silhouette like the first provided mirrored side-view silhouette. ZERO front chest surface, ZERO two-eyes face, ZERO three-quarter twist, ZERO diagonal pose. Strictly do not reproduce a frontal T-pose picture. Both arms fully outstretched sideways in world-space 3D T-pose at shoulder height: their projection overlaps along camera depth, NOT as two arms forming a horizontal line across the image. Hands EMPTY and OPEN. No weapon, axe, sword, shield or scenery. Spine and head vertical; knees straight; two boots on same baseline and in side-profile. Preserve anatomy and articulated-friendly gaps. No pixel art, no labels, no extra figure.\n\n1024 square, isolated full body, feet/head in frame, generous safety margins, neutral diffuse lighting, detailed WarConquer hand-painted material fidelity, transparent background, otherwise absolutely uniform white. No perspective, no elevated RTS camera, no yaw offset, no camera tilt.\n",
+  "candidate_sha256": "c77fc5e71bfbf8baafd9dfd5dc05fedf77bc15dfe4b49216223fdc094a69aacb",
+  "profile_width_ratio_to_left": 1.003,
+  "profile_width_gate_passed": true,
+  "matte": "black-background-matte",
+  "normalized": {
+    "raw_bbox": [
+      574,
+      214,
+      1159,
+      1448
+    ],
+    "source_edge_contact": false,
+    "foreground_fraction": 0.10527,
+    "normalization_scale": 0.59747,
+    "feet_baseline_px": 899
+  },
+  "usage": {
+    "prompt_tokens": 426,
+    "completion_tokens": 3552,
+    "total_tokens": 3978,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 3552
+    }
+  },
+  "accepted_as_current_right_source": true
+}

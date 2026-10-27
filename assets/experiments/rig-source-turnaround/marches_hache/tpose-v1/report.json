@@ -37,5 +37,11 @@
       "view": "right",
       "status": "generated-needs-visual-approval"
     }
-  ]
+  ],
+  "right_profile_repair": {
+    "status": "geometric-profile-pass-needs-visual-review",
+    "profile_width_ratio_to_left": 1.003,
+    "profile_width_gate_passed": true,
+    "accepted_as_current_right_source": true
+  }
 }
