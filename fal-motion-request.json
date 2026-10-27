@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "rigged_sha256": "a5b0475c35327cfb0ba5fc94deb9c720c2a9b4c90f59430be1bf7e6064efc975",
+  "idle_clip": "Standard_Idle",
+  "other_clips": [
+    "Walking_21",
+    "Run_With_Sword",
+    "Standing_Melee_Attack_Downward"
+  ],
+  "api_predictions": 0
+}
