@@ -1,0 +1,16 @@
+{
+  "status": "technical-check-passed-awaiting-visual-and-grip-QA",
+  "model": "firtoz/trellis",
+  "version": "e8f6c45206993f297372f5436b90350817bd9b4a0d52d2a76df50c1c8afa2b3c",
+  "prediction_id": "e06j1hzrd5rnc0d1fe8rhvtre8",
+  "source_sha256": "061c18599da536c363ffa8bb10f648405d31c240f027c3867a46541d2b0d79bc",
+  "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+  "glb_bytes": 1355836,
+  "meshes": 1,
+  "materials": 1,
+  "images": 1,
+  "rigged": false,
+  "right_hand_attachment_complete": false,
+  "limitations": "Axe visual shape, shaft thickness, correct orientation and hand grip are not yet reviewed",
+  "paid_predictions_submitted": 1
+}
