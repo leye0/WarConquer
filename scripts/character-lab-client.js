@@ -5,6 +5,7 @@
   "use strict";
   const byId = id => document.getElementById(id);
   const TRELLIS_AXE_URL = "assets/experiments/props/marches_hache/trellis-v1/axe.glb";
+  const TRELLIS_GRIP_URL = "assets/experiments/props/marches_hache/trellis-v1/grip-vision.json";
   // Resolve asset URLs under both localhost / and GitHub Pages /WarConquer/.
   const assetUrl = path => path?.startsWith("/assets/") ? "." + path : path;
   const FALLBACK = {
@@ -308,67 +309,141 @@
     state.weaponImport=null;
     state.weaponAnchor=null;
     text("weaponMetric","—");
+    byId("world").dataset.weaponGrip="none";
+    byId("world").dataset.weaponGripHeadRatio="";
   }
 
-  // A TRELLIS GLB is an unrigged prop, not a body replacement. Attach it to the
-  // *animated right hand node* already present in the four-clip character GLB.
-  async function tryEquipAxe(imported, token) {
+  // Fit semantic grip in image space once (OpenRouter vision, offline CI).
+  // Recompute the shaft/head frame from Babylon's actual imported vertices;
+  // GLB axes cannot be taken from the original picture or hard-coded.
+  function importedPropPoints(meshes) {
+    const B=BABYLON,points=[];
+    for(const mesh of meshes) {
+      if(!mesh.getTotalVertices?.())continue;
+      const positions=mesh.getVerticesData(B.VertexBuffer.PositionKind);
+      if(!positions)continue;
+      const matrix=mesh.computeWorldMatrix(true);
+      const stride=Math.max(1,Math.ceil(positions.length/3/24000));
+      for(let i=0;i<positions.length;i+=3*stride) {
+        const p=B.Vector3.TransformCoordinates(
+          new B.Vector3(positions[i],positions[i+1],positions[i+2]),matrix);
+        points.push([p.x,p.y,p.z]);
+      }
+    }
+    return points;
+  }
+
+  function normalizedNodeName(node) {
+    return (node?.name||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+  }
+
+  function findGripAnatomy(imported, side) {
+    const nodes=[...(imported.transformNodes||[]),...(imported.meshes||[])];
+    const stem=side==="left"?"lefthand":"righthand";
+    const hand=nodes.find(node=>normalizedNodeName(node).endsWith(stem));
+    if(!hand)return null;
+    const forearm=nodes.find(node=>normalizedNodeName(node).endsWith(side+"forearm")||
+      normalizedNodeName(node).endsWith(side+"lowerarm"))||hand.parent;
+    const middle=nodes.find(node=>normalizedNodeName(node).includes(stem+"middle1"))||
+      nodes.find(node=>normalizedNodeName(node).includes(stem+"index1"));
+    return {hand,forearm,middle};
+  }
+
+  function buildGripRotation(prop, wantedShaft, wantedBlade) {
     const B=BABYLON;
-    const hand=[...(imported.transformNodes||[]),...(imported.meshes||[])]
-      .find(node=>(node.name||"").toLowerCase().replace(/[^a-z0-9]/g,"").endsWith("righthand"));
-    if (!hand) { text("weaponMetric","Main droite introuvable"); return; }
-    let prop;
+    const gram=(shaft,blade)=>{
+      const y=shaft.normalize();
+      const x=blade.subtract(y.scale(B.Vector3.Dot(y,blade))).normalize();
+      const z=B.Vector3.Cross(x,y).normalize();
+      return {x,y,z};
+    };
+    const source=gram(new B.Vector3(...prop.shaft),new B.Vector3(...prop.blade));
+    const target=gram(wantedShaft,wantedBlade);
+    const from=B.Matrix.Identity(),to=B.Matrix.Identity();
+    B.Matrix.FromXYZAxesToRef(source.x,source.y,source.z,from);
+    B.Matrix.FromXYZAxesToRef(target.x,target.y,target.z,to);
+    const rotation=to.multiply(B.Matrix.Transpose(from));
+    return B.Quaternion.FromRotationMatrix(rotation).normalize();
+  }
+
+  async function tryEquipAxe(imported,token) {
+    const B=BABYLON;
+    let prop,anchor;
     try {
-      prop=await B.SceneLoader.ImportMeshAsync(null,"",TRELLIS_AXE_URL,state.scene);
-      if (token!==state.pendingLoad) {
-        for (const node of [...prop.meshes,...prop.transformNodes]) if (!node.isDisposed()) node.dispose(false,true);
+      const response=await fetch(TRELLIS_GRIP_URL,{cache:"no-store"});
+      if(!response.ok) {
+        text("weaponMetric","Analyse visuelle de la prise en attente · pas de fixation arbitraire");
         return;
       }
-      const solids=prop.meshes.filter(mesh=>mesh.getTotalVertices&&mesh.getTotalVertices()>0);
-      if (!solids.length) throw new Error("Le GLB TRELLIS ne contient aucun maillage");
-      const lo=new B.Vector3(Infinity,Infinity,Infinity);
-      const hi=new B.Vector3(-Infinity,-Infinity,-Infinity);
-      for (const mesh of solids) {
-        mesh.computeWorldMatrix(true);
-        const b=mesh.getBoundingInfo().boundingBox;
-        lo.minimizeInPlace(b.minimumWorld);
-        hi.maximizeInPlace(b.maximumWorld);
+      const vision=await response.json();
+      const gripFraction=vision?.analysis?.grip_fraction_from_butt;
+      const side=vision?.analysis?.landmarks?.holding_hand==="left"?"left":"right";
+      if(vision.schema!==1||!Number.isFinite(gripFraction)||
+        gripFraction<=.03||gripFraction>=.65)throw Error("Repères visuels de prise invalides");
+      const anatomy=findGripAnatomy(imported,side);
+      if(!anatomy)throw Error("Main "+side+" introuvable dans le rig");
+      if(!window.WCWeaponGrip?.fitGrip)throw Error("Analyseur géométrique manquant");
+      prop=await B.SceneLoader.ImportMeshAsync(null,"",assetUrl(TRELLIS_AXE_URL),state.scene);
+      if(token!==state.pendingLoad) {
+        for(const node of [...prop.meshes,...prop.transformNodes])
+          if(!node.isDisposed())node.dispose(false,true);
+        return;
       }
-      const dimension=hi.subtract(lo);
-      const dims=[dimension.x,dimension.y,dimension.z];
-      const longAxis=dims.indexOf(Math.max(...dims));
-      if (!Number.isFinite(dims[longAxis])||dims[longAxis]<.001) throw new Error("Bornes de la hache invalides");
-      const worldScale=new B.Vector3();
-      const handRotation=new B.Quaternion();
-      hand.computeWorldMatrix(true).decompose(worldScale,handRotation);
-      const handUnit=Math.max(.00001,(Math.abs(worldScale.x)+Math.abs(worldScale.y)+Math.abs(worldScale.z))/3);
-      const anchor=new B.TransformNode("wc-trellis-axe-right-hand",state.scene);
-      const offset=new B.TransformNode("wc-trellis-axe-shaft-grip",state.scene);
-      const roots=[...prop.meshes,...prop.transformNodes].filter(x=>!x.parent);
-      for (const root of roots) root.parent=offset;
-      offset.parent=anchor;
+      const points=importedPropPoints(prop.meshes||[]);
+      const frame=window.WCWeaponGrip.fitGrip(points,gripFraction,
+        vision.analysis.landmarks.object_type);
+      const {hand,forearm,middle}=anatomy;
+      hand.computeWorldMatrix(true);
+      const handPosition=hand.getAbsolutePosition();
+      const elbowPosition=forearm?.getAbsolutePosition?.()||handPosition.add(new B.Vector3(0,.3,0));
+      let shaftWorld=elbowPosition.subtract(handPosition);
+      if(shaftWorld.length()<.001)throw Error("Avant-bras sans direction géométrique");
+      shaftWorld.normalize();
+      const pivotForward=B.Vector3.TransformNormal(B.Axis.Z,
+        state.character.getWorldMatrix()).normalize();
+      let bladeWorld=pivotForward.subtract(shaftWorld.scale(B.Vector3.Dot(pivotForward,shaftWorld)));
+      if(bladeWorld.length()<.01) {
+        const sideways=B.Vector3.TransformNormal(B.Axis.X,state.character.getWorldMatrix());
+        bladeWorld=sideways.subtract(shaftWorld.scale(B.Vector3.Dot(sideways,shaftWorld)));
+      }
+      if(bladeWorld.length()<.001)throw Error("Orientation anatomique indéterminée");
+      const worldRotation=buildGripRotation(frame,shaftWorld,bladeWorld);
+      const parentScale=new B.Vector3(),parentRotation=new B.Quaternion();
+      hand.getWorldMatrix().decompose(parentScale,parentRotation);
+      const unitScale=(Math.abs(parentScale.x)+Math.abs(parentScale.y)+Math.abs(parentScale.z))/3;
+      if(!Number.isFinite(unitScale)||unitScale<1e-7)throw Error("Échelle de main invalide");
+      // Only the grip is parented to the animated hand. The weapon shaft
+      // extends toward the forearm and the cutting edge toward the avatar's front.
+      const desiredLength=1.9*.49;
+      anchor=new B.TransformNode("wc-auto-grip-"+side+"-hand",state.scene);
       anchor.parent=hand;
-      anchor.scaling.setAll(Math.min(500,Math.max(.0001,.95/(dims[longAxis]*handUnit))));
-      // Grip at the lower quarter of the shaft, rather than at mesh centre.
-      const grip=lo.add(dimension.scale(.5));
-      if (longAxis===0) grip.x=lo.x+dimension.x*.22;
-      if (longAxis===1) grip.y=lo.y+dimension.y*.22;
-      if (longAxis===2) grip.z=lo.z+dimension.z*.22;
-      offset.position.copyFrom(grip.scale(-1));
-      // Align the shaft upright in the first preview pose, accounting for the
-      // Mixamo hand bone rest orientation. The relative correction remains
-      // attached to the hand as walk/run/attack rotate that bone.
-      const upAxis=longAxis===0 ? B.Quaternion.RotationAxis(B.Axis.Z,Math.PI/2)
-                  : longAxis===2 ? B.Quaternion.RotationAxis(B.Axis.X,-Math.PI/2)
-                  : B.Quaternion.Identity();
-      anchor.rotationQuaternion=B.Quaternion.Inverse(handRotation).multiply(upAxis);
+      let palmWorld=handPosition;
+      if(middle) {
+        const knuckle=middle.getAbsolutePosition();
+        if(B.Vector3.Distance(handPosition,knuckle)<.25)
+          palmWorld=B.Vector3.Lerp(handPosition,knuckle,.45);
+      }
+      anchor.position.copyFrom(B.Vector3.TransformCoordinates(
+        palmWorld,B.Matrix.Invert(hand.getWorldMatrix())));
+      anchor.rotationQuaternion=B.Quaternion.Inverse(parentRotation).multiply(worldRotation);
+      anchor.scaling.setAll(desiredLength/(frame.length*unitScale));
+      const offset=new B.TransformNode("wc-weapon-local-grip-origin",state.scene);
+      offset.parent=anchor;
+      offset.position=new B.Vector3(...frame.grip).negate();
+      const roots=[...prop.meshes,...prop.transformNodes].filter(node=>!node.parent);
+      for(const node of roots)node.parent=offset;
       state.weaponImport=prop;
       state.weaponAnchor=anchor;
-      text("weaponMetric","Hache TRELLIS texturée · prise provisoire");
-    } catch(err) {
-      if (prop) for (const node of [...prop.meshes,...prop.transformNodes]) if (!node.isDisposed()) node.dispose(false,true);
-      text("weaponMetric","Hache indisponible : "+String(err.message||err).slice(0,90));
-      console.warn("TRELLIS axe attachment failed",err);
+      text("weaponMetric","Prise auto · vision + géométrie 3D · "+side+
+        " · ratio tête/manche "+frame.headWidthRatio.toFixed(2));
+      byId("world").dataset.weaponGrip="vision-geometry";
+      byId("world").dataset.weaponGripHeadRatio=frame.headWidthRatio.toFixed(3);
+    }catch(err){
+      if(prop)for(const node of [...prop.meshes,...prop.transformNodes])
+        if(!node.isDisposed())node.dispose(false,true);
+      if(anchor&&!anchor.isDisposed())anchor.dispose(false,true);
+      text("weaponMetric","Prise refusée : "+String(err.message||err).slice(0,96));
+      console.warn("Generic weapon grip analysis failed:",err);
     }
   }
 
