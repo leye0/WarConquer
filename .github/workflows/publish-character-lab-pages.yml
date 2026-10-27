@@ -55,8 +55,13 @@ jobs:
             assert(existsSync(join(dir, "index.html")));
             assert(existsSync(join(dir, "scripts/character-lab-client.js")));
             assert(existsSync(join(dir, "scripts/weapon-grip-geometry.js")));
-            const grip=JSON.parse(readFileSync(join(dir,"assets/experiments/props/marches_hache/trellis-v1/grip-plan.json")));
-            assert.equal(grip.schema,2,"Missing generically analyzed vision attachment plan");
+            const props=data.characters.flatMap(c=>c.props||[]);
+            assert(props.length>0,"No generic vision attachment plans discovered");
+            for(const p of props) {
+              const plan=JSON.parse(readFileSync(join(dir,p.gripPlan.replace(/^\\//,""))));
+              assert.equal(plan.schema,2,"Invalid grip plan for "+p.id);
+              assert(existsSync(join(dir,p.model.replace(/^\\//,""))),"Missing prop "+p.id);
+            }
             const data = JSON.parse(readFileSync(join(dir, "api/character-lab.json")));
             assert(data.characters.length > 0);
             const all = data.characters.flatMap(c => c.models);
