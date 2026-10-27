@@ -1,0 +1,167 @@
+{
+  "status": "REVIEW_REQUIRED",
+  "technical_checks": "PASS",
+  "preview_only": true,
+  "not_human_approved": true,
+  "source": "assets/experiments/standing-turnaround/marches_hache/SW.png",
+  "source_sha256": "901c17d9b7b484385fd764e9522ee2f1944c32498a33cf7365c00de0ae6615e9",
+  "guide": "pose-guide-request.json",
+  "profile": "sw_walk_attack_8s",
+  "guide_profile_changed": false,
+  "source_registration": {
+    "alpha_bbox": [
+      303,
+      162,
+      720,
+      899
+    ],
+    "rect": [
+      432,
+      211,
+      584,
+      480
+    ],
+    "mask_regions": {
+      "head": [
+        493,
+        162,
+        647,
+        347
+      ],
+      "left_thigh": [
+        470,
+        584,
+        567,
+        750
+      ],
+      "left_shin": [
+        437,
+        706,
+        557,
+        840
+      ],
+      "right_thigh": [
+        564,
+        579,
+        680,
+        767
+      ],
+      "right_shin": [
+        600,
+        708,
+        681,
+        899
+      ],
+      "left_upper_arm": [
+        440,
+        370,
+        510,
+        487
+      ],
+      "left_forearm": [
+        427,
+        458,
+        488,
+        575
+      ],
+      "right_upper_arm": [
+        609,
+        350,
+        692,
+        481
+      ],
+      "right_forearm": [
+        617,
+        440,
+        691,
+        594
+      ],
+      "axe": [
+        306,
+        526,
+        473,
+        784
+      ]
+    },
+    "source_dimensions": [
+      1024,
+      1024
+    ],
+    "moving_source_coverage_percent": 65.87
+  },
+  "frames": 96,
+  "duration_seconds": 8.0,
+  "fps": 12,
+  "canvas_px": [
+    768,
+    768
+  ],
+  "phase_boundaries_seconds": [
+    0,
+    4,
+    8
+  ],
+  "full_frame_fixed_camera": true,
+  "frame_samples_extracted_by_ffmpeg": 32,
+  "minimum_silhouette_safe_area_clearance_px": 73,
+  "segment_scale_range": {
+    "left_thigh": [
+      0.794,
+      1.563
+    ],
+    "right_thigh": [
+      0.538,
+      1.398
+    ],
+    "left_shin": [
+      1.177,
+      1.706
+    ],
+    "right_shin": [
+      1.106,
+      1.646
+    ],
+    "torso": [
+      1.067,
+      1.067
+    ],
+    "head": [
+      0.838,
+      0.838
+    ],
+    "left_upper_arm": [
+      0.158,
+      1.215
+    ],
+    "right_upper_arm": [
+      0.33,
+      1.926
+    ],
+    "axe": [
+      1.561,
+      1.561
+    ],
+    "left_forearm": [
+      0.214,
+      1.648
+    ],
+    "right_forearm": [
+      0.928,
+      2.28
+    ]
+  },
+  "rigid_axe": true,
+  "axe_hand": "anatomical RIGHT, screen-left in SW source",
+  "axe_joint_control": [
+    "handle_grip",
+    "head_center"
+  ],
+  "cost_usd": 0,
+  "model_calls": 0,
+  "limitations": [
+    "This is an explicitly manually masked 2D cut-out prototype, not inferred anatomy.",
+    "Rigid bone transforms may expose joint seams and cannot synthesize hidden garment surfaces.",
+    "The decorative painted axe head is rigid and its visible silhouette may exceed the schematic blade polygon.",
+    "Human review of mask coverage, hand grip, silhouette continuity, anatomy and action legibility is required."
+  ]
+}
