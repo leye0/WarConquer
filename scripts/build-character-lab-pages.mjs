@@ -46,15 +46,16 @@ function repositoryAssetPath(url) {
 
 const catalog = inventory();
 assert(catalog.characters.length > 0, "Cannot publish an empty Character Lab");
-const assets = new Set([
-  "assets/experiments/props/marches_hache/trellis-v1/axe.glb",
-  "assets/experiments/props/marches_hache/trellis-v1/grip-plan.json",
-]);
+const assets = new Set();
 for (const character of catalog.characters) {
   assert(character.models.length > 0, "No models for " + character.id);
   for (const model of character.models) assets.add(repositoryAssetPath(model.url));
   for (const url of Object.values(character.views)) assets.add(repositoryAssetPath(url));
   if (character.original) assets.add(repositoryAssetPath(character.original));
+  for (const prop of character.props || []) {
+    assets.add(repositoryAssetPath(prop.gripPlan));
+    assets.add(repositoryAssetPath(prop.model));
+  }
 }
 
 let bytes = 0;
