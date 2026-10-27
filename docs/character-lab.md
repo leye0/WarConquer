@@ -94,7 +94,7 @@ Le test Chrome automatisé vérifie la présence des choix de repos et des bouto
 ## Initialisation et retour automatique à la pose de départ
 
 - **Chargement sans pose en T visible :** le pivot reste masqué le temps de sélectionner et d'appliquer la première image de l'animation Idle. Le maillage est ensuite affiché directement dans une vraie pose de repos.
-- **Déclenchement d'une action :** les rotations et les positions locales des nœuds réellement animés sont capturées avant l'attaque ou l'incantation. Le mouvement Mixamo peut alors se dérouler jusqu'au bout.
+- **Déclenchement d'une action :** les rotations et les positions locales des nœuds réellement animés sont capturées avant l'attaque ou l'incantation, ce qui évite de supposer une pose statique identique pour tous les modèles. Le mouvement Mixamo peut alors se dérouler jusqu'au bout.
 - **Fin de l'action :** un interpolateur Babylon natif rétablit la pose mémorisée en **12 images à 30 i/s (environ 0,4 s)**, avec une accélération/décélération douce. L'Idle reprend ensuite par fondu, sans saut direct depuis la dernière posture du combat.
 - **Priorité au joueur :** si le personnage se déplace pendant le retour, la restauration est interrompue au profit de la marche ou de la course. La commande Replacer ou le chargement d'un autre modèle annulent proprement les interpolations en cours.
 - **Vérification :** le test Chrome exige au moins deux restaurations complètes (attaque et lancement du sort), en plus de photographier le premier repos et chaque retour.
