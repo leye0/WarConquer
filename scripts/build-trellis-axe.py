@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import re
 import struct
+import time
 from urllib.parse import urlparse
 from urllib.request import urlopen
 
@@ -102,10 +103,16 @@ def collect(cfg):
     rec=json.loads(CHECKPOINT.read_text())
     if rec["source_sha256"]!=cfg["source_sha256"] or rec["version"]!=VERSION:
         raise ValueError("Pinned Trellis prediction mismatch")
-    prediction=api().predictions.get(rec["prediction_id"])
-    if prediction.status not in TERMINAL:
-        print("Prediction still running, no repeat and no billing",prediction.status)
-        return
+    client=api()
+    deadline=time.monotonic()+9*60
+    while True:
+        prediction=client.predictions.get(rec["prediction_id"])
+        print("Trellis prediction:",prediction.status,flush=True)
+        if prediction.status in TERMINAL:
+            break
+        if time.monotonic()>deadline:
+            raise TimeoutError("Existing prediction still running; collect later without resubmitting")
+        time.sleep(15)
     if prediction.status!="succeeded":
         save(DEST/"error.json",{"prediction_id":rec["prediction_id"],
                                   "status":prediction.status,
