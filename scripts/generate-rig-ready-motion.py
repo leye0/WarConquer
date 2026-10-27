@@ -26,10 +26,11 @@ PROMPT=("A medieval warrior holding an imaginary heavy two-handed axe in front o
 INPUTS={
     "prompt":PROMPT,
     "character":"Tar",
-    "output_ext":"glb",
+    "output_ext":"GLB",
     "fps":24,
     "no_mesh":False,
     "foot_ik":True,
+    "internal_ik":True,
     "motion_length":4,
     "seed":20261027,
     "cfg_scale":2.5,
