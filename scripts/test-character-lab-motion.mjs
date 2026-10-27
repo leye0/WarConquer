@@ -226,6 +226,7 @@ try {
   await screenshot("fal-animated-idle-face-live");
   await js("document.getElementById('cameraButton').click()");
   await request("Emulation.setDeviceMetricsOverride",{width:390,height:844,deviceScaleFactor:1,mobile:true});
+  await js("document.getElementById('cameraButton').click()");
   await sleep(900);
   await screenshot("fal-mobile-controls-idle-live");
   const sprintOn=await js("(()=>{const b=document.getElementById('runButton');b.click();return b.getAttribute('aria-pressed');})()");
