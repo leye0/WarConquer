@@ -149,7 +149,47 @@ try {
     }
     await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.setTarget(new BABYLON.Vector3(0,.85,0));c.radius=13;c.lowerRadiusLimit=6;return c.radius})()");
   }
-  console.log("PASS: Mixamo WASD/attack + fal.ai textured full and close-up visual QA");
+  const riggedFalUrl=await js("(()=>{const d=document.getElementById('modelSelect');const o=Array.from(d.options).find(x=>x.textContent.includes('Uthana + Mixamo'));if(!o)return '';d.value=o.value;d.dispatchEvent(new Event('change',{bubbles:true}));return d.value;})()");
+  assert(riggedFalUrl.includes("fal-mixamo-v1/warconquer-textured-playable.glb"),
+    "new fal UV + Uthana rig + Mixamo model missing");
+  const texturedIdle=await until(s=>s.status.startsWith("Prêt")&&
+    s.motion.startsWith("Idle_Mixamo")&&s.clips.includes("Walk_Mixamo")&&
+    s.clips.includes("Run_Mixamo")&&s.clips.includes("Attack_Mixamo")&&
+    s.walk.includes("Marche ET course"),
+    "fal UV native texture + genuine idle/walk/run/attack in Babylon",45000);
+  console.log("FAL_RIGGED_IDLE_PASS",JSON.stringify(texturedIdle));
+  await sleep(750);
+  await screenshot("fal-animated-idle-live");
+  const texturedBefore=texturedIdle.position;
+  await down("w","KeyW",87);
+  const texturedWalking=await until(s=>s.motion.startsWith("Walk_Mixamo")&&
+    s.movement==="EN DÉPLACEMENT"&&s.position!==texturedBefore,
+    "fal textured and rigged character physically walks",12000);
+  console.log("FAL_RIGGED_WALK_PASS",JSON.stringify(texturedWalking));
+  await sleep(600);
+  await screenshot("fal-animated-walk-live");
+  await down("Shift","ShiftLeft",16);
+  const texturedRunning=await until(s=>s.motion.startsWith("Run_Mixamo"),
+    "fal textured and rigged character really runs",10000);
+  console.log("FAL_RIGGED_RUN_PASS",JSON.stringify(texturedRunning));
+  await sleep(500);
+  await screenshot("fal-animated-run-live");
+  await up("Shift","ShiftLeft",16);
+  await up("w","KeyW",87);
+  await until(s=>s.motion.startsWith("Idle_Mixamo")&&s.movement==="IMMOBILE",
+    "fal character returns to authentic idle",10000);
+  await js("document.getElementById('attackButton').click()");
+  const texturedAttack=await until(s=>s.motion.startsWith("Attack_Mixamo"),
+    "fal character attacks with real archived Mixamo clip",10000);
+  console.log("FAL_RIGGED_ATTACK_PASS",JSON.stringify(texturedAttack));
+  await sleep(300);
+  await screenshot("fal-animated-attack-live");
+  await js("document.getElementById('resetButton').click()");
+  await until(s=>s.motion.startsWith("Idle_Mixamo"),"fal idle after reset",10000);
+  await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.alpha=Math.PI/2;c.beta=Math.PI/2.12;c.setTarget(new BABYLON.Vector3(0,1.15,0));c.lowerRadiusLimit=2.8;c.radius=5.5;return true})()");
+  await sleep(700);
+  await screenshot("fal-animated-idle-front-live");
+  console.log("PASS: original and fal-native UV rigged character, real Mixamo idle/walk/run/attack, texture screenshots");
 } finally {
   try{socket?.close();}catch{}
   browser.kill("SIGTERM");
