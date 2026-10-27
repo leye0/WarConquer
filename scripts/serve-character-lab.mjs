@@ -48,10 +48,14 @@ function propPlans(unitId) {
   const folder = join(PROPS_ROOT, unitId);
   const result = [];
   for(const variant of dirs(folder)) {
-    // Prefer the newer plan only after its semantic/scale validation passes.
-    // The previous paid plan remains immutable and available for comparison.
+    // A vision model cannot self-certify visual correctness by returning
+    // both a proposed scale and a matching estimate. Only promote a v3
+    // attachment after a *separate* live rendered review approves it.
     const nextPlan = join(folder, variant, "grip-plan-v3.json");
-    const planFile = existsSync(nextPlan) ? nextPlan : join(folder, variant, "grip-plan.json");
+    const candidate = parseJson(nextPlan);
+    const verified = candidate?.schema === 3 &&
+      candidate?.visual_qa?.status === "approved";
+    const planFile = verified ? nextPlan : join(folder, variant, "grip-plan.json");
     const plan = parseJson(planFile);
     if(![2,3].includes(plan?.schema)) continue;
     const glbUrl = plan.inputs?.object_glb;
