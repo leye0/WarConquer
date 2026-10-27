@@ -123,7 +123,20 @@ try {
   console.log("ATTACK_PASS",JSON.stringify(attacking));
   await sleep(300);
   await screenshot("attack-live");
-  console.log("PASS: true GLB textures and four animation groups loaded; W, Shift+W, release, attack control paths");
+  const falUrl=await js("(()=>{const d=document.getElementById('modelSelect');const o=Array.from(d.options).find(x=>x.textContent.includes('fal.ai'));if(!o)return '';d.value=o.value;d.dispatchEvent(new Event('change',{bubbles:true}));return d.value;})()");
+  assert(falUrl.includes("fal-textured.glb"),"fal pilot missing from selector");
+  const fal=await until(s=>s.status.startsWith("Prêt")&&
+    s.walk.startsWith("Marche absente")&&s.motion==="Aucune animation",
+    "separate fal UV-textured unrigged pilot in Babylon",45000);
+  console.log("FAL_PILOT_PASS",JSON.stringify(fal));
+  await sleep(1000);
+  await screenshot("fal-textured-isometric-live");
+  for(const [label,angle] of [["front",Math.PI/2],["back",-Math.PI/2]]) {
+    await js("(()=>{const e=BABYLON.EngineStore.LastCreatedEngine;const c=e.scenes[0].activeCamera;const aspect=e.getRenderWidth()/e.getRenderHeight();c.alpha="+angle+";c.beta=Math.PI/2.12;c.orthoTop=1.6;c.orthoBottom=-1.6;c.orthoLeft=-1.6*aspect;c.orthoRight=1.6*aspect;return true})()");
+    await sleep(650);
+    await screenshot("fal-textured-"+label+"-live");
+  }
+  console.log("PASS: Mixamo WASD/attack + separate fal.ai textured-GLB render captures");
 } finally {
   try{socket?.close();}catch{}
   browser.kill("SIGTERM");
