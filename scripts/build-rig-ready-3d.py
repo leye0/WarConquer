@@ -22,6 +22,7 @@ OUTPUT = ROOT / "assets/experiments/rig-ready-3d/marches_hache/tpose-v1"
 ORDER = ("front", "back", "left", "right")
 MESH_MODEL = "tencent/hunyuan3d-2mv"
 RIG_MODEL = "uthana/create-character-v1"
+MESH_VERSION = "71798fbc3c9f7b7097e3bb85496e5a797d8b8f616b550692e7c3e176a8e9e5db"
 MESH_SETTINGS = {
     "steps": 30, "guidance_scale": 5, "octree_resolution": 256,
     "target_face_num": 25000, "remove_background": False,
@@ -94,7 +95,7 @@ def stage_submit(stage, cfg):
     model_name = MESH_MODEL if stage == "mesh" else RIG_MODEL
     api = client()
     model = api.models.get(model_name)
-    version = model.latest_version.id
+    version = MESH_VERSION if stage == "mesh" else model.latest_version.id
     if not version:
         raise RuntimeError("Replicate model has no available version")
     if stage == "mesh":
@@ -152,8 +153,8 @@ def download_glb(uri, target):
     with urlopen(uri, timeout=180) as remote, partial.open("wb") as output:
         for buf in iter(lambda: remote.read(1024 * 1024), b""):
             total += len(buf)
-            if total > 120 * 1024 * 1024:
-                raise ValueError("GLB exceeds 120 MiB output cap")
+            if total > 75 * 1024 * 1024:
+                raise ValueError("GLB exceeds 75 MiB output cap")
             output.write(buf)
     if total < 1024:
         raise ValueError("Empty GLB downloaded")
