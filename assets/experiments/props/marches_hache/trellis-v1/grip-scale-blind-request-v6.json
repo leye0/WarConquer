@@ -1,0 +1,11 @@
+{
+  "schema": 6,
+  "experiment": "marches-axe-source-only-ratio-v6",
+  "generation_request": "axe-image-request.json",
+  "source_character": "assets/concepts/marches/units/hache.png",
+  "source_prop": "assets/concepts/marches/objects/hache_arme.png",
+  "output_path": "assets/experiments/props/marches_hache/trellis-v1/grip-scale-blind-v6.json",
+  "vision_model": "google/gemini-2.5-flash-lite",
+  "maximum_paid_requests": 1,
+  "automatic_paid_retries": 0
+}
