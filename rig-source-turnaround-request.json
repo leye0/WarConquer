@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "trial_id": "marches-axeman-strict-tpose-v1-2026-10-27",
+  "character": "marches_hache",
+  "reference": "assets/concepts/marches/units/hache.png",
+  "pose": "strict_t_pose",
+  "camera": "eye_level_orthographic",
+  "views": [
+    "front",
+    "back",
+    "left",
+    "right"
+  ],
+  "hands": "empty_open",
+  "weapons": "separate_after_rigging",
+  "output_directory": "assets/experiments/rig-source-turnaround/marches_hache/tpose-v1",
+  "image_provider": "OpenRouter",
+  "image_model": "meta/muse-image",
+  "maximum_paid_images": 4,
+  "automatic_paid_retries": 0,
+  "reconstruction_requires_visual_approval": true
+}
