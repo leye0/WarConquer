@@ -1,0 +1,89 @@
+{
+  "status": "converted-awaiting-visual-QA",
+  "source_mesh_and_rig": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/axe-chop-v1/warconquer-animated.glb",
+  "output": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/mixamo-axe-v1/warconquer-playable.glb",
+  "output_sha256": "0c2dad70d6996be829c180dc20ba9ccac0e57f26dcc60ec9505c82b1094f909f",
+  "rig_joint_count": 52,
+  "motion_origin": "real archived Adobe Mixamo FBX, not procedural or AI-generated",
+  "motion_conversion": "Blender FBX to GLB + world-rest-rotation retarget; local WASD handles translation",
+  "animation_clips": [
+    {
+      "name": "Idle",
+      "fbx": "Standing_Idle_3.fbx",
+      "source_glb_sha256": "f8169d43f8d983251ab4a58b27a0d5e20fa78926b5de1f98687e24d0f883136f",
+      "duration": 1.833,
+      "frames": 56,
+      "mapped_joints": 52,
+      "rotation_channels": 52,
+      "largest_rotation_degrees": 29.61
+    },
+    {
+      "name": "Walk",
+      "fbx": "Standing_Walk_Forward_3.fbx",
+      "source_glb_sha256": "139cefe551fac9da5ac6986ceb066ed387178273dff6d95b539416f4805cd154",
+      "duration": 1.333,
+      "frames": 41,
+      "mapped_joints": 52,
+      "rotation_channels": 52,
+      "largest_rotation_degrees": 54.02
+    },
+    {
+      "name": "Run",
+      "fbx": "Standing_Run_Forward_3.fbx",
+      "source_glb_sha256": "5facbb4a22d371fed45e92eac0943a60fc7c550b03c4e321c71edb4052654cc4",
+      "duration": 0.7,
+      "frames": 22,
+      "mapped_joints": 52,
+      "rotation_channels": 52,
+      "largest_rotation_degrees": 72.78
+    },
+    {
+      "name": "Attack",
+      "fbx": "Standing_Melee_Attack_Downward.fbx",
+      "source_glb_sha256": "4c3a6d2f3481422f6996baad82454a0480d5f4a040094b5cec412eba72af8e9e",
+      "duration": 2.267,
+      "frames": 69,
+      "mapped_joints": 52,
+      "rotation_channels": 52,
+      "largest_rotation_degrees": 124.28
+    }
+  ],
+  "texture_origin": "4 approved source images, orthographic UV projection, experimental",
+  "texture_QA": "not artist-approved; may have seams/misalignment",
+  "physical_weapon_attached": false,
+  "triangle_count": 25000,
+  "new_vertex_count": 75000,
+  "atlas_bytes": 982362,
+  "triangles_by_projection": {
+    "front": 7540,
+    "back": 7118,
+    "left": 5133,
+    "right": 5209
+  },
+  "source_silhouette_bboxes": {
+    "front": [
+      179,
+      218,
+      845,
+      899
+    ],
+    "back": [
+      179,
+      242,
+      845,
+      899
+    ],
+    "left": [
+      432,
+      162,
+      592,
+      899
+    ],
+    "right": [
+      428,
+      162,
+      595,
+      899
+    ]
+  }
+}
