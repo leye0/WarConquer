@@ -20,6 +20,8 @@ CLIPS={
     "Run_With_Sword":"running with one-handed weapon (Mixamo)",
     "Standing_Melee_Attack_Downward":"downward attack with axe (Mixamo)",
 }
+if os.environ.get("WARCONQUER_STANDARD_IDLE") == "1":
+    CLIPS["Standard_Idle"] = "genuine standing neutral Mixamo idle (YBot)"
 PREFIX="https://huggingface.co/datasets/Linzhan/Mixamo-Animations-Characters/resolve/main/animation_motion_ybot/"
 def download(directory):
     directory.mkdir(parents=True,exist_ok=True)
