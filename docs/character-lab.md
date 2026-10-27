@@ -1,5 +1,15 @@
 # WarConquer — terrain d'essai isométrique (Character Lab)
 
+## Version publiée sur GitHub Pages
+
+Le site statique est préparé automatiquement par [publish-character-lab-pages.yml](../.github/workflows/publish-character-lab-pages.yml), à chaque changement de la plateforme ou des modèles sur **main**.
+
+**Adresse prévue après activation de Pages :** https://leye0.github.io/WarConquer/
+
+Pour activer une seule fois le déploiement : **GitHub → WarConquer → Settings → Pages → Build and deployment → Source: GitHub Actions**. Si le dépôt est privé et que GitHub Free refuse Pages, il faut soit disposer de GitHub Pro, soit utiliser un dépôt public. Ne rendre WarConquer public qu'après avoir vérifié son historique et son contenu.
+
+La démo GitHub Pages est **accessible publiquement**, même si le dépôt source reste privé. Le workflow n'envoie qu'un jeu de fichiers choisi explicitement : HTML, client JavaScript, catalogue JSON généré depuis le même inventaire que le serveur local, GLB référencés, hache et images sources. Il ne publie ni scripts de génération, ni secrets, ni historique Git. Le code client utilise des chemins relatifs pour que les modèles fonctionnent sur l'URL GitHub Pages `/WarConquer/` et sur localhost. La démo ne lance aucun modèle génératif et ne consomme aucune clé API.
+
 ## Ouvrir la plateforme
 
 À la racine du dépôt, avec **Node.js 20+** et un navigateur moderne :
