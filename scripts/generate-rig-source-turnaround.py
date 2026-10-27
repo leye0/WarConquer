@@ -142,6 +142,10 @@ def run():
             row = {"view": direction, "status": "existing-unapproved", "warnings": warnings,
                    "geometry": geometry, "source_sha256": source_sha, "sha256": digest(target)}
             print("REUSE", direction, "without a paid call", flush=True)
+        elif record_path.is_file():
+            row = {"view": direction, "status": "blocked-existing-submission-record",
+                   "note": "Previous generation outcome uncertain or failed; no automatic paid retry."}
+            blocked = True
         elif blocked:
             row = {"view": direction, "status": "blocked-after-front-pose-failure"}
         else:
