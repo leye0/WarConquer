@@ -137,15 +137,17 @@ try {
     await screenshot("fal-textured-"+label+"-live");
     // Camera orthographic span follows radius on every render frame; set radius,
     // not orthoTop, for a real zoom during the visual texture QA.
-    await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.radius=5.5;c.setTarget(new BABYLON.Vector3(0,1.15,0));return true})()");
+    await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.setTarget(new BABYLON.Vector3(0,1.15,0));c.radius=5.5;return c.radius})()");
     await sleep(650);
+    assert((await js("BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera.radius")) < 6, "fal detail zoom was reset");
     await screenshot("fal-textured-"+label+"-detail-live");
     if (label === "front") {
-      await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.radius=3.2;c.setTarget(new BABYLON.Vector3(0,1.75,0));return true})()");
+      await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.setTarget(new BABYLON.Vector3(0,1.75,0));c.lowerRadiusLimit=2.8;c.radius=3.2;return c.radius})()");
       await sleep(650);
+      assert((await js("BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera.radius")) < 3.4, "fal face zoom was reset");
       await screenshot("fal-textured-face-detail-live");
     }
-    await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.radius=13;c.setTarget(new BABYLON.Vector3(0,.85,0));return true})()");
+    await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.setTarget(new BABYLON.Vector3(0,.85,0));c.radius=13;c.lowerRadiusLimit=6;return c.radius})()");
   }
   console.log("PASS: Mixamo WASD/attack + fal.ai textured full and close-up visual QA");
 } finally {
