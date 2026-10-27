@@ -1,0 +1,107 @@
+name: Unit pipeline · project-owned 3D builder
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/units/**'
+      - 'scripts/unit-pipeline.py'
+      - 'scripts/test-unit-pipeline.py'
+      - '.github/workflows/unit-pipeline.yml'
+  workflow_dispatch:
+    inputs:
+      unit:
+        description: 'Unit manifest ID under data/units'
+        required: true
+        default: 'marches_hache'
+        type: string
+      stage:
+        description: 'Stage to run (all = complete existing outputs)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - source
+          - turnaround
+          - body
+          - rig
+          - animations
+          - object_source
+          - object_mesh
+          - object_size
+          - object_grip
+          - integrate
+      allow_paid:
+        description: 'Explicitly allow missing paid-generation steps'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: project-unit-pipeline-${{ inputs.unit || 'marches_hache' }}
+  cancel-in-progress: false
+
+jobs:
+  local-build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    env:
+      UNIT_ID: ${{ inputs.unit || 'marches_hache' }}
+      PIPELINE_STAGE: ${{ inputs.stage || 'all' }}
+      ALLOW_PAID: ${{ inputs.allow_paid || false }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      OPENROUTER_IMAGE_MODEL: ${{ secrets.OPENROUTER_IMAGE_MODEL }}
+      FAL_KEY: ${{ secrets.FAL_API_KEY }}
+      REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check the project's own unit manifest and pipeline code
+        run: |
+          python -m py_compile scripts/unit-pipeline.py scripts/test-unit-pipeline.py
+          python scripts/test-unit-pipeline.py
+          python scripts/unit-pipeline.py list
+          python scripts/unit-pipeline.py status --unit "$UNIT_ID"
+          python scripts/unit-pipeline.py run --unit "$UNIT_ID" --stage "$PIPELINE_STAGE" --dry-run
+      - name: Install only stage dependencies needed by the project
+        if: github.event_name == 'workflow_dispatch'
+        run: python scripts/unit-pipeline.py bootstrap --unit "$UNIT_ID" --stage "$PIPELINE_STAGE"
+      - name: Execute locally owned build pipeline (explicit cost gate)
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(run --unit "$UNIT_ID" --stage "$PIPELINE_STAGE")
+          if [[ "$ALLOW_PAID" == "true" ]]; then args+=(--allow-paid); fi
+          python scripts/unit-pipeline.py "${args[@]}"
+      - name: Preserve local outputs and paid checkpoints, even after errors
+        if: always() && github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A assets/experiments/ assets/concepts/ 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -m "assets: save selected unit pipeline outputs and API receipts"
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Retain intermediate artifacts from the selected unit
+        uses: actions/upload-artifact@v4
+        if: always() && github.event_name == 'workflow_dispatch'
+        with:
+          name: project-unit-${{ inputs.unit || 'marches_hache' }}
+          path: |
+            assets/experiments/props/
+            assets/experiments/rig-ready-3d/
+            assets/experiments/rig-source-turnaround/
+          retention-days: 3
+          if-no-files-found: ignore
