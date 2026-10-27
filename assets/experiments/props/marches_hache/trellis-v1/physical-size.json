@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "vision_model": "google/gemini-2.5-flash-lite",
+  "input_hashes": {
+    "object_image": "061c18599da536c363ffa8bb10f648405d31c240f027c3867a46541d2b0d79bc",
+    "character_image": "40596135f14365c2a77258cd34fe8285c2968fc791816023fbe37cdb197982c7",
+    "generation_request": "7292454751dbea7110a1817f371e5da086f18d3d0b7f578a4f10af92b259680c"
+  },
+  "estimated_length_cm": 110,
+  "confidence": 0.8,
+  "reason": "The axe is described as a two-handed forest axe with a long straight shaft. Image 2 shows a large, muscular character wielding the axe, and the axe's length appears to be roughly equivalent to the character's height from their feet to their chest. A typical two-handed axe of this style would be around 100-120 cm in length to allow for effective leverage and swinging.",
+  "units": "cm",
+  "source": "original_design",
+  "usage": {
+    "prompt_tokens": 949,
+    "completion_tokens": 118,
+    "total_tokens": 1067,
+    "cost": 0.0001421,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.0001421,
+      "upstream_inference_prompt_cost": 9.49e-05,
+      "upstream_inference_completions_cost": 4.72e-05
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  },
+  "observed_cost_usd": 0.0001421
+}
