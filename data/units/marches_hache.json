@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "id": "marches_hache",
+  "title": "Guerrier des Marches à la hache",
+  "adapter": "legacy_marches_hache",
+  "description": "Unité pilote issue de la fiche 2D. Les commandes de génération historiques sont encore spécifiques à cette unité.",
+  "source": {
+    "character_image": "assets/concepts/marches/units/hache.png",
+    "turnaround_request": "rig-source-profiles-v2-request.json",
+    "views": {
+      "front": "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/front.png",
+      "back": "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/back.png",
+      "left": "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/left.png",
+      "right": "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/right.png"
+    }
+  },
+  "body": {
+    "texture_request": "fal-textured-pilot-request.json",
+    "glb": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-textured.glb",
+    "rigged_glb": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/fal-rigged.glb",
+    "playable_glb": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/warconquer-textured-playable.glb",
+    "animations": "data/motion-library.json"
+  },
+  "equipment": [
+    {
+      "id": "axe",
+      "kind": "axe",
+      "source_image": "assets/concepts/marches/objects/hache_arme.png",
+      "source_request": "axe-image-request.json",
+      "glb": "assets/experiments/props/marches_hache/trellis-v1/axe.glb",
+      "trellis_request": "trellis-axe-request.json",
+      "physical_size_request": "assets/experiments/props/marches_hache/trellis-v1/physical-size-request.json",
+      "physical_size": "assets/experiments/props/marches_hache/trellis-v1/physical-size.json",
+      "grip_request": "assets/experiments/props/marches_hache/trellis-v1/grip-request.json",
+      "grip": "assets/experiments/props/marches_hache/trellis-v1/grip-plan.json"
+    }
+  ]
+}
