@@ -149,6 +149,16 @@ try {
     }
     await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.setTarget(new BABYLON.Vector3(0,.85,0));c.radius=13;c.lowerRadiusLimit=6;return c.radius})()");
   }
+  const restRigUrl=await js("(()=>{const d=document.getElementById('modelSelect');const o=Array.from(d.options).find(x=>x.value.endsWith('/fal-rigged.glb'));if(!o)return '';d.value=o.value;d.dispatchEvent(new Event('change',{bubbles:true}));return d.value;})()");
+  assert(restRigUrl.endsWith("/fal-rigged.glb"), "fal Uthana bind-pose variant missing");
+  await until(s=>s.status.startsWith("Prêt")&&s.motion==="Aucune animation",
+    "Uthana original bind pose without animation",45000);
+  await sleep(600);
+  await screenshot("fal-rigged-bind-pose-live");
+  await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.alpha=Math.PI/2;c.beta=Math.PI/2.12;c.setTarget(new BABYLON.Vector3(0,1.15,0));c.lowerRadiusLimit=2.8;c.radius=5.5;return true})()");
+  await sleep(700);
+  await screenshot("fal-rigged-bind-pose-front-live");
+  await js("document.getElementById('isoButton').click()").catch(()=>{});
   const riggedFalUrl=await js("(()=>{const d=document.getElementById('modelSelect');const o=Array.from(d.options).find(x=>x.textContent.includes('Uthana + Mixamo'));if(!o)return '';d.value=o.value;d.dispatchEvent(new Event('change',{bubbles:true}));return d.value;})()");
   assert(riggedFalUrl.includes("fal-mixamo-v1/warconquer-textured-playable.glb"),
     "new fal UV + Uthana rig + Mixamo model missing");
