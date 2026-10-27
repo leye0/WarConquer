@@ -224,6 +224,7 @@ try {
   await sleep(650);
   assert(Math.abs((await js("BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera.alpha")) + Math.PI/2) < .05, "actual face camera heading was overwritten");
   await screenshot("fal-animated-idle-face-live");
+  await js("document.getElementById('cameraButton').click()");
   await request("Emulation.setDeviceMetricsOverride",{width:390,height:844,deviceScaleFactor:1,mobile:true});
   await sleep(900);
   await screenshot("fal-mobile-controls-idle-live");
