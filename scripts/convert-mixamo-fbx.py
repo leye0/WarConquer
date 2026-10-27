@@ -15,10 +15,10 @@ from pathlib import Path
 import urllib.request
 
 CLIPS={
-    "Standing_Idle_3":"standing with axe",
-    "Standing_Walk_Forward_3":"walking forward with axe",
-    "Standing_Run_Forward_3":"running forward with axe",
-    "Standing_Melee_Attack_Downward":"downward attack with axe",
+    "2hand_Idle":"two-handed weapon stance (Mixamo)",
+    "Walking_21":"male standard walk (Mixamo)",
+    "Run_With_Sword":"running with one-handed weapon (Mixamo)",
+    "Standing_Melee_Attack_Downward":"downward attack with axe (Mixamo)",
 }
 PREFIX="https://huggingface.co/datasets/Linzhan/Mixamo-Animations-Characters/resolve/main/animation_motion_ybot/"
 def download(directory):
