@@ -265,21 +265,19 @@
     state.attack=groups.find(x=>isToken(x.name,"attack|axe|chop|strike|melee|swing"))||null;
     renderIdleOptions();
     if(!state.attack && groups.length===1 && !state.walk && !state.run && !state.idle) state.attack=groups[0];
-    for (const group of groups) {
-      group.stop();
-      // Babylon can blend from the last rendered pose into a new animation.
-      // Keep this generic for every humanoid GLB and all movement/action groups.
-      for(const track of group.targetedAnimations||[]){
-        track.animation.enableBlending=true;
-        track.animation.blendingSpeed=.15;
-      }
-    }
+    for (const group of groups)group.stop();
     state.currentMotion=null;
     if(state.idle){
+      // First evaluation must not blend in from the imported T-pose.
       state.idle.start(true,1,state.idle.from,state.idle.to);
-      // Apply the first valid pose synchronously, before displaying the mesh.
       state.idle.goToFrame(state.idle.from);
       state.currentMotion=state.idle;
+    }
+    // From this fully initialized pose onward, blend naturally when a new
+    // movement or gesture starts instead of snapping back to a rig rest pose.
+    for(const group of groups)for(const track of group.targetedAnimations||[]){
+      track.animation.enableBlending=true;
+      track.animation.blendingSpeed=.15;
     }
     else if(state.attack)restPose();
     text("activeMotionMetric",state.currentMotion?.name||"Aucune animation");
