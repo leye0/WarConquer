@@ -29,7 +29,9 @@ FIELDS={
  "character_head_top":POINT,
  "character_foot_bottom":POINT,
  "object_handle_butt":POINT,
- "object_working_tip":POINT,
+ "object_handle_near_head":POINT,
+ "object_head_axis_end":POINT,
+ "object_blade_side_tip":POINT,
  "object_fully_visible":{"type":"boolean"},
  "character_fully_visible":{"type":"boolean"},
  "recognizable_same_object":{"type":"boolean"},
@@ -49,11 +51,15 @@ SYSTEM=(
  "use it ONLY to identify the weapon and its construction. "
  "An original written brief accompanies the images and describes intended "
  "design, material and use. The brief does not specify physical dimensions. "
- "Report image-one normalized coordinates (x/width,y/height), of head top, "
- "lowest foot, butt of the weapon's shaft, and farthest working tip. "
- "Measure the straight projected length of weapon shaft+head relative to the "
- "vertical head-to-foot height using actual image aspect ratio; "
- "consider foreshortening explicitly. Independently select the final "
+ "Report image-one normalized coordinates (x/width,y/height) for "
+ "head top, lowest foot, butt of the shaft, handle-head junction, "
+ "farthest head endpoint ALONG THE SHAFT AXIS, and a blade side tip. "
+ "Do not measure corner-to-corner distance from the handle butt to "
+ "the outer blade edge as if all that diagonal were weapon length. "
+ "The working blade can project sideways from the shaft: measure its "
+ "perpendicular width separately from the axial shaft+head length. "
+ "Use true image aspect ratio and consider foreshortening explicitly. "
+ "Independently select the final "
  "intended equipment-to-person length ratio. If any part of the equipment "
  "is cut off, hidden or unrecognizable, report object_fully_visible=false "
  "and a low confidence instead of inventing invisible endpoints. "
@@ -115,7 +121,7 @@ def calculate(raw,dimensions):
  if not isinstance(raw,dict) or set(raw)!=set(FIELDS):
   raise ValueError("Invalid exact image landmark schema")
  pts={}
- for name in ["character_head_top","character_foot_bottom","object_handle_butt","object_working_tip"]:
+ for name in ["character_head_top","character_foot_bottom","object_handle_butt","object_handle_near_head","object_head_axis_end","object_blade_side_tip"]:
   point=raw[name]
   if not isinstance(point,list) or len(point)!=2 or any(isinstance(v,bool)
         or not isinstance(v,(int,float)) or not math.isfinite(v) or not 0<=v<=1
@@ -137,16 +143,36 @@ def calculate(raw,dimensions):
   p,q=pts[a],pts[b]
   return math.hypot((p[0]-q[0])*w,(p[1]-q[1])*h)
  unit=dist("character_head_top","character_foot_bottom")
- weapon=dist("object_handle_butt","object_working_tip")
- if unit<min(w,h)*.15 or weapon<min(w,h)*.05:
+ handle=dist("object_handle_butt","object_handle_near_head")
+ if unit<min(w,h)*.15 or handle<min(w,h)*.05:
   raise ValueError("Insufficient pixel footprint; cannot compute size")
- ratio=weapon/unit
- if not .07<=ratio<=2.5:raise ValueError("Bad source silhouette geometry")
+ butt=pts["object_handle_butt"]
+ joint=pts["object_handle_near_head"]
+ vx=(joint[0]-butt[0])*w/handle
+ vy=(joint[1]-butt[1])*h/handle
+ end=pts["object_head_axis_end"]
+ ex=(end[0]-butt[0])*w
+ ey=(end[1]-butt[1])*h
+ # Diagonal to the outer blade edge does not represent weapon axial length.
+ axial_projection=ex*vx+ey*vy
+ side=pts["object_blade_side_tip"]
+ bx=(side[0]-butt[0])*w
+ by=(side[1]-butt[1])*h
+ lateral_extent=abs(bx*vy-by*vx)
+ if axial_projection<handle*.90:
+  raise ValueError("Head-axis landmark inconsistent with handle orientation")
+ ratio=max(axial_projection,handle)/unit
+ shaft_ratio=handle/unit
+ blade_width_ratio=lateral_extent/unit
+ if not .07<=ratio<=2.5 or blade_width_ratio>1.5:
+  raise ValueError("Bad source silhouette geometry")
  if not all(raw[k] for k in ("object_fully_visible","character_fully_visible","recognizable_same_object")):
   raise ValueError("Source artwork lacks full measurable wearer/object; requires new views")
  if raw["perspective"]=="unclear" or raw["confidence"]<.60:
   raise ValueError("Ambiguous source perspective/landmarks, not an approved ratio")
  return {"projected_length_ratio":round(ratio,5),
+         "shaft_length_ratio":round(shaft_ratio,5),
+         "blade_lateral_extent_ratio":round(blade_width_ratio,5),
          "preferred_length_ratio":raw["preferred_length_relative_character_height"],
          "disagreement":round(abs(raw["preferred_length_relative_character_height"]-ratio),5),
          "manual_review_required":raw["perspective"]=="foreshortened"
