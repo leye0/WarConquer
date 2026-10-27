@@ -95,6 +95,8 @@ Le test Chrome automatisé vérifie la présence des choix de repos et des bouto
 
 Pour chaque objet, `assets/experiments/props/.../grip-request.json` fournit **deux images** (objet isolé et personnage porteur), le GLB et la destination du résultat. Le workflow `.github/workflows/plan-prop-attachment.yml` appelle `google/gemini-2.5-flash-lite` par OpenRouter et enregistre `grip-plan.json`.
 
+Le serveur local découvre automatiquement les `grip-plan.json` sous `assets/experiments/props/<unit>/<variante>/` et les publie dans `character.props` du catalogue. L’arène et l’exporteur GitHub Pages utilisent cette liste ; une deuxième arme ne nécessite donc aucune constante d’URL supplémentaire dans le JavaScript de rendu. Les JSON de plan (pas les appels d’API) et les GLB correspondants sont copiés dans la publication statique.
+
 Le modèle vision **choisit les spécifications** : catégorie d'objet, type de prise (manche/poignée/corps), nombre de mains, main dominante, positions du talon / sommet du manche / empoigne / tête / tranchant dans l'image, direction de la tête par rapport au bras, direction du tranchant par rapport au personnage, longueur de l'objet exprimée en proportion de la hauteur du personnage, position de la paume depuis le poignet, confiance et justification. **Aucun angle Euler 3D n'est inventé à partir d'une image 2D.**
 
 La géométrie, elle, **mesure** les coordonnées réelles à l'import Babylon :
