@@ -210,7 +210,7 @@ def run(request_path: str, check: bool) -> None:
             "schema": 1, "experiment": cfg["experiment"],
             "vision_model": cfg["vision_model"], "input_hashes": provenance,
             "raw_specifications": spec, "paid_vision_requests": 1
-        }, ensure_ascii=False, indent=2) + "\\n")
+        }, ensure_ascii=False, indent=2) + "\n")
         print("Pinned raw paid model response before validation")
     try:
         fit = validate(spec)
