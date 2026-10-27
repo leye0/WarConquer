@@ -86,7 +86,7 @@ jobs:
           echo '## Strict T-pose four-view pilot' >> "$GITHUB_STEP_SUMMARY"
           if [ -f assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/report.json ]; then
             python -m json.tool assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/report.json >> "$GITHUB_STEP_SUMMARY"
-          elif [ -f assets/experiments/rig-source-turnaround/marches_hache/report.json ]; then
+          elif [ -f assets/experiments/rig-source-turnaround/marches_hache/tpose-v1/report.json ]; then
             python -m json.tool assets/experiments/rig-source-turnaround/marches_hache/tpose-v1/report.json >> "$GITHUB_STEP_SUMMARY"
           else
             echo 'No image report produced; inspect failed step logs.' >> "$GITHUB_STEP_SUMMARY"
@@ -98,6 +98,6 @@ jobs:
           name: marches-axeman-muse-tpose-v1
           path: |
             rig-source-output/
-            assets/experiments/rig-source-turnaround/marches_hache/tpose-v1/
+            assets/experiments/rig-source-turnaround/marches_hache/
           if-no-files-found: ignore
           retention-days: 7
