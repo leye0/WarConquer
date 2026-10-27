@@ -126,6 +126,12 @@ def main():
         report["ready_for_reconstruction"]=False
         report["warnings"]["right"]=[] if not too_broad else ["right_profile_not_narrow_enough"]
         report_path.write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n")
+        sheet_script=ROOT/"scripts/generate-rig-source-turnaround.py"
+        spec=importlib.util.spec_from_file_location("warconquer_tpose_sheet",sheet_script)
+        sheet_module=importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(sheet_module)
+        sheet_module.contact_sheet([{"view":name,"status":"generated-needs-visual-approval"}
+                                    for name in ("front","back","left","right")])
         if too_broad:
             raise RuntimeError("Candidate side profile remains too broad; source preserved for review")
     except Exception as exc:
