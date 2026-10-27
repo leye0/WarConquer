@@ -1,5 +1,5 @@
 {
-  "status": "generated-awaiting-live-browser-QA",
+  "status": "browser-qa-pass-with-visible-limitations",
   "source": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-textured.glb",
   "rigged_model": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/fal-rigged.glb",
   "playable_model": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/warconquer-textured-playable.glb",
@@ -28,7 +28,7 @@
       "name": "Idle",
       "fbx": "Standard_Idle.fbx",
       "source_glb_sha256": "557ad0006ad2bf5abf52eb5082535dc2f6b9d26cb7c784b4a407c7fadec69b75",
-      "duration": 3.0,
+      "duration": 3,
       "frames": 91,
       "mapped_joints": 52,
       "rotation_channels": 52,
@@ -81,5 +81,30 @@
       }
     }
   ],
-  "visual_QA": "pending: joints, materials, walk, run and axe require actual browser screenshots"
+  "visual_QA": {
+    "run": "https://github.com/leye0/WarConquer/actions/runs/40532249019",
+    "passed": [
+      "Real Babylon GLB loads",
+      "52 bones + one skin",
+      "native embedded UV/PBR visible",
+      "Standard Idle upright",
+      "Walk via W with displacement",
+      "Run via Shift+W",
+      "Attack via Space/button",
+      "Legacy character remains selectable"
+    ],
+    "limitations": [
+      "TRELLIS axe still hangs low beside the right leg in some idle frames; grip needs visual refinement",
+      "Finger and hair geometry remain simplified",
+      "Precise close-up frontal facial rendering of the skinned character not conclusively isolated by camera QA; original unskinned face was inspected"
+    ],
+    "screenshots": [
+      "assets/experiments/character-lab-qa/fal-animated-idle-live.png",
+      "assets/experiments/character-lab-qa/fal-animated-walk-live.png",
+      "assets/experiments/character-lab-qa/fal-animated-run-live.png",
+      "assets/experiments/character-lab-qa/fal-animated-attack-live.png",
+      "assets/experiments/character-lab-qa/fal-animated-idle-face-live.png"
+    ],
+    "default_in_character_lab": true
+  }
 }
