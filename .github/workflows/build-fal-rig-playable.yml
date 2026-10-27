@@ -1,0 +1,97 @@
+name: Character Lab · fal UV texture → Uthana 52-bone rig → authentic Mixamo motions
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'fal-rig-request.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: warconquer-fal-one-shot-rig
+  cancel-in-progress: false
+
+jobs:
+  rig-and-animate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 44
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Replicate and offline Mixamo FBX conversion utilities
+        run: |
+          python -m pip install 'replicate==1.0.7' 'Pillow==11.3.0'
+          npm install --no-save --no-audit --no-fund 'fbx2gltf@0.9.7-p1'
+          chmod +x node_modules/fbx2gltf/bin/Linux/FBX2glTF
+      - name: Validate fal original GLB fingerprint and one-shot rigging approval
+        run: |
+          python -m py_compile scripts/build-fal-rig-playable.py
+          python scripts/build-fal-rig-playable.py --stage validate
+      - name: Check existing Replicate secret before paid submission
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
+        run: |
+          if [ -z "$REPLICATE_API_TOKEN" ]; then
+            echo 'REPLICATE_API_KEY GitHub Actions secret missing; did not charge'
+            exit 1
+          fi
+      - name: Submit at most one paid Uthana auto-rig prediction
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
+        run: python scripts/build-fal-rig-playable.py --stage rig-submit
+      - name: Checkpoint prediction ID on main before waiting
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: checkpoint one-shot Uthana rig request for fal character'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Collect rigged fal GLB and require original embedded UV texture
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
+        run: python scripts/build-fal-rig-playable.py --stage rig-collect
+      - name: Retrieve four genuine archived Mixamo clips
+        run: python scripts/convert-mixamo-fbx.py download "$RUNNER_TEMP/warconquer-mixamo"
+      - name: Convert archived Mixamo FBX to glTF
+        run: |
+          python scripts/convert-mixamo-fbx.py convert "$RUNNER_TEMP/warconquer-mixamo"
+          for clip in 2hand_Idle Walking_21 Run_With_Sword Standing_Melee_Attack_Downward; do
+            test -s "$RUNNER_TEMP/warconquer-mixamo/$clip.glb"
+          done
+      - name: Preserve fal PBR and rig, retarget four Mixamo animations
+        env:
+          MIXAMO_CONVERTED_DIR: ${{ runner.temp }}/warconquer-mixamo
+        run: python scripts/build-fal-rig-playable.py --stage animate
+      - name: Publish any recovered rig output and reports on main
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: preserve fal UV-textured Uthana rig and Mixamo motions'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Keep outputs for additional visual QA
+        uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: fal-uv-uthana-mixamo-one-shot
+          path: assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/
+          retention-days: 5
+          if-no-files-found: ignore
