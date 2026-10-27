@@ -33,12 +33,12 @@ Le déplacement n'utilise pas de sprites : un pivot 3D est déplacé dans une sc
 - **Images source** : concept initial plus quatre références T-pose face, dos, gauche et droite du guerrier à la hache des Marches.
 - **Maillage** : unrigged.glb, construit par Hunyuan3D-2mv, 25 000 triangles.
 - **Squelette** : rigged.glb, avec 52 articulations auto-riggées.
-- **Animation d'attaque** : axe-chop-v1/warconquer-animated.glb, retargeté, sélectionné par défaut.
+- **Ancienne attaque expérimentale** : axe-chop-v1/warconquer-animated.glb, conservée comme référence. Le **nouveau modèle jouable par défaut** est `motion/mixamo-axe-v1/warconquer-playable.glb` (catalogue local dynamique, priorité 60).
 - **Déplacement WASD** : implémenté sur un terrain isométrique, avec caméra et attaque déclenchable.
-- **Marche/course réelle des jambes** : **pas encore produite**. Sans un clip Walk/Run/Marche, le personnage se déplace spatialement (il glisse) ; la plateforme l'annonce clairement.
-- **Texture du corps** : le GLB initial reste sans texture. Un atlas UV projeté depuis les quatre vues est en cours de construction avec la bibliothèque de mouvements Mixamo ; la qualité doit être évaluée visuellement.
+- **Mouvements réels des jambes** : quatre FBX Mixamo existants (`Standing_Idle_3`, `Standing_Walk_Forward_3`, `Standing_Run_Forward_3`, `Standing_Melee_Attack_Downward`) ont été convertis par FBX2glTF, puis retargetés sur les **52 os** du personnage. Les groupes `Idle_Mixamo_WithAxe`, `Walk_Mixamo_WithAxe`, `Run_Mixamo_WithAxe` et `Attack_Mixamo_WithAxe` sont enregistrés dans **un même GLB**. Le WASD déclenche Walk; Shift déclenche Run; Espace déclenche Attack; l'arrêt déclenche Idle. La qualité visuelle et les contacts au sol restent à vérifier sur captures en mouvement.
+- **Texture du corps** : le GLB Mixamo contient déjà un atlas UV PNG intégré, projeté depuis les quatre vues approuvées (25 000 triangles, 75 000 sommets après découpage des UV, image atlas ~982 Ko). Le vieux modèle gris reste accessible. Les coutures et alignements sont **expérimentaux**, pas encore approuvés visuellement.
 - **Arme physique indépendante** : `assets/experiments/props/marches_hache/trellis-v1/axe.glb` est un **vrai modèle TRELLIS texturé** (~1,36 Mo), reconstruit depuis `assets/concepts/marches/objects/hache_arme.png` via une prédiction Replicate unique. Le labo tente de l'attacher au nœud de main droite des rigs GLB ; prise, position et rotation sont expérimentales. La capture du terrain permettra de vérifier visuellement l'ensemble.
-- **Animations réelles** : un pipeline séparé importe les FBX Mixamo existants `Standing_Idle_3`, `Standing_Walk_Forward_3`, `Standing_Run_Forward_3` et `Standing_Melee_Attack_Downward`, puis les retargete sur le rig du guerrier ; son artefact n'est pas déclaré disponible tant que le workflow n'a pas fini et les clips n'ont pas été vérifiés.
+- **Workflow Mixamo** : [build-mixamo-playable.yml](../.github/workflows/build-mixamo-playable.yml) a réussi le 27 octobre 2026 ; le fichier combiné et son [rapport](../assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/mixamo-axe-v1/report.json) sont sur `main`. Le processus utilise un binaire FBX2glTF précompilé et les sources FBX restent dans l'espace temporaire du runner.
 
 L'objectif de ce labo est de voir les limites du résultat en situation de jeu avant d'engager d'autres dépenses. La page ne génère aucune animation et ne déclenche aucun appel à Replicate ou OpenRouter.
 
@@ -56,7 +56,7 @@ assets/experiments/rig-ready-3d/<unit>/<pose>/
 
 GET /api/character-lab fournit les modèles découverts, les références et les métriques connues. Un modèle futur ne nécessite donc pas de modifier la liste codée en dur. Le fichier peut aussi être importé par glisser-déposer sur le terrain.
 
-Pour une animation de déplacement réelle, le prochain jalon est de générer puis transférer une boucle de marche sur **le même squelette Mixamo** que le guerrier riggé. Le labo activera automatiquement un groupe d'animation nommé Walk, Run ou Marche (nom de clip distinct du nom de faction). La caméra démarre cadrée près du personnage pour inspecter les détails. Il faudra alors vérifier les pieds (absence de glissement, déformation, contacts), le passage marche/arrêt et le combat. Une boucle de marche et une attaque en deux fichiers ne deviennent pas spontanément un seul modèle multi-clips.
+Le fichier `warconquer-playable.glb` regroupe maintenant la marche, la course, l'immobilité et l'attaque. Les étapes suivantes sont **des tests visuels**, notamment pieds (glissement, pénétration dans le sol), proportions, coutures de texture, enchaînement marche/arrêt, combat et prise de la hache TRELLIS. La caméra démarre cadrée près du personnage et le moteur offre un contrôle WASD plutôt qu'une lecture automatique.
 
 ## Tests
 
