@@ -1,0 +1,51 @@
+name: Rig-ready motion · retarget UE5 Manny to Mixamo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/retarget-rig-ready-motion.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  retarget:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate math and transfer animation to approved WarConquer rig
+        run: |
+          python -m py_compile scripts/retarget-rig-ready-motion.py
+          python scripts/retarget-rig-ready-motion.py --self-test
+          python scripts/retarget-rig-ready-motion.py
+      - name: Verify output contains skinning and keyed animation
+        run: python scripts/check-retarget-rig-ready-motion.py
+      - name: Publish retargeted animated GLB and QA report to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/axe-chop-v1
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: save retargeted Mixamo rig axe attack motion'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Attach animation and metadata
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: marches-axe-chop-retargeted
+          path: |
+            assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/axe-chop-v1/warconquer-animated.glb
+            assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/axe-chop-v1/retarget-report.json
+          retention-days: 7
+          if-no-files-found: ignore
