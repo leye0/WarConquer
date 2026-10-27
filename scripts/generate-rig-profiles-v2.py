@@ -21,6 +21,10 @@ RAW = ROOT / "rig-source-output/raw-v2"
 FRONT_SHA = "ddaf1862304adc05d01157bda8caae57b8a549ade83ce70e3ace9638a8997d87"
 BACK_SHA = "c7d3a260fd9fddcdf8da5cb8551bedb971452fcff6abda8308dfbd1fb193dce3"
 ORDER = ("front","back","left","right")
+FROZEN_PROMPT_SHA256 = {
+    "left": "49745dbdeb16cd98a2a76040b28af6e8191dd5e20ba7de76488713023d3b4e2e",
+    "right": "49208793d48c9d9dc263639f564ae8c0fda269c74ded2a3be80e70df927c07ed",
+}
 POSE = """ONE SAME WarConquer adult male Marches axeman. Copy his identity, face, beard, long dark-red tied hair, leather-and-dark-red-cloth outfit, patched fabric, charcoal armor, boots and proportions from the supplied character paintings. The prior images are appearance references, not invitations to change camera position.
 
 IMMUTABLE WORLD-SPACE 3D SKELETON: +Z vertical head-up; +Y body forward (nose); +X anatomically left; -X anatomically right. The head, neck, spine, pelvis are vertical; shoulders same height. The arms are physically extended from the shoulders along world axes +X and -X, elbows and wrists straight, hands OPEN and EMPTY. This is a true standard 3D T-pose, not a gesture toward the screen. Both legs straight, slight hip-width separation, feet flat at Z=0. NO altered arm rotation in any view. No axe, weapons, shield, held props or cape bridging limbs. Same body proportions in every view.
@@ -119,6 +123,8 @@ def run():
             results.append({"view":direction,"status":"blocked-existing-paid-request"})
             break
         prompt=POSE+"\n\n"+SIDE[direction]
+        if hashlib.sha256(prompt.encode()).hexdigest()!=FROZEN_PROMPT_SHA256[direction]:
+            raise ValueError("Canonical pose prompt drift: new trial/version required")
         refs=[
             muse.reference_payload((OUT/"front.png").read_bytes())[0],
             muse.reference_payload((OUT/"back.png").read_bytes())[0],
