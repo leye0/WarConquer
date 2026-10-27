@@ -1,0 +1,47 @@
+{
+  "schema": 3,
+  "experiment": "marches-axe-grip-from-generation-brief-v3",
+  "vision_model": "google/gemini-2.5-flash-lite",
+  "input_hashes": {
+    "object_image_sha256": "061c18599da536c363ffa8bb10f648405d31c240f027c3867a46541d2b0d79bc",
+    "character_image_sha256": "40596135f14365c2a77258cd34fe8285c2968fc791816023fbe37cdb197982c7",
+    "prop_glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+    "generation_brief_sha256": "7292454751dbea7110a1817f371e5da086f18d3d0b7f578a4f10af92b259680c"
+  },
+  "raw_specifications": {
+    "object_kind": "axe",
+    "grip_geometry": "shaft",
+    "hold_mode": "two_hands",
+    "dominant_hand": "either",
+    "handle_butt": [
+      0.85,
+      0.92
+    ],
+    "handle_near_head": [
+      0.4,
+      0.3
+    ],
+    "grip_point": [
+      0.6,
+      0.75
+    ],
+    "head_center": [
+      0.3,
+      0.2
+    ],
+    "action_edge": [
+      0.25,
+      0.2
+    ],
+    "head_direction": "toward_elbow",
+    "edge_direction": "outward",
+    "length_relative_character_height": 1.1,
+    "palm_from_wrist": 0.5,
+    "confidence": 0.9,
+    "explanation": "The axe is a two-handed weapon with a long wooden shaft. The character in Image 2 is holding the axe with both hands, with the primary grip point being roughly in the middle of the shaft. The axe head extends away from the character's body, and the cutting edge faces outward.",
+    "character_image_size_ratio": 1.1,
+    "character_image_shows_full_object": true,
+    "size_reasoning": "The axe's length is approximately equal to the character's height, which is consistent with a two-handed axe designed for a large warrior. The isolated axe in Image 1 appears to be proportionally similar to the axe held by the character in Image 2."
+  },
+  "paid_vision_requests": 1
+}
