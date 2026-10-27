@@ -299,7 +299,7 @@ def mixamo_animation(doc,binary):
         raise ValueError("Motion duration implausible")
     return tracks,duration,m
 
-def transfer_clips(target,buf,source_directory,clip_stems=None):
+def transfer_clips(target,buf,source_directory,clip_stems=None,extra_clips=None):
     from importlib import util
     spec=util.spec_from_file_location("wc_skeleton",ROOT/"scripts/inspect-rig-skeletons.py")
     sk=util.module_from_spec(spec)
@@ -320,6 +320,13 @@ def transfer_clips(target,buf,source_directory,clip_stems=None):
       ("Run","Run_With_Sword"),
       ("Attack","Standing_Melee_Attack_Downward")
     ]
+    if extra_clips:
+        known={name for name,_ in clips}
+        for name,stem in extra_clips:
+            if name in known or not stem or not name:
+                raise ValueError("Duplicate or missing extra Mixamo clip: "+repr(name))
+            known.add(name)
+            clips.append((name,stem))
     target["animations"]=[]
     reports=[]
     for name,stem in clips:
@@ -391,7 +398,7 @@ def transfer_clips(target,buf,source_directory,clip_stems=None):
             dot=min(1,abs(sum(x*y for x,y in zip(q0,qrest))))
             upper_arms[shoulder]=round(2*math.degrees(math.acos(dot)),2)
         # Reject candidate walks that leave either arm in its original T-pose.
-        if name in ("Idle","Walk","Run") and min(upper_arms.values())<13:
+        if (name.startswith("Idle") or name in ("Walk","Run")) and min(upper_arms.values())<13:
             diagnostic={}
             for shoulder in ("leftarm","rightarm"):
                 source_id=source_joints[shoulder]
