@@ -1,0 +1,72 @@
+name: Props · physical centimetres from original design (Flash-Lite)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/estimate-prop-physical-size.yml'
+      - 'assets/experiments/props/marches_hache/trellis-v1/physical-size-request.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: warconquer-original-prop-centimetres
+  cancel-in-progress: false
+
+jobs:
+  estimate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test source-only physical size in centimetres
+        run: |
+          python -m py_compile scripts/estimate-prop-physical-size.py scripts/test-estimate-prop-physical-size.py
+          python scripts/test-estimate-prop-physical-size.py
+          python scripts/estimate-prop-physical-size.py --check
+      - name: Estimate approximate object length (one inexpensive model call, no retries)
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python scripts/estimate-prop-physical-size.py
+      - name: Inspect actual length and cost
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('assets/experiments/props/marches_hache/trellis-v1/physical-size.json')
+          estimate=json.loads(p.read_text())
+          assert estimate['vision_model']=='google/gemini-2.5-flash-lite'
+          print('Approximate physical length:',estimate['estimated_length_cm'],'cm')
+          print('Actual inference charge USD:',estimate.get('observed_cost_usd'))
+          PY
+      - name: Preserve exact paid response even on model validation failure
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for filename in physical-size.json physical-size-response.json; do
+            path="assets/experiments/props/marches_hache/trellis-v1/$filename"
+            if test -f "$path"; then git add -- "$path"; fi
+          done
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: record original-object length estimate in cm and billed cost'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: physical-size-estimate-centimetres
+          path: |
+            assets/experiments/props/marches_hache/trellis-v1/physical-size.json
+            assets/experiments/props/marches_hache/trellis-v1/physical-size-response.json
+          retention-days: 7
+          if-no-files-found: ignore
