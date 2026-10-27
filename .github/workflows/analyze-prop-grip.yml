@@ -1,0 +1,57 @@
+name: Prop grip · vision landmarks and 3D geometry contract
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/analyze-prop-vision.py'
+      - 'scripts/weapon-grip-geometry.js'
+      - 'scripts/test-weapon-grip-geometry.mjs'
+      - '.github/workflows/analyze-prop-grip.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: marches-axe-grip-vision-v1
+  cancel-in-progress: false
+
+jobs:
+  analyze:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify pure 3D grip calculations for rotated weapons
+        run: |
+          node --check scripts/weapon-grip-geometry.js
+          node scripts/test-weapon-grip-geometry.mjs
+      - name: Verify vision request structure without external calls
+        run: python -m py_compile scripts/analyze-prop-vision.py
+      - name: Run at most one paid vision request if no analysis exists
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python scripts/analyze-prop-vision.py
+      - name: Validate semantic grip coordinates and approved input hash
+        run: python scripts/analyze-prop-vision.py --check
+      - name: Save reproducible landmark data
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A assets/experiments/props/marches_hache/trellis-v1/grip-vision.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: save validated visual handle landmarks for automatic grip'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: grip-vision-diagnostics
+          path: assets/experiments/props/marches_hache/trellis-v1/grip-vision.json
+          retention-days: 7
+          if-no-files-found: ignore
