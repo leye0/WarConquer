@@ -62,8 +62,18 @@ function propPlans(unitId) {
     if(typeof glbUrl !== "string" || !/^assets\/experiments\/props\/[a-z0-9_/-]+\.glb$/.test(glbUrl))continue;
     const actual = resolve(REPO, glbUrl);
     if(!actual.startsWith(PROPS_ROOT + sep) || !existsSync(actual))continue;
-    result.push({id:unitId+"/"+variant, name:plan.specifications?.object_kind||"Objet",
-      gripPlan:publicPath(planFile), model:publicPath(actual)});
+    const prop = {id:unitId+"/"+variant, name:plan.specifications?.object_kind||"Objet",
+      gripPlan:publicPath(planFile), model:publicPath(actual)};
+    // Physical size is an independent, approximate metric measurement; the
+    // old semantic attachment file is never permitted to dictate it.
+    const sizeFile = join(folder, variant, "physical-size.json");
+    const physical = parseJson(sizeFile);
+    if (physical?.schema === 1 && physical?.units === "cm" &&
+        Number.isFinite(physical.estimated_length_cm) &&
+        physical.estimated_length_cm >= 2 && physical.estimated_length_cm <= 1000) {
+      prop.physicalSize = publicPath(sizeFile);
+    }
+    result.push(prop);
   }
   return result;
 }
