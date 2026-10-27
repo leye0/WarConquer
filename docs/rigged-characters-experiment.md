@@ -22,13 +22,13 @@ Il faut distinguer la géométrie et le rigging : un GLB Hunyuan3D-2mv n'est pas
 
 **Barrière de qualité :** l'agent ou Léon doit ouvrir les **quatre PNG à taille réelle** et la planche, vérifier anatomie, stricte horizontalité des bras, séparation des deux jambes, cohérence des vêtements, épaule/coude/poignet/genou, absence d'armes et proportions. Les vues sont expressément « non approuvées » par défaut. Ne déclencher aucune nouvelle reconstruction payante à partir d'elles avant cette revue.
 
-## Phase B — maillage 3D (à connecter après acceptation des quatre sources)
+## Phase B — maillage 3D (pipeline implémenté, exécution après acceptation des sources)
 
-Envoyer les quatre images acceptées dans les champs Replicate Hunyuan3D-2mv : front_image, back_image, left_image, right_image. Conserver un identifiant de prédiction et une empreinte des images avant toute reprise, ne jamais payer deux fois pour la même tentative; conserver GLB, paramètres, rapport de géométrie, aperçu de rotation.
+Le pipeline automatique [scripts/build-rig-ready-3d.py](../scripts/build-rig-ready-3d.py) et [sa GitHub Action](../.github/workflows/build-rig-ready-3d.yml) attendent le fichier de validation explicite rig-ready-3d-request.json contenant les SHA-256 des quatre images acceptées. Sans cette validation, aucun appel Hunyuan ou Uthana n'est lancé. Il envoie ensuite les quatre images dans les champs Replicate Hunyuan3D-2mv : front_image, back_image, left_image, right_image. Conserver un identifiant de prédiction et une empreinte des images avant toute reprise, ne jamais payer deux fois pour la même tentative; conserver GLB, paramètres, rapport de géométrie, aperçu de rotation.
 
 Il existe **un autre pilote distinct** dans [scripts/build-multiview-3d.py](../scripts/build-multiview-3d.py) qui utilise encore les anciennes vues de personnage debout avec hache. Ne pas confondre ses éventuels résultats avec ce pilote T-pose. Garder historique, coûts et sources séparés.
 
-## Phase C — auto-rig bipedal (service validé, intégration restante)
+## Phase C — auto-rig bipède (intégration API implémentée, exécution après maillage)
 
 [Uthana create-character-v1 sur Replicate](https://replicate.com/uthana/create-character-v1) accepte le GLB non riggé via character_file avec auto_rig=true, front_facing=true et renvoie un personnage articulé GLB/FBX. C'est automatisable par API et conçu pour les meshes humanoïdes en T/A-pose, à condition que le maillage soit réellement humain et exploitable. Coût affiché à la vérification : environ **0,20 USD/sortie** (tarif non contractuel). Séparer rig et arme pour éviter que la hache soit identifiée comme un membre. Vérifier les joints et les poids : un appel réussi ne prouve pas la qualité des déformations.
 
@@ -41,8 +41,12 @@ Livrables finaux visés : rigged-character.glb avec peau et os; animations sépa
 ## État et règles de dépenses
 
 - **Phase A : code/Action ajoutés sur main; résultats et vraie inspection à vérifier dans l'exécution.**
-- **Phases B–D T-pose : non exécutées tant que la qualité des vues n'a pas été vérifiée.** Ne pas annoncer que le personnage est déjà riggé ou animé.
+- **Phases B–C T-pose : scripts et workflow de reconstruction/rigging prêts, non exécutés tant que la qualité des quatre vues v2 n'a pas été vérifiée.** Phase D (mouvements et retargeting) reste à connecter après inspection du rig. Ne pas annoncer que le personnage est déjà riggé ou animé.
 - Aucune branche de révision nouvelle. Ne pas toucher aux sprites et guides historiques, à leurs archives ou à leurs fichiers de contrôle.
 - Appels d'image : OpenRouter/Muse seulement. Les étapes de 3D et rigging sont des appels Replicate distincts, gardés derrière leur propre limite et leur propre état.
 - Préserver les images brutes échouées en artefact GitHub Actions, les PNG utilisables et les rapports sur main.
 - En cas d'appel accepté mais de résultat incertain, ne pas relancer automatiquement. Les sorties API temporaires doivent être téléchargées et conservées rapidement.
+
+## Contrat canonique v2
+
+La [spécification de pose/caméras](rig-pose-contract.md) supprime une contradiction du premier prompt : de profil, les bras restent étendus dans le monde 3D, mais se superposent dans la projection. Le script [generate-rig-profiles-v2.py](../scripts/generate-rig-profiles-v2.py) expérimente des profils propres sans regénérer les faces approuvées; entrées verrouillées par SHA et prompts conservés dans les métadonnées. Les résultats v1 restent archivés pour comparaison.
