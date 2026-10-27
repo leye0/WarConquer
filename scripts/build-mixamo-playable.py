@@ -337,6 +337,22 @@ def transfer_clips(target,buf,source_directory):
             upper_arms[shoulder]=round(2*math.degrees(math.acos(dot)),2)
         # Reject candidate walks that leave either arm in its original T-pose.
         if name in ("Idle","Walk","Run") and min(upper_arms.values())<13:
+            diagnostic={}
+            for shoulder in ("leftarm","rightarm"):
+                source_id=source_joints[shoulder]
+                target_id=target_joints[shoulder]
+                track=tracks.get(source_id)
+                diagnostic[shoulder]={
+                   "source_node":{k:sn[source_id].get(k) for k in ("name","rotation","matrix","translation","scale")},
+                   "source_rest_local":sr[source_id],
+                   "source_track_first":track[1][0] if track else None,
+                   "source_track_middle":track[1][len(track[1])//2] if track else None,
+                   "source_track_last":track[1][-1] if track else None,
+                   "target_rest_local":tr[target_id],
+                   "target_initial_result":samples[target_id][0],
+                   "mapped_source_node":source_id,
+                   "source_has_track":bool(track)}
+            print("ARM_TPOSE_DIAG",stem,json.dumps(diagnostic),flush=True)
             raise ValueError(stem+" still has T-pose upper arm at frame 0: "+str(upper_arms))
         target["animations"].append({"name":name+"_Mixamo_WithAxe",
            "samplers":samplers,"channels":channels,
