@@ -208,10 +208,10 @@
     camera.alpha=-Math.PI/4;
     camera.beta=Math.PI/3.25;
     camera.radius=13;
-    camera.orthoTop=6.4;
-    camera.orthoBottom=-6.4;
-    camera.orthoLeft=-6.4*size;
-    camera.orthoRight=6.4*size;
+    camera.orthoTop=3.6;
+    camera.orthoBottom=-3.6;
+    camera.orthoLeft=-3.6*size;
+    camera.orthoRight=3.6*size;
     const p=state.character?.position;
     camera.setTarget(new BABYLON.Vector3(p?.x||0,.85,p?.z||0));
     state.follow=true;
@@ -348,7 +348,7 @@
     // An orthographic ArcRotateCamera changes radius on wheel; update the
     // orthographic extents so wheel zoom actually changes visible scale.
     if (state.camera && state.engine) {
-      const half=6.4*state.camera.radius/13;
+      const half=3.6*state.camera.radius/13;
       const aspect=state.engine.getRenderWidth()/Math.max(1,state.engine.getRenderHeight());
       state.camera.orthoTop=half;
       state.camera.orthoBottom=-half;
