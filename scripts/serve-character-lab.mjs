@@ -41,7 +41,7 @@ function parseJson(file) {
   try { return JSON.parse(readFileSync(file, "utf8")); }
   catch { return null; }
 }
-function inventory() {
+export function inventory() {
   const characters = [];
   for (const id of dirs(MESH_ROOT)) {
     for (const pose of dirs(join(MESH_ROOT, id))) {
@@ -99,7 +99,7 @@ const server = createServer((req, res) => {
   let pathname;
   try { pathname = new URL(req.url, "http://localhost").pathname; }
   catch { return send(res, 400, "Bad URL"); }
-  if (pathname === "/api/character-lab") {
+  if (pathname === "/api/character-lab" || pathname === "/api/character-lab.json") {
     return send(res, 200, JSON.stringify(inventory()), "application/json; charset=utf-8");
   }
   if (pathname === "/" || pathname === "/character-lab.html") {
@@ -126,7 +126,9 @@ const server = createServer((req, res) => {
 if (!Number.isInteger(PORT) || PORT < 1024 || PORT > 65535) {
   throw new Error("CHARACTER_LAB_PORT must be an unprivileged TCP port");
 }
-server.listen(PORT, HOST, () => {
-  console.log("WarConquer Character Lab: http://" + HOST + ":" + PORT + "/character-lab.html");
-  console.log("Read-only, loopback-only, no generative model calls");
-});
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  server.listen(PORT, HOST, () => {
+    console.log("WarConquer Character Lab: http://" + HOST + ":" + PORT + "/character-lab.html");
+    console.log("Read-only, loopback-only, no generative model calls");
+  });
+}
