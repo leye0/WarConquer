@@ -16,6 +16,7 @@ const PORT = Number(process.env.CHARACTER_LAB_PORT || 4173);
 const HOST = "127.0.0.1";
 const MESH_ROOT = join(REPO, "assets/experiments/rig-ready-3d");
 const REFS_ROOT = join(REPO, "assets/experiments/rig-source-turnaround");
+const PROPS_ROOT = join(REPO, "assets/experiments/props");
 const SOURCE_CONCEPTS = { marches_hache: "/assets/concepts/marches/units/hache.png" };
 const LABELS = { marches_hache: "Guerrier à la hache · Marches" };
 const MIME = {
@@ -41,6 +42,25 @@ function parseJson(file) {
   try { return JSON.parse(readFileSync(file, "utf8")); }
   catch { return null; }
 }
+// Discover per-unit grip plans, so adding the next weapon never needs a code
+// change in the Character Lab renderer or the static Pages exporter.
+function propPlans(unitId) {
+  const folder = join(PROPS_ROOT, unitId);
+  const result = [];
+  for(const variant of dirs(folder)) {
+    const planFile = join(folder, variant, "grip-plan.json");
+    const plan = parseJson(planFile);
+    if(plan?.schema !== 2) continue;
+    const glbUrl = plan.inputs?.object_glb;
+    if(typeof glbUrl !== "string" || !/^assets\\/experiments\\/props\\/[a-z0-9_/-]+\\.glb$/.test(glbUrl))continue;
+    const actual = resolve(REPO, glbUrl);
+    if(!actual.startsWith(PROPS_ROOT + sep) || !existsSync(actual))continue;
+    result.push({id:unitId+"/"+variant, name:plan.specifications?.object_kind||"Objet",
+      gripPlan:publicPath(planFile), model:publicPath(actual)});
+  }
+  return result;
+}
+
 export function inventory() {
   const characters = [];
   for (const id of dirs(MESH_ROOT)) {
@@ -78,7 +98,7 @@ export function inventory() {
       const original = SOURCE_CONCEPTS[id] || null;
       if (models.length) characters.push({
         id, pose, name: LABELS[id] || id.replaceAll("_", " "),
-        original, views: refs, models,
+        original, views: refs, models, props: propPlans(id),
         metrics: { joints: report?.glb_geometry?.joint_count ?? report?.glb?.joint_count ?? report?.joint_count ?? null,
                    faces: mesh?.glb_geometry?.faces ?? mesh?.geometry?.faces ?? 25000 },
       });
