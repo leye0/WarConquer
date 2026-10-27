@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "description": "Provenance index of real FBX files already used or reviewed; no raw Mixamo assets redistributed.",
+  "source": "Linzhan/Mixamo-Animations-Characters (temporary CI downloads, confirm rights before distribution)",
+  "playable": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/warconquer-textured-playable.glb",
+  "clips": [
+    {
+      "source_fbx": "Standard_Idle.fbx",
+      "group_prefix": "Idle_Mixamo",
+      "role": "idle",
+      "equipment": [
+        "any"
+      ],
+      "included": true
+    },
+    {
+      "source_fbx": "2hand_Idle.fbx",
+      "group_prefix": "Idle_Mixamo",
+      "role": "combat_idle",
+      "equipment": [
+        "axe",
+        "sword"
+      ],
+      "included": false,
+      "note": "replaced with Standard_Idle"
+    },
+    {
+      "source_fbx": "Walking_21.fbx",
+      "group_prefix": "Walk_Mixamo",
+      "role": "walk",
+      "equipment": [
+        "any"
+      ],
+      "included": true
+    },
+    {
+      "source_fbx": "Run_With_Sword.fbx",
+      "group_prefix": "Run_Mixamo",
+      "role": "run",
+      "equipment": [
+        "melee"
+      ],
+      "included": true
+    },
+    {
+      "source_fbx": "Standing_Melee_Attack_Downward.fbx",
+      "group_prefix": "Attack_Mixamo",
+      "role": "axe_chop",
+      "equipment": [
+        "axe"
+      ],
+      "included": true
+    },
+    {
+      "source_fbx": "Unarmed_Idle_01_2.fbx",
+      "group_prefix": "Idle_Relaxed_Mixamo",
+      "role": "idle_relaxed",
+      "equipment": [
+        "any"
+      ],
+      "included": true
+    },
+    {
+      "source_fbx": "Wiping_Sweat.fbx",
+      "group_prefix": "Idle_Wipe_Mixamo",
+      "role": "idle_wipe",
+      "equipment": [
+        "any"
+      ],
+      "included": true
+    },
+    {
+      "source_fbx": "Standing_Idle_03.fbx",
+      "group_prefix": "Idle_Magic_Mixamo",
+      "role": "idle_magic",
+      "equipment": [
+        "any"
+      ],
+      "included": true
+    },
+    {
+      "source_fbx": "Standing_1H_Magic_Attack_01.fbx",
+      "group_prefix": "Cast_Fireball_Mixamo",
+      "role": "cast_fireball",
+      "equipment": [
+        "magic",
+        "innate"
+      ],
+      "included": true
+    }
+  ]
+}
