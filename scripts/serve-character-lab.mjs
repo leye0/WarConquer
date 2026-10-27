@@ -48,9 +48,12 @@ function propPlans(unitId) {
   const folder = join(PROPS_ROOT, unitId);
   const result = [];
   for(const variant of dirs(folder)) {
-    const planFile = join(folder, variant, "grip-plan.json");
+    // Prefer the newer plan only after its semantic/scale validation passes.
+    // The previous paid plan remains immutable and available for comparison.
+    const nextPlan = join(folder, variant, "grip-plan-v3.json");
+    const planFile = existsSync(nextPlan) ? nextPlan : join(folder, variant, "grip-plan.json");
     const plan = parseJson(planFile);
-    if(plan?.schema !== 2) continue;
+    if(![2,3].includes(plan?.schema)) continue;
     const glbUrl = plan.inputs?.object_glb;
     if(typeof glbUrl !== "string" || !/^assets\/experiments\/props\/[a-z0-9_/-]+\.glb$/.test(glbUrl))continue;
     const actual = resolve(REPO, glbUrl);
