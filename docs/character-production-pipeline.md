@@ -134,3 +134,11 @@ Le pipeline v3 `scripts/plan-prop-attachment-v3.py` retrouve automatiquement le 
 - Comparer plutôt à l'image du personnage, puis vérifier la main, le diamètre de poignée, les bras et la pose sur un véritable rendu 3D.
 - Ne promouvoir une nouvelle prise que si la QA confirme que l'arme est utilisable pendant Idle, marche et attaque.
 - Conserver les versions v2/v3 et les réponses payantes intactes. Aucune nouvelle génération 3D n'est nécessaire pour améliorer l'assemblage.
+
+## Réanalyse visuelle à coût réduit sans ancrage (v5)
+
+Le retour d'expérience sur la v4 a révélé un biais explicite : le prompt incluait `CURRENT ACTUAL RENDERED LENGTH/CHARACTER HEIGHT: 1.1` et les spécifications complètes du modèle précédent, dont `length_relative_character_height: 1.1`. L'utilisateur a correctement identifié qu'un modèle pouvait simplement reconfirmer cette valeur fournie.
+
+`scripts/review-prop-in-situ.py` utilise désormais par défaut `google/gemini-2.5-flash-lite` via `grip-render-review-request-v5.json`. L'appel reçoit **la description source et les quatre images**, mais ni la taille 1.1 ni aucune sortie des analyses précédentes. Les captures de l'arène sont recadrées à la scène pour exclure le panneau de statistiques. Un test dédié, `scripts/test-review-prop-unanchored.py`, vérifie l'absence d'ancienne échelle dans le prompt et le retrait du panneau UI des captures. Les plans antérieurs restent accessibles seulement pour la provenance et la comparaison locale **après la réponse**.
+
+Résultat facturé v5 : `0.0004382 USD` (OpenRouter : 1666 tokens entrée, 679 sortie, dont 375 de réflexion). **Malgré l'absence d'ancrage textuel, Flash-Lite a de nouveau proposé 1.1**, avec un diagnostic contradictoire : « manche trop court, à allonger » pour une longueur qui n'évolue pas. La réponse est **conservée en candidate non publiée**, et n'est pas une validation artistique. Aucun GLB n'a été regénéré, aucune prise n'a été automatiquement remplacée. Une meilleure mesure de la silhouette du personnage/objet, ou un autre protocole visuel, sera nécessaire si l'on veut une échelle convaincante.
