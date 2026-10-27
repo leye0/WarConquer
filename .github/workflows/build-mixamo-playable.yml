@@ -27,11 +27,15 @@ jobs:
         run: |
           python -m pip install 'Pillow==11.3.0'
           sudo apt-get update -qq
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq blender
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq blender python3-numpy
       - name: Retrieve actual archived Mixamo axe clips into temporary workspace
         run: python scripts/convert-mixamo-fbx.py download "$RUNNER_TEMP/warconquer-mixamo"
       - name: Convert FBX animations to GLB using Blender, keeping original rigs
-        run: blender --background --factory-startup --python scripts/convert-mixamo-fbx.py -- convert "$RUNNER_TEMP/warconquer-mixamo"
+        run: |
+          blender --background --factory-startup --python scripts/convert-mixamo-fbx.py -- convert "$RUNNER_TEMP/warconquer-mixamo"
+          for clip in Standing_Idle_3 Standing_Walk_Forward_3 Standing_Run_Forward_3 Standing_Melee_Attack_Downward; do
+            test -s "$RUNNER_TEMP/warconquer-mixamo/$clip.glb"
+          done
       - name: Retarget authentic skeleton clips to approved WarConquer 52-bone mesh and UV texture
         env:
           MIXAMO_CONVERTED_DIR: "${{ runner.temp }}/warconquer-mixamo"
