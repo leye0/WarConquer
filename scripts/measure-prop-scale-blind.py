@@ -43,7 +43,7 @@ SCHEMA={"type":"object","properties":FIELDS,"required":list(FIELDS),
 SYSTEM=(
  "You are the equipment proportions specialist for a game. Your ONLY goal "
  "is to estimate the intended size of the equipment relative to the person "
- "in the ORIGINAL PERSON CONCEPT, not a previously fitted 3D weapon. "
+ "in the ORIGINAL PERSON CONCEPT alone, without any game scene. "
  "IMAGE ONE shows the original full character and his original weapon. "
  "IMAGE TWO is the generated isolated weapon, with no physical size reference; "
  "use it ONLY to identify the weapon and its construction. "
