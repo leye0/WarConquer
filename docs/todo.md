@@ -27,7 +27,7 @@
 
 ## Besoins et état des personnages
 
-- [ ] **Besoins physiologiques et soins.** Étudier des personnages qui peuvent réellement avoir besoin de guérison, de nourriture, de sommeil et de récupération. Les besoins doivent influer de façon intelligible sur leur comportement et leurs demandes, sans introduire une micogestion excessive incompatible avec la [lisibilité du RTS](game-bible.md).
+- [ ] **Besoins physiologiques et soins.** Étudier des personnages qui peuvent réellement avoir besoin de guérison, de nourriture, de sommeil et de récupération. Les besoins doivent influer de façon intelligible sur leur comportement et leurs demandes, sans introduire une microgestion excessive incompatible avec la [lisibilité du RTS](game-bible.md).
 
 ## Plus tard — nice to have
 
