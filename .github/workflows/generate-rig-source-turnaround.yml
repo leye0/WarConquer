@@ -6,6 +6,7 @@ on:
     paths:
       - 'rig-source-turnaround-request.json'
       - 'rig-source-turnaround-right-fix-request.json'
+      - 'rig-source-profiles-v2-request.json'
   workflow_dispatch:
 
 permissions:
@@ -36,8 +37,8 @@ jobs:
           OPENROUTER_IMAGE_MODEL: ${{ secrets.OPENROUTER_IMAGE_MODEL }}
           OMP_NUM_THREADS: '1'
         run: |
-          if [ -f rig-source-turnaround-right-fix-request.json ]; then
-            echo "Original four-view pilot already exists; skip initial paid view generation."
+          if [ -f rig-source-turnaround-right-fix-request.json ] || [ -f rig-source-profiles-v2-request.json ]; then
+            echo "Later rig source trial selected; skip original paid image generation."
           else
             python scripts/generate-rig-source-turnaround.py
           fi
@@ -47,9 +48,20 @@ jobs:
           OPENROUTER_IMAGE_MODEL: ${{ secrets.OPENROUTER_IMAGE_MODEL }}
           OMP_NUM_THREADS: '1'
         run: |
-          if [ -f rig-source-turnaround-right-fix-request.json ]; then
+          if [ -f rig-source-turnaround-right-fix-request.json ] && [ ! -f rig-source-profiles-v2-request.json ]; then
             python -m py_compile scripts/fix-rig-source-right.py
             python scripts/fix-rig-source-right.py
+          fi
+      - name: Generate v2 orthographic profiles from stable 3D T-pose contract
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_IMAGE_MODEL: ${{ secrets.OPENROUTER_IMAGE_MODEL }}
+          OMP_NUM_THREADS: '1'
+        run: |
+          if [ -f rig-source-profiles-v2-request.json ]; then
+            python -m py_compile scripts/generate-rig-profiles-v2.py
+            python scripts/generate-rig-profiles-v2.py --dry-run
+            python scripts/generate-rig-profiles-v2.py
           fi
       - name: Preserve successful views, warnings and review image on main
         if: ${{ always() }}
@@ -59,7 +71,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           if [ -d assets/experiments/rig-source-turnaround/marches_hache/tpose-v1 ]; then
-            git add -A assets/experiments/rig-source-turnaround/marches_hache/tpose-v1
+            git add -A assets/experiments/rig-source-turnaround/marches_hache
             if ! git diff --cached --quiet; then
               git commit -m 'assets: publish strict T-pose Muse turnaround for human QA'
               git fetch origin main
@@ -72,7 +84,9 @@ jobs:
         shell: bash
         run: |
           echo '## Strict T-pose four-view pilot' >> "$GITHUB_STEP_SUMMARY"
-          if [ -f assets/experiments/rig-source-turnaround/marches_hache/tpose-v1/report.json ]; then
+          if [ -f assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/report.json ]; then
+            python -m json.tool assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/report.json >> "$GITHUB_STEP_SUMMARY"
+          elif [ -f assets/experiments/rig-source-turnaround/marches_hache/report.json ]; then
             python -m json.tool assets/experiments/rig-source-turnaround/marches_hache/tpose-v1/report.json >> "$GITHUB_STEP_SUMMARY"
           else
             echo 'No image report produced; inspect failed step logs.' >> "$GITHUB_STEP_SUMMARY"
