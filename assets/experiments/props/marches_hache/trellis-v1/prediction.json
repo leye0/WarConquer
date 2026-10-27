@@ -1,0 +1,9 @@
+{
+  "model": "firtoz/trellis",
+  "version": "e8f6c45206993f297372f5436b90350817bd9b4a0d52d2a76df50c1c8afa2b3c",
+  "prediction_id": "e06j1hzrd5rnc0d1fe8rhvtre8",
+  "initial_status": "starting",
+  "source_sha256": "061c18599da536c363ffa8bb10f648405d31c240f027c3867a46541d2b0d79bc",
+  "paid_predictions_submitted": 1,
+  "retry_count": 0
+}
