@@ -15,7 +15,6 @@
     }
   },
   "body": {
-    "texture_request": "fal-textured-pilot-request.json",
     "glb": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-textured.glb",
     "rigged_glb": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/fal-rigged.glb",
     "playable_glb": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/warconquer-textured-playable.glb",
