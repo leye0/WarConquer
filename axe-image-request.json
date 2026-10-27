@@ -1,0 +1,8 @@
+{
+  "prompt": "A SINGLE ACTUAL HANDHELD TWO-HANDED FOREST AXE, LONG STRAIGHT SHAFT WITH ONE HEAVY STEEL AXEHEAD. Medieval realist blacksmith craft of the Marches faction: a long slender worn dark-oak wooden haft, reinforced with small tarnished copper rings, a single broad wedge-shaped iron chopping blade with a gently curved cutting edge, worn steel, restrained oxblood red leather wrapped only around the lower grip. ONE solid physically plausible object. Show the isolated complete axe nearly upright in a clean orthographic three-quarter view, its straight wooden handle visible from tip to butt, blade in the upper quarter, axe head and handle clearly connected. Entire silhouette crisp and unoccluded. NO character, hands, fingers, person, arm, body, face, shield, sword, second weapon, double-headed fantasy blade, extra projections, head duplication, metallic shaft, ribbon attached to blade, scenery, stand, ground or cast shadow. Preserve the shaft's length-to-width ratio (long thin handle), practical rather than oversized ornamental fantasy proportions. Use references ONLY for craftsmanship and faction palette; the character in the reference MUST NOT appear.",
+  "output": "assets/concepts/marches/objects/hache_arme.png",
+  "references": [
+    "assets/concepts/marches/units/hache.png",
+    "assets/concepts/marches/units/garde_lourd.png"
+  ]
+}
