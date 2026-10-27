@@ -311,6 +311,7 @@
     byId("world").dataset.weaponGrip="none";
     byId("world").dataset.weaponGripHeadRatio="";
     byId("world").dataset.weaponGripScale="";
+    byId("world").dataset.weaponScaleOrigin="";
     byId("world").dataset.equipmentAction="";
     byId("world").dataset.equipmentReady="";
     byId("world").dataset.equipmentMissing="";
@@ -382,13 +383,25 @@
       const spec=vision?.specifications;
       const gripFraction=vision?.derived_image_geometry?.grip_fraction_from_butt;
       const side=spec?.dominant_hand==="left"?"left":"right";
-      if(vision.schema!==2||spec?.grip_geometry!=="shaft"||
+      if(![2,3].includes(vision.schema)||spec?.grip_geometry!=="shaft"||
         spec.hold_mode==="unsupported")throw Error("Plan visuel non compatible avec une prise sur manche");
       if(!Number.isFinite(gripFraction)||gripFraction<=.03||gripFraction>=.65||
         !Number.isFinite(spec.length_relative_character_height)||
         spec.length_relative_character_height<.13||spec.length_relative_character_height>1.85||
         !Number.isFinite(spec.palm_from_wrist)||spec.palm_from_wrist<0||spec.palm_from_wrist>1)
         throw Error("Dimensions ou repères du plan vision invalides");
+      // v3 carries the generation brief fingerprint and independent evidence
+      // from the character source. Refuse incompatible/unreviewed scales.
+      if(vision.schema===3) {
+        const evidence=vision.scale_observation;
+        const observed=evidence?.character_image_size_ratio;
+        if(!vision.source_provenance?.generation_brief_sha256 ||
+          evidence?.character_image_shows_full_object!==true ||
+          !Number.isFinite(observed) ||
+          Math.abs(observed-spec.length_relative_character_height)>.15 ||
+          Math.abs(observed-spec.length_relative_character_height)/observed>.20)
+          throw Error("Echelle sans preuve sur le concept original");
+      }
       const propPath=vision.inputs?.object_glb;
       if(!/^assets\/experiments\/props\/[a-z0-9_/-]+\.glb$/.test(propPath||""))
         throw Error("Chemin de GLB non autorisé");
@@ -467,6 +480,8 @@
         " · objet/hauteur "+spec.length_relative_character_height.toFixed(2));
       byId("world").dataset.weaponGrip="vision-plan-geometry";
       byId("world").dataset.weaponGripScale=spec.length_relative_character_height.toFixed(3);
+      byId("world").dataset.weaponScaleOrigin=vision.schema===3
+        ? "provenance-and-character-image" : "legacy-vision-only";
       byId("world").dataset.weaponGripHeadRatio=frame.headWidthRatio.toFixed(3);
       // Enforce genuine equipment-specific motions once the prop is fitted.
       // A bow must never inherit a generic axe animation by default.
