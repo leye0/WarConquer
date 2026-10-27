@@ -26,7 +26,7 @@ La page est [character-lab.html](../character-lab.html), la logique du terrain [
 | **Activer/désactiver le suivi** | Fige ou libère la cible de caméra |
 | **Pavé WASD à l'écran** | Déplacement tactile/pointeur |
 
-Le déplacement n'utilise pas de sprites : un pivot 3D est déplacé dans une scène Babylon et sa rotation suit la direction du déplacement.
+Le déplacement n'utilise pas de sprites : un pivot 3D est déplacé dans une scène Babylon et sa rotation suit la direction du déplacement. L'importeur mesure les bornes mondiales et corrige une orientation horizontale ainsi qu'une unité réduite (cas des rigs Uthana à armature centimétrique).
 
 ## Ce qui est réellement disponible au 27 octobre 2026
 
