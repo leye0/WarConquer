@@ -135,8 +135,19 @@ try {
     await js("(()=>{const e=BABYLON.EngineStore.LastCreatedEngine;const c=e.scenes[0].activeCamera;const aspect=e.getRenderWidth()/e.getRenderHeight();c.alpha="+angle+";c.beta=Math.PI/2.12;c.orthoTop=1.6;c.orthoBottom=-1.6;c.orthoLeft=-1.6*aspect;c.orthoRight=1.6*aspect;return true})()");
     await sleep(650);
     await screenshot("fal-textured-"+label+"-live");
+    // Camera orthographic span follows radius on every render frame; set radius,
+    // not orthoTop, for a real zoom during the visual texture QA.
+    await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.radius=5.5;c.setTarget(new BABYLON.Vector3(0,1.15,0));return true})()");
+    await sleep(650);
+    await screenshot("fal-textured-"+label+"-detail-live");
+    if (label === "front") {
+      await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.radius=3.2;c.setTarget(new BABYLON.Vector3(0,1.75,0));return true})()");
+      await sleep(650);
+      await screenshot("fal-textured-face-detail-live");
+    }
+    await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.radius=13;c.setTarget(new BABYLON.Vector3(0,.85,0));return true})()");
   }
-  console.log("PASS: Mixamo WASD/attack + separate fal.ai textured-GLB render captures");
+  console.log("PASS: Mixamo WASD/attack + fal.ai textured full and close-up visual QA");
 } finally {
   try{socket?.close();}catch{}
   browser.kill("SIGTERM");
