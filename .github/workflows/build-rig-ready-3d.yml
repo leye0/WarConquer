@@ -1,0 +1,107 @@
+name: Rig-ready 3D · approved T-pose → Hunyuan GLB → Uthana rig
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'rig-ready-3d-request.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: marches-tpose-3d-rig-one-shot
+  cancel-in-progress: false
+
+jobs:
+  mesh-and-rig:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Replicate client and GLB validation tooling
+        run: python -m pip install 'replicate==1.0.7' 'Pillow==11.3.0'
+      - name: Validate explicit approval and all four image SHA fingerprints
+        run: |
+          python -m py_compile scripts/build-rig-ready-3d.py
+          python scripts/build-rig-ready-3d.py --stage validate
+      - name: Submit one Hunyuan3D-2mv multiview mesh prediction
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
+        run: python scripts/build-rig-ready-3d.py --stage mesh-submit
+      - name: Persist paid mesh prediction ID before waiting
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A assets/experiments/rig-ready-3d
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: checkpoint approved T-pose mesh prediction'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Collect Hunyuan mesh and validate GLB
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
+        run: python scripts/build-rig-ready-3d.py --stage mesh-collect
+      - name: Preserve unrigged mesh before rig submission
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A assets/experiments/rig-ready-3d
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: preserve approved T-pose Hunyuan GLB'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Submit one Uthana bipedal auto-rig prediction
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
+        run: python scripts/build-rig-ready-3d.py --stage rig-submit
+      - name: Persist paid Uthana prediction ID before waiting
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A assets/experiments/rig-ready-3d
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: checkpoint Uthana auto-rig prediction'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Collect rigged GLB and inspect bones and vertex weights
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
+        run: python scripts/build-rig-ready-3d.py --stage rig-collect
+      - name: Publish partial or complete 3D pipeline outputs on main
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if [ -d assets/experiments/rig-ready-3d ]; then
+            git add -A assets/experiments/rig-ready-3d
+            if ! git diff --cached --quiet; then
+              git commit -m 'assets: publish T-pose 3D mesh and rig verification'
+              git fetch origin main
+              git rebase origin/main
+              git push origin HEAD:main
+            fi
+          fi
+      - name: Upload rigged GLB, checkpoint and reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: marches-rig-ready-3d-v1
+          path: assets/experiments/rig-ready-3d/marches_hache/tpose-v1/
+          retention-days: 7
+          if-no-files-found: ignore
