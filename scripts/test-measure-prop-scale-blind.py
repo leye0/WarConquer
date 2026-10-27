@@ -20,14 +20,22 @@ assert "1.1" not in m.SYSTEM
 assert "1.1" not in m.vision_text(brief["prompt"])
 raw={
 "character_head_top":[.5,.10],"character_foot_bottom":[.5,.90],
-"object_handle_butt":[.38,.70],"object_working_tip":[.62,.30],
+"object_handle_butt":[.38,.70],"object_handle_near_head":[.62,.40],
+"object_head_axis_end":[.68,.34],"object_blade_side_tip":[.77,.62],
 "object_fully_visible":True,"character_fully_visible":True,
 "recognizable_same_object":True,"perspective":"low_distortion",
 "preferred_length_relative_character_height":.55,"confidence":.9,
 "observations":"The object appears appreciably shorter than the full height of the wearer in the original character design."
 }
 out=m.calculate(raw,[800,1000])
-assert .52<out["projected_length_ratio"]<.58,out
+assert .52<out["projected_length_ratio"]<.57,out
+assert out["shaft_length_ratio"]<out["projected_length_ratio"],out
+old_ratio=out["projected_length_ratio"]
+raw["object_blade_side_tip"]=[.95,.98]
+wide=m.calculate(raw,[800,1000])
+assert wide["projected_length_ratio"]==old_ratio,"Wider blade must NOT increase axial weapon length"
+assert wide["blade_lateral_extent_ratio"]>out["blade_lateral_extent_ratio"],"Blade width must be independent"
+raw["object_blade_side_tip"]=[.77,.62]
 assert not out["manual_review_required"],out
 raw["object_fully_visible"]=False
 try: m.calculate(raw,[800,1000])
