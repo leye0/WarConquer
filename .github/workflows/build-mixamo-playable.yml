@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: warconquer-real-mixamo-playable
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   import:
@@ -23,16 +23,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Prepare offline FBX conversion tools
+      - name: Prepare lightweight real-FBX conversion tools
         run: |
           python -m pip install 'Pillow==11.3.0'
-          sudo apt-get update -qq
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq blender python3-numpy
+          npm install --no-save --no-audit --no-fund 'fbx2gltf@0.9.7-p1'
+          test -x node_modules/.bin/fbx2gltf
       - name: Retrieve actual archived Mixamo axe clips into temporary workspace
         run: python scripts/convert-mixamo-fbx.py download "$RUNNER_TEMP/warconquer-mixamo"
-      - name: Convert FBX animations to GLB using Blender, keeping original rigs
+      - name: Convert Mixamo FBX animations to GLB using FBX2glTF
         run: |
-          blender --background --factory-startup --python scripts/convert-mixamo-fbx.py -- convert "$RUNNER_TEMP/warconquer-mixamo"
+          python scripts/convert-mixamo-fbx.py convert "$RUNNER_TEMP/warconquer-mixamo"
           for clip in Standing_Idle_3 Standing_Walk_Forward_3 Standing_Run_Forward_3 Standing_Melee_Attack_Downward; do
             test -s "$RUNNER_TEMP/warconquer-mixamo/$clip.glb"
           done
