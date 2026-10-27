@@ -29,7 +29,7 @@
   };
   const state = {
     catalog: FALLBACK, selected: null, scene: null, camera: null,
-    engine: null, character: null, imported: null, attack: null, walk: null,
+    engine: null, character: null, imported: null, attack: null, walk: null, run: null, idle: null, currentMotion: null,
     animGroups: [], loadedAsset: null, attacking: false, moving: false,
     ready: false, input: new Set(), touch: new Set(), follow: true,
     speed: 2.7, scale: 1, facingBias: 0, pendingLoad: 0,
@@ -220,16 +220,20 @@
 
   function lookForAnimations(groups) {
     state.animGroups=groups;
-    const isWalk=name=>/(?:^|[_ -])(walk|walking|run|running|marche)(?:$|[_ -])/i.test(name);
-    state.walk=groups.find(x=>isWalk(x.name)) || null;
-    state.attack=groups.find(x=>x!==state.walk && /axe|attack|chop|swing|strike/i.test(x.name)) || null;
-    if (!state.attack && groups.length===1 && !state.walk) state.attack=groups[0];
+    const isToken=(name,terms)=>new RegExp("(?:^|[_ -])("+terms+")(?:$|[_ -])","i").test(name);
+    state.walk=groups.find(x=>isToken(x.name,"walk|walking|marche"))||null;
+    state.run=groups.find(x=>isToken(x.name,"run|running|course"))||null;
+    state.idle=groups.find(x=>isToken(x.name,"idle|rest"))||null;
+    state.attack=groups.find(x=>isToken(x.name,"attack|axe|chop|strike|melee|swing"))||null;
+    if(!state.attack && groups.length===1 && !state.walk && !state.run && !state.idle) state.attack=groups[0];
     for (const group of groups) group.stop();
-    if (state.attack) restPose();
-    const message=state.walk ? "Marche squelettique détectée" :
-      "Marche non générée : déplacement spatial seulement";
-    text("walkMetric",message);
-    text("clipMetric",groups.map(x=>x.name).join(" · ") || "Aucune animation");
+    state.currentMotion=null;
+    if(state.idle){state.idle.start(true,1,state.idle.from,state.idle.to);state.currentMotion=state.idle;}
+    else if(state.attack)restPose();
+    const gait=state.walk&&state.run?"Marche ET course réelles détectées":
+      state.walk?"Marche réelle détectée":state.run?"Course réelle détectée":"Marche absente : déplacements seulement";
+    text("walkMetric",gait);
+    text("clipMetric",groups.map(x=>x.name).join(" · ")||"Aucune animation");
     byId("attackButton").disabled=!state.attack;
   }
 
@@ -250,7 +254,7 @@
       if (!node.isDisposed()) node.dispose(false,true);
     }
     for (const sk of state.imported.skeletons || []) sk.dispose();
-    state.imported=null;state.character=null;state.animGroups=[];state.walk=null;state.attack=null;
+    state.imported=null;state.character=null;state.animGroups=[];state.walk=null;state.run=null;state.idle=null;state.attack=null;state.currentMotion=null;
     state.attacking=false;
   }
 
@@ -329,15 +333,15 @@
 
   function attack() {
     if (!state.attack || state.attacking) return;
-    if (state.walk) state.walk.stop();
+    if (state.currentMotion) state.currentMotion.stop();
+    state.currentMotion=null;
     const group=state.attack;
     state.attacking=true;
     group.stop();
     group.start(false,1,group.from,group.to);
     group.onAnimationGroupEndObservable.addOnce(()=>{
       state.attacking=false;
-      if (state.moving && state.walk) state.walk.start(true,1,state.walk.from,state.walk.to);
-      else restPose();
+      state.currentMotion=null; // update() returns to walk, run or idle.
     });
     setStatus("Attaque du guerrier", "normal");
   }
@@ -378,11 +382,17 @@
           state.camera.setTarget(B.Vector3.Lerp(target,dest,Math.min(1,dt*6)));
         }
       }
-      if(moving!==state.moving) {
-        if(state.walk&&!state.attacking) {
-          if(moving)state.walk.start(true,1,state.walk.from,state.walk.to);
-          else {state.walk.stop();if(state.attack)restPose();}
+      if(!state.attacking) {
+        const fast=state.input.has("shift");
+        const next= moving ? (fast ? (state.run||state.walk) : (state.walk||state.run)) : state.idle;
+        if(next!==state.currentMotion) {
+          if(state.currentMotion) state.currentMotion.stop();
+          if(next) next.start(true,1,next.from,next.to);
+          else if(state.attack) restPose();
+          state.currentMotion=next||null;
         }
+      }
+      if(moving!==state.moving) {
         state.moving=moving;
         text("movementMetric",moving?"EN DÉPLACEMENT":"IMMOBILE");
       }
@@ -405,7 +415,10 @@
       if(state.character) {
         state.character.position.x=0;state.character.position.z=0;
         state.character.rotation.y=0;
-        if(state.attack)restPose();
+        if(state.currentMotion)state.currentMotion.stop();
+        state.currentMotion=null;
+        if(state.idle){state.idle.start(true,1,state.idle.from,state.idle.to);state.currentMotion=state.idle;}
+        else if(state.attack)restPose();
       }
       setIsometricCamera();
       byId("world").focus();
