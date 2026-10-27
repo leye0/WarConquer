@@ -4,7 +4,7 @@
 
 Le site statique est préparé automatiquement par [publish-character-lab-pages.yml](../.github/workflows/publish-character-lab-pages.yml), à chaque changement de la plateforme ou des modèles sur **main**.
 
-**Adresse prévue après activation de Pages :** https://leye0.github.io/WarConquer/
+**Adresse publiée :** https://www.streamlev.com/WarConquer/ (et https://leye0.github.io/WarConquer/).
 
 Pour activer une seule fois le déploiement : **GitHub → WarConquer → Settings → Pages → Build and deployment → Source: GitHub Actions**. Si le dépôt est privé et que GitHub Free refuse Pages, il faut soit disposer de GitHub Pro, soit utiliser un dépôt public. Ne rendre WarConquer public qu'après avoir vérifié son historique et son contenu.
 
