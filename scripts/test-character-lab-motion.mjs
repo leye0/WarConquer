@@ -158,7 +158,7 @@ try {
     "Uthana original bind pose without animation",45000);
   await sleep(600);
   await screenshot("fal-rigged-bind-pose-live");
-  await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.alpha=Math.PI/2;c.beta=Math.PI/2.12;c.setTarget(new BABYLON.Vector3(0,1.15,0));c.lowerRadiusLimit=2.8;c.radius=5.5;return true})()");
+  await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.setTarget(new BABYLON.Vector3(0,1.15,0));c.alpha=Math.PI/2;c.beta=Math.PI/2.12;c.lowerRadiusLimit=2.8;c.radius=5.5;return true})()");
   await sleep(700);
   await screenshot("fal-rigged-bind-pose-front-live");
   await js("document.getElementById('cameraButton').click()");
@@ -202,8 +202,9 @@ try {
   await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.alpha=Math.PI/2;c.beta=Math.PI/2.12;c.setTarget(new BABYLON.Vector3(0,1.15,0));c.lowerRadiusLimit=2.8;c.radius=5.5;return true})()");
   await sleep(700);
   await screenshot("fal-animated-idle-front-live");
-  await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.alpha=-Math.PI/2;c.beta=Math.PI/2.12;c.setTarget(new BABYLON.Vector3(0,1.15,0));c.lowerRadiusLimit=2.8;c.radius=5.5;return true})()");
+  await js("(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;c.setTarget(new BABYLON.Vector3(0,1.15,0));c.alpha=-Math.PI/2;c.beta=Math.PI/2.12;c.lowerRadiusLimit=2.8;c.radius=5.5;return true})()");
   await sleep(650);
+  assert(Math.abs((await js("BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera.alpha")) + Math.PI/2) < .05, "actual face camera heading was overwritten");
   await screenshot("fal-animated-idle-face-live");
   console.log("PASS: legacy plus default fal PBR 52-bone, four real Mixamo clips, true face/texture screenshots");
 } finally {
