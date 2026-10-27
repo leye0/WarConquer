@@ -220,7 +220,7 @@
 
   function lookForAnimations(groups) {
     state.animGroups=groups;
-    const isWalk=name=>/(?:^|[_\\s-])(walk|walking|run|running|marche)(?:$|[_\\s-])/i.test(name);
+    const isWalk=name=>/(?:^|[_ -])(walk|walking|run|running|marche)(?:$|[_ -])/i.test(name);
     state.walk=groups.find(x=>isWalk(x.name)) || null;
     state.attack=groups.find(x=>x!==state.walk && /axe|attack|chop|swing|strike/i.test(x.name)) || null;
     if (!state.attack && groups.length===1 && !state.walk) state.attack=groups[0];
