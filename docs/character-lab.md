@@ -66,3 +66,7 @@ Le fichier `warconquer-playable.glb` regroupe maintenant la marche, la course, l
 - Ces tests ne font aucun appel de génération payant. Ils se déclenchent avec une modification de ce document ou manuellement dans GitHub Actions.
 
 Une capture valide **n'est pas encore** une vérification humaine des animations : il faut tester les commandes et la marche dans le navigateur.
+
+## Essai de texture fal.ai (27 octobre 2026)
+
+Le pilote `fal-textured.glb` est une génération **séparée, UV texturée mais sans squelette** de `fal-ai/hunyuan3d/v2/multi-view`, alimentée par nos références PNG front/back/left ; l'API ne reçoit pas la vue droite. Il ne remplace pas `warconquer-playable.glb` ni les quatre mouvements Mixamo. Le menu du Character Lab permet de comparer les deux modèles, et le test Chrome produit `fal-textured-isometric-live.png`, `fal-textured-front-live.png` et `fal-textured-back-live.png` pour une QA visuelle rapprochée. La génération est facturée une seule fois grâce à `.github/workflows/fal-textured-pilot.yml` et `scripts/generate-fal-textured-pilot.py` (une relance après échec doit reprendre l'ID de requête existant, jamais soumettre une nouvelle génération).
