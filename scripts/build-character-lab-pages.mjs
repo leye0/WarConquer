@@ -63,6 +63,7 @@ bytes += publish("character-lab.html", "index.html");
 bytes += publish("character-lab.html");
 bytes += publish("scripts/character-lab-client.js");
 bytes += publish("scripts/weapon-grip-geometry.js");
+bytes += publish("scripts/equipment-animation-policy.js");
 for (const path of [...assets].sort()) bytes += publish(path);
 const apiDir = join(output, "api");
 mkdirSync(apiDir, { recursive: true });
