@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 from urllib.request import urlopen
 
 from PIL import Image, ImageDraw
+import imageio_ffmpeg
 
 REQUEST = Path("motion-transfer-request.json")
 MODEL = "bytedance/dreamactor-m2.0"
@@ -50,21 +51,19 @@ def digest(path):
 
 
 def probe(path):
-    result = subprocess.run(
-        ["ffprobe", "-v", "error", "-show_entries",
-         "format=duration:stream=codec_type,width,height,avg_frame_rate",
-         "-of", "json", str(path)],
-        check=True, capture_output=True, text=True,
-    )
-    data = json.loads(result.stdout)
-    video = next(s for s in data["streams"] if s["codec_type"] == "video")
+    # imageio-ffmpeg bundles FFmpeg on GitHub runners; no system ffprobe is needed.
+    frames = imageio_ffmpeg.read_frames(str(path))
+    try:
+        metadata = next(frames)
+    finally:
+        frames.close()
+    width, height = metadata["size"]
     return {
-        "duration_seconds": round(float(data["format"]["duration"]), 3),
-        "width": video["width"],
-        "height": video["height"],
-        "frame_rate": video.get("avg_frame_rate"),
+        "duration_seconds": round(float(metadata["duration"]), 3),
+        "width": width,
+        "height": height,
+        "frame_rate": metadata.get("fps"),
     }
-
 
 def verified_inputs(request):
     source, driver = Path(SOURCE), Path(DRIVER)
@@ -146,7 +145,7 @@ def submit(request, fingerprints, output_dir):
 def create_contact_sheet(video_path, sheet_path):
     with tempfile.TemporaryDirectory(prefix="dreamactor-frames-") as folder:
         subprocess.run([
-            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+            imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-loglevel", "error", "-y",
             "-i", str(video_path), "-vf", "fps=4,scale=192:192:flags=lanczos",
             str(Path(folder) / "frame-%03d.png"),
         ], check=True)
