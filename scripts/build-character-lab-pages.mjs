@@ -55,6 +55,7 @@ for (const character of catalog.characters) {
   for (const prop of character.props || []) {
     assets.add(repositoryAssetPath(prop.gripPlan));
     assets.add(repositoryAssetPath(prop.model));
+    if (prop.physicalSize) assets.add(repositoryAssetPath(prop.physicalSize));
   }
 }
 
