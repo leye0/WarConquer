@@ -181,9 +181,16 @@ def animate():
     original_materials = json.dumps(doc.get("materials", []), sort_keys=True)
     original_textures = json.dumps(doc.get("textures", []), sort_keys=True)
     original_images = json.dumps(doc.get("images", []), sort_keys=True)
-    clips = glb.transfer_clips(doc, binary, Path(folder), clip_stems={"Idle": "Standard_Idle"})
-    if len(clips) != 4 or len(doc.get("animations", [])) != 4:
-        raise RuntimeError("Four authentic Mixamo clips required")
+    extras = [
+        ("Idle_Relaxed", "Unarmed_Idle_01_2"),
+        ("Idle_Wipe", "Wiping_Sweat"),
+        ("Idle_Magic", "Standing_Idle_03"),
+        ("Cast_Fireball", "Standing_1H_Magic_Attack_01"),
+    ]
+    clips = glb.transfer_clips(doc, binary, Path(folder),
+                               clip_stems={"Idle": "Standard_Idle"}, extra_clips=extras)
+    if len(clips) != 8 or len(doc.get("animations", [])) != 8:
+        raise RuntimeError("Eight authentic Mixamo clips required")
     if (json.dumps(doc["skins"], sort_keys=True) != original_skins or
         json.dumps(doc.get("materials", []), sort_keys=True) != original_materials or
         json.dumps(doc.get("textures", []), sort_keys=True) != original_textures or
@@ -193,7 +200,7 @@ def animate():
     output, _ = glb.load_glb(PLAYABLE)
     after = texture_stats(output)
     if not (after["valid"] and after["joint_count"] == 52 and
-            after["animation_count"] == 4 and after["skinned_primitives"] >= 1):
+            after["animation_count"] == 8 and after["skinned_primitives"] >= 1):
         raise RuntimeError("Playable GLB fails material/skeleton/motion validation")
     report = {
         "status": "generated-awaiting-live-browser-QA",
