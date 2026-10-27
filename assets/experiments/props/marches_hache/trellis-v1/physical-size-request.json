@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "object_image": "assets/concepts/marches/objects/hache_arme.png",
+  "character_image": "assets/concepts/marches/units/hache.png",
+  "generation_request": "axe-image-request.json",
+  "output_path": "assets/experiments/props/marches_hache/trellis-v1/physical-size.json",
+  "vision_model": "google/gemini-2.5-flash-lite",
+  "maximum_paid_requests": 1,
+  "automatic_paid_retries": 0
+}
