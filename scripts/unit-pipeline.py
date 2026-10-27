@@ -214,7 +214,9 @@ def execute(doc, stage):
     elif stage == "object_grip":
         py("plan-prop-attachment.py", "--request", prop["grip_request"])
     elif stage == "integrate":
-        with tempfile.TemporaryDirectory(prefix="wc-character-pages-") as target:
+        with tempfile.TemporaryDirectory(prefix="wc-character-pages-") as sandbox:
+            target = str(Path(sandbox) / "pages")
+            # The Pages builder deliberately rejects an *existing* target.
             run_cmd("node", "scripts/build-character-lab-pages.mjs", target)
             catalog_path = Path(target) / "api/character-lab.json"
             catalog = json.loads(catalog_path.read_text())
