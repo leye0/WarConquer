@@ -2,9 +2,9 @@
 
 ## Principe retenu (2026-10-27)
 
-L'objectif est de remplacer les expérimentations de mouvements 2D isolés par une **source 3D articulable commune**, puis d'en dériver toutes les animations et les huit directions de caméra sans redessiner l'identité à chaque vue.
+L'objectif est de remplacer les expérimentations de mouvements 2D isolés par une **source 3D articulable commune**, puis d'appliquer des animations squelettiques et de voir le personnage librement sous n'importe quel angle.
 
-**La pose d'entrée est déterminante :** produire **une stricte T-pose identique** en quatre vues orthographiques (face, dos, profil gauche, profil droit), caméra à hauteur du personnage, avec bras tendus horizontalement, mains ouvertes et vides, jambes droites légèrement écartées, deux pieds posés au même niveau. Ne pas réutiliser comme entrée de rigging les huit vues RTS historiques avec hache tenue ou les images d'attaque.
+**La pose d'entrée est déterminante :** produire **une stricte T-pose identique** en quatre vues orthographiques (face, dos, profil gauche, profil droit), caméra à hauteur du personnage, avec bras tendus horizontalement, mains ouvertes et vides, jambes droites légèrement écartées, deux pieds posés au même niveau. Ne pas utiliser des images en pose de combat ou avec une arme tenue pour le rigging.
 
 Il faut distinguer la géométrie et le rigging : un GLB Hunyuan3D-2mv n'est pas un personnage animé tant qu'il n'a ni squelette, ni poids de peau, ni mouvement lié au squelette. Les quatre illustrations sont des **références visuelles cohérentes**, pas un certificat de géométrie humaine correcte.
 
@@ -26,24 +26,22 @@ Il faut distinguer la géométrie et le rigging : un GLB Hunyuan3D-2mv n'est pas
 
 Le pipeline automatique [scripts/build-rig-ready-3d.py](../scripts/build-rig-ready-3d.py) et [sa GitHub Action](../.github/workflows/build-rig-ready-3d.yml) attendent le fichier de validation explicite rig-ready-3d-request.json contenant les SHA-256 des quatre images acceptées. Sans cette validation, aucun appel Hunyuan ou Uthana n'est lancé. Il envoie ensuite les quatre images dans les champs Replicate Hunyuan3D-2mv : front_image, back_image, left_image, right_image. Conserver un identifiant de prédiction et une empreinte des images avant toute reprise, ne jamais payer deux fois pour la même tentative; conserver GLB, paramètres, rapport de géométrie, aperçu de rotation.
 
-Il existe **un autre pilote distinct** dans [scripts/build-multiview-3d.py](../scripts/build-multiview-3d.py) qui utilise encore les anciennes vues de personnage debout avec hache. Ne pas confondre ses éventuels résultats avec ce pilote T-pose. Garder historique, coûts et sources séparés.
-
 ## Phase C — auto-rig bipède (exécutée et contrôlée structurellement)
 
 [Uthana create-character-v1 sur Replicate](https://replicate.com/uthana/create-character-v1) accepte le GLB non riggé via character_file avec auto_rig=true, front_facing=true et renvoie un personnage articulé GLB/FBX. C'est automatisable par API et conçu pour les meshes humanoïdes en T/A-pose, à condition que le maillage soit réellement humain et exploitable. Coût affiché à la vérification : environ **0,20 USD/sortie** (tarif non contractuel). Séparer rig et arme pour éviter que la hache soit identifiée comme un membre. Vérifier les joints et les poids : un appel réussi ne prouve pas la qualité des déformations.
 
-## Phase D — mouvement et huit directions (premier mouvement retargeté; 8 directions non réalisées)
+## Phase D — mouvement du personnage 3D (premier mouvement retargeté)
 
 Uthana text-to-motion-vqvae-v1/diffusion-v2 sur Replicate génère des mouvements sur un **squelette bipède standard**, pas directement sur le rig WarConquer. Il faut **retargeter** les animations et contrôler la correspondance des os, la pose de repos, la main qui tient l'arme, les contacts au sol. Pour les coups de hache/épée, créer ensuite une arme 3D distincte attachée à la main droite, et vérifier le mouvement de l'objet.
 
-Livrables finaux visés : rigged-character.glb avec peau et os; animations séparées (idle, walk/run, axe/sword attack); aperçu articulé complet et rendus RTS à huit directions avec camera fixe (N, NE, E, SE, S, SW, W, NW). Des sprites transparents 2D peuvent ensuite être rendus à partir de la même scène 3D si le jeu ne consomme pas directement le GLB.
+Livrables finaux visés : un personnage GLB avec maillage, peau et os; des animations squelettiques séparées (idle, marche/course, attaques); une visionneuse 3D interactive dans laquelle on peut tourner librement autour du personnage et lire les animations.
 
 ## État et règles de dépenses
 
 - **Phase A :** les quatre images T-pose v2 ont été produites et examinées. Le profil latéral a été corrigé pour respecter une vraie projection orthographique, et le contrat est dans `docs/rig-pose-contract.md`.
 - **Phase B :** une prédiction Hunyuan3D-2mv a produit le GLB non skinné (25 000 triangles). Le maillage reste non texturé.
 - **Phase C :** une prédiction Uthana auto-rig a produit 52 os Mixamo avec attributs `JOINTS_0`/`WEIGHTS_0`, et un GLB riggé. La pose de repos a ensuite été vérifiée par skinning logiciel (erreur maximale `0.000001` unité sur les vertices).
-- **Phase D :** une prédiction Uthana Diffusion v2 a produit un coup de hache abstrait d'environ 3,92 s sur le rig UE5 Manny; transfert hors-ligne explicite vers les 52 articulations Mixamo, 95 frames et 52 canaux de rotation. Le rendu de 5 poses face/profil fonctionne, mais **n'est pas encore un mouvement de hache utilisable en jeu** : les mains ne tiennent pas ensemble une vraie arme, l'arme 3D, les textures et les huit directions ne sont pas disponibles.
+- **Phase D :** une prédiction Uthana Diffusion v2 a produit un coup de hache abstrait d'environ 3,92 s sur le rig UE5 Manny; transfert hors-ligne explicite vers les 52 articulations Mixamo, 95 frames et 52 canaux de rotation. Le rendu de 5 poses face/profil fonctionne, mais **n'est pas encore un mouvement de hache utilisable en jeu** : les mains ne tiennent pas ensemble une vraie arme, la véritable arme 3D et les textures ne sont pas disponibles.
 - Les Actions de validation, prévisualisation et transfert n'appellent plus de modèle payant. Les seules générations payantes sont à usage unique, sauvegardées par identifiant de prédiction avant polling.
 - Aucune branche de révision nouvelle. Ne pas toucher aux sprites et guides historiques, à leurs archives ou à leurs fichiers de contrôle.
 - Appels d'image : OpenRouter/Muse seulement. Les étapes de 3D et rigging sont des appels Replicate distincts, gardés derrière leur propre limite et leur propre état.
@@ -69,6 +67,6 @@ La version canonique est `tpose-v2`, basée sur quatre vues dont les empreintes 
 
 Le [contrat du mouvement](../rig-ready-motion-request.json) contient modèle, version conservée dans `prediction.json`, seed `20261027`, prompt canonique et SHA du rig; une tentative payante maximum, sans retry automatique. La génération coûte approximativement 0,50 USD selon le tarif Replicate vu pendant cet essai. La sortie source est un rig UE5 Manny `pelvis/spine_01/upperarm_l`, tandis que l'auto-rig du personnage produit des noms Mixamo `mixamorig:Hips/...LeftArm`. L'outil de transfert applique une carte explicite pour **52 os**, puis des rotations relatives à la pose de repos dans l'espace mondial; il ne recopie pas aveuglément les quaternions ni les noms de nœuds. La translation du bassin est écartée intentionnellement pour un clip d'attaque sur place.
 
-**Assurance qualité :** le schéma glTF et les poids sont valides, le clip contient des rotations, la pose de repos est numériquement stable, et aucun sommet n'explose dans les cinq échantillons. Le pilote est **encore en attente d'approbation artistique** : il ne prouve ni une vraie prise à deux mains ni une animation de hache réaliste. Les futures étapes sont : préciser ou contraindre la prise de l'arme, texturer le mesh, attacher une hache au squelette, faire un aperçu en mouvement continu, puis ajouter idle/marche/course/attaques et le rendu caméra 8 directions.
+**Assurance qualité :** le schéma glTF et les poids sont valides, le clip contient des rotations, la pose de repos est numériquement stable, et aucun sommet n'explose dans les cinq échantillons. Le pilote est **encore en attente d'approbation artistique** : il ne prouve ni une vraie prise à deux mains ni une animation de hache réaliste. Les futures étapes sont : préciser ou contraindre la prise de l'arme, texturer le mesh, attacher une hache au squelette, faire un aperçu en mouvement continu, puis ajouter idle/marche/course/attaques et la lecture en continu dans une visionneuse 3D.
 
 **Reproductibilité ≠ identité pixel parfaite :** versions, paramètres, prompts et empreintes d'entrée sont sauvegardés; les sorties génératives, surtout OpenRouter/Muse, ne promettent pas une égalité binaire à chaque nouvelle exécution. Le caractère déterministe du pipeline est principalement garanti par la réutilisation d'artefacts déjà validés, les SHA et l'absence de régénérations implicites.

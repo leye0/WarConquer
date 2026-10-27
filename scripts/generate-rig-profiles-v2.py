@@ -40,7 +40,7 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def load_muse():
-    src=ROOT/"scripts/generate-standing-directions.py"
+    src=ROOT/"scripts/rig-muse-helpers.py"
     spec=importlib.util.spec_from_file_location("muse_rig_profile_v2",src)
     mod=importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)

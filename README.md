@@ -12,11 +12,11 @@
 
 Ces documents constituent une **proposition de conception en cours de discussion** ; ils ne définissent pas encore une implémentation technique. Le gameplay et les contenus originaux seront développés ensuite.
 
-## Guides de pose pour les assets animés
+## Personnages 3D animables
 
-Le pilote de contrôle de mouvement SW approuvé est maintenant accessible depuis [le pipeline de guides de pose](docs/pose-guided-asset-animation.md). Un seul script, une seule GitHub Action et une seule requête servent d'entrée : `scripts/build-pose-guide.py`, `.github/workflows/build-pose-guide.yml`, `pose-guide-request.json`.
+Le projet utilise désormais un pipeline 3D : quatre références en T-pose, reconstruction Hunyuan3D-2mv, auto-rig Uthana, génération de mouvement et transfert du squelette. Voir [l'expérience vérifiée](docs/rigged-characters-experiment.md) et le [contrat de pose canonique](docs/rig-pose-contract.md).
 
-Ces guides contiennent des articulations et une trajectoire d'arme rigide. La même Action construit maintenant un **premier aperçu articulé de l'illustration SW d'origine** avec `scripts/build-rigged-asset.py` et `rigged-asset-request.json`; la vidéo et les 32 échantillons sont publiés sous `assets/experiments/asset-animations/marches_hache/SW/`. C'est une **prévisualisation à valider**, pas encore un sprite approuvé. Aucun appel génératif payant. Les vidéos OpenRouter précédentes et le pipeline historique des huit directions sont conservés à des fins de comparaison.
+Les personnages peuvent être observés sous n'importe quel angle dans une visionneuse 3D. Les mouvements sont attachés aux articulations, indépendamment de la caméra.
 
 ---
 

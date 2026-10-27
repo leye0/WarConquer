@@ -36,7 +36,7 @@ CAMERA: one single isolated character, straight-on orthographic camera at the mi
 """
 
 def load_muse():
-    script = ROOT / "scripts/generate-standing-directions.py"
+    script = ROOT / "scripts/rig-muse-helpers.py"
     spec = importlib.util.spec_from_file_location("warconquer_muse_stills", script)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

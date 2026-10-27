@@ -10,7 +10,7 @@ OUT=ROOT/"assets/experiments/rig-ready-3d/marches_hache/tpose-v2"
 def main():
     import numpy
     import trimesh
-    legacy_path=ROOT/"scripts/build-multiview-3d.py"
+    legacy_path=ROOT/"scripts/rig-mesh-preview-utils.py"
     spec=importlib.util.spec_from_file_location("wc_multiview_mesh_visualizer",legacy_path)
     legacy=importlib.util.module_from_spec(spec)
     spec.loader.exec_module(legacy)
