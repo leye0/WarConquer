@@ -58,6 +58,7 @@ function inventory() {
       add(join(base, "unrigged.glb"), "01 · Maillage Hunyuan", "mesh", 10);
       add(join(base, "rigged.glb"), "02 · Squelette Uthana", "rig", 20);
       add(join(base, "fal-textured.glb"), "05 · fal.ai · Texture UV (sans rig)", "mesh", 50);
+      add(join(base, "motion/fal-mixamo-v1/warconquer-textured-playable.glb"), "06 · fal.ai · UV + Uthana + Mixamo", "playable", 55, "fal-mixamo-v1");
       for (const motionId of dirs(join(base, "motion"))) {
         const motionDir = join(base, "motion", motionId);
         const playable = join(motionDir, "warconquer-playable.glb");
