@@ -266,11 +266,10 @@ def run():
         channels.append({"sampler":sampler,
                          "target":{"node":i,"path":"rotation"}})
         first=animated[i][0]
-        max_angle=2*math.degrees(math.acos(min(1.0,abs(
-            sum(a*b for a,b in zip(q,first))))))
+        max_angle=0.0
         for q in animated[i][1:]:
-            max_angle=max(max_angle,2*math.degrees(math.acos(min(1.0,abs(
-                sum(a*b for a,b in zip(q,first)))))))
+            dot=min(1.0,abs(sum(a*b for a,b in zip(q,first))))
+            max_angle=max(max_angle,2*math.degrees(math.acos(dot)))
         moved[tr[i]["name"]]=round(max_angle,3)
     if max(moved.values())<5:
         raise ValueError("No meaningful skeletal movement was transferred")
