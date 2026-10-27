@@ -46,7 +46,10 @@ function repositoryAssetPath(url) {
 
 const catalog = inventory();
 assert(catalog.characters.length > 0, "Cannot publish an empty Character Lab");
-const assets = new Set(["assets/experiments/props/marches_hache/trellis-v1/axe.glb"]);
+const assets = new Set([
+  "assets/experiments/props/marches_hache/trellis-v1/axe.glb",
+  "assets/experiments/props/marches_hache/trellis-v1/grip-plan.json",
+]);
 for (const character of catalog.characters) {
   assert(character.models.length > 0, "No models for " + character.id);
   for (const model of character.models) assets.add(repositoryAssetPath(model.url));
@@ -58,6 +61,7 @@ let bytes = 0;
 bytes += publish("character-lab.html", "index.html");
 bytes += publish("character-lab.html");
 bytes += publish("scripts/character-lab-client.js");
+bytes += publish("scripts/weapon-grip-geometry.js");
 for (const path of [...assets].sort()) bytes += publish(path);
 const apiDir = join(output, "api");
 mkdirSync(apiDir, { recursive: true });
