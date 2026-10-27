@@ -274,26 +274,42 @@
       }
       removeImported();
       const pivot=new BABYLON.TransformNode("wc-character-pivot",state.scene);
+      // Hunyuan / Uthana GLBs can have a 0.01-scale Armature rotated 90 degrees.
+      // Normalizing raw local mesh bounds leaves the real on-screen model tiny.
+      const content=new BABYLON.TransformNode("wc-character-content",state.scene);
+      content.parent=pivot;
       const allNodes=[...(imported.meshes||[]),...(imported.transformNodes||[])];
-      for (const node of allNodes) if (!node.parent) node.parent=pivot;
+      for (const node of allNodes) if (!node.parent) node.parent=content;
       const vertices=imported.meshes.filter(m=>m.getTotalVertices && m.getTotalVertices()>0);
-      let bottom=0,top=2;
-      if (vertices.length) {
-        bottom=Infinity;top=-Infinity;
+      const bounds=()=>{
+        const min=new BABYLON.Vector3(Infinity,Infinity,Infinity);
+        const max=new BABYLON.Vector3(-Infinity,-Infinity,-Infinity);
         for (const m of vertices) {
-          const info=m.getBoundingInfo().boundingBox;
-          bottom=Math.min(bottom,info.minimum.y);
-          top=Math.max(top,info.maximum.y);
+          m.computeWorldMatrix(true);
+          const box=m.getBoundingInfo().boundingBox;
+          min.minimizeInPlace(box.minimumWorld);
+          max.maximizeInPlace(box.maximumWorld);
+        }
+        return {min,max,size:max.subtract(min)};
+      };
+      if (vertices.length) {
+        let b=bounds();
+        // Recover a standing up-axis when the imported rig lies along ground Z.
+        if(b.size.z>Math.max(.0001,b.size.y)*1.8 && b.size.y<Math.max(b.size.x,b.size.z)*.48) {
+          content.rotation.x=-Math.PI/2;
+        }
+        b=bounds();
+        const height=Math.max(.00001,b.size.y);
+        const normalizer=Math.min(500,Math.max(.01,1.9/height));
+        pivot.scaling.setAll(normalizer);
+        pivot.position.y=-b.min.y*normalizer;
+        for (const m of vertices) {
           if (state.sun && m.getTotalVertices()<60000) state.sun.addShadowCaster(m);
         }
+        text("modelMetric",vertices.length+" mesh · échelle ×"+normalizer.toFixed(1));
       }
-      const height=Math.max(.05,top-bottom);
-      const normalizer=Math.min(10,Math.max(.08,1.9/height));
-      pivot.scaling.setAll(normalizer);
-      pivot.position.y=-bottom*normalizer;
       pivot.position.x=0;pivot.position.z=0;
       pivot.rotation.y=0;
-      state.scale=normalizer;
       state.character=pivot;
       state.imported=imported;
       lookForAnimations(imported.animationGroups||[]);
@@ -319,7 +335,8 @@
     group.start(false,1,group.from,group.to);
     group.onAnimationGroupEndObservable.addOnce(()=>{
       state.attacking=false;
-      if (!state.moving) restPose();
+      if (state.moving && state.walk) state.walk.start(true,1,state.walk.from,state.walk.to);
+      else restPose();
     });
     setStatus("Attaque du guerrier", "normal");
   }
@@ -327,6 +344,16 @@
   function update(delta) {
     const B=BABYLON;
     const dt=Math.min(.055,Math.max(0,delta||0));
+    // An orthographic ArcRotateCamera changes radius on wheel; update the
+    // orthographic extents so wheel zoom actually changes visible scale.
+    if (state.camera && state.engine) {
+      const half=6.4*state.camera.radius/13;
+      const aspect=state.engine.getRenderWidth()/Math.max(1,state.engine.getRenderHeight());
+      state.camera.orthoTop=half;
+      state.camera.orthoBottom=-half;
+      state.camera.orthoLeft=-half*aspect;
+      state.camera.orthoRight=half*aspect;
+    }
     const pressed=key=>state.input.has(key)||state.touch.has(key);
     const vertical=(pressed("w")||pressed("arrowup")?1:0)-(pressed("s")||pressed("arrowdown")?1:0);
     const horizontal=(pressed("d")||pressed("arrowright")?1:0)-(pressed("a")||pressed("arrowleft")?1:0);
