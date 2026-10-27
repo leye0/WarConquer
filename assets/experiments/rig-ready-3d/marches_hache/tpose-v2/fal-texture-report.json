@@ -1,5 +1,5 @@
 {
-  "status": "textured-unrigged-awaiting-visual-QA",
+  "status": "textured-unrigged-visual-QA-reviewed",
   "model": "fal-ai/hunyuan3d/v2/multi-view",
   "request_id": "01a17d78-2b2e-74e1-91b6-64956ab4adfd",
   "estimated_cost_usd": 0.48,
@@ -37,12 +37,25 @@
   "output": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-textured.glb",
   "bytes": 4876656,
   "sha256": "6f297890dc42f25640049b63a4c55ca12494bee62f37a590eb57573e68c8afb2",
-  "note": "Separate non-rigged pilot; face and topology still require visual QA.",
+  "note": "Original multi-view material/UV mapping, not a hand-patched projection. Visual review: face sits on the head at plausible scale; texture relatively soft and dark at close distance; bulky hair and merged fingers persist in mesh; no skin and no animation. Rigging remains pending.",
   "mesh_count": 1,
   "primitive_count": 1,
   "uv_primitives": 1,
   "texture_images": 1,
   "textured_materials": 1,
   "skin_count": 0,
-  "animation_count": 0
+  "animation_count": 0,
+  "visual_qa": {
+    "browser_run": "https://github.com/leye0/WarConquer/actions/runs/40511220957",
+    "result": "pass-with-quality-limitations",
+    "face_scale": "face correctly located and plausibly sized; no miniature face patch",
+    "texture": "UV-consistent clothing and face, but low facial sharpness and dark lighting",
+    "geometry": "hair bulky, individual finger geometry not present",
+    "animation": "none (no skin)",
+    "screenshots": [
+      "assets/experiments/character-lab-qa/fal-textured-face-detail-live.png",
+      "assets/experiments/character-lab-qa/fal-textured-front-detail-live.png",
+      "assets/experiments/character-lab-qa/fal-textured-back-detail-live.png"
+    ]
+  }
 }
