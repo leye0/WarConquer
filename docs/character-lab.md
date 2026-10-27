@@ -91,6 +91,17 @@ Le champ **Animation à tester au repos** est alimenté par les animations effec
 
 Le test Chrome automatisé vérifie la présence des choix de repos et des boutons de course tactile, puis l'activation de la course, le lancement de la boule de feu et ses captures sur mobile. Les fichiers PNG sont sauvegardés dans [character-lab-qa](../assets/experiments/character-lab-qa/).
 
+## Prise automatique d'objets 3D : vision + géométrie + anatomie
+
+Le pipeline n'attache plus une hache en supposant que son manche correspond au plus grand axe de sa boîte englobante, ni avec une prise fixe à 22 %. Cette méthode ignorait la répartition de la masse de la lame, la rotation du GLB et le placement anatomique.
+
+1. `scripts/analyze-prop-vision.py` soumet **une fois** l'image isolée à `openai/gpt-4.1-mini` via OpenRouter, avec une sortie JSON structurée et validée. Le modèle indique le type d'objet, la main, le talon et le haut du manche, le point d'empoigne, la tête et le tranchant. Les coordonnées sont normalisées ; on convertit la position d'empoigne en fraction de longueur du manche. Le résultat versionné est `assets/experiments/props/marches_hache/trellis-v1/grip-vision.json`. L'analyse déjà présente est réutilisée sans nouvel appel payant. Une faible confiance ou une position incohérente provoque un échec explicite.
+2. À l'import TRELLIS, `scripts/weapon-grip-geometry.js` collecte les vrais sommets **dans l'espace Babylon après conversion glTF**, calcule l'axe principal par covariance/PCA puis détecte le côté de la tête grâce à l'élargissement du volume. Il **recalcule l'axe sur les sommets du seul manche** pour ne pas laisser la masse de la lame incliner artificiellement l'axe. La position d'empoigne et le côté de la lame sont calculés dans les coordonnées du GLB importé ; aucun X/Y/Z fixe n'est imposé.
+3. Le Character Lab déduit la direction de prise de la main animée et de l'avant-bras, ainsi que la direction du tranchant à partir de l'orientation du personnage. Une transformation rigide rotation + translation + mise à l'échelle situe la prise sur la paume ; le nœud de l'objet devient enfant de la main, et reste solidaire des clips Idle, Walk, Run et Attack.
+4. Si la tête n'est pas géométriquement distincte, si le rig ne possède pas une main exploitable ou si le JSON vision est absent, le système **ne crée pas de pose arbitraire** : le panneau indique une prise en attente ou refusée. La suite générique doit être éprouvée sur d'autres types d'objets avant de qualifier leur prise d'automatique.
+
+Le workflow `.github/workflows/analyze-prop-grip.yml` lance d'abord `scripts/test-weapon-grip-geometry.mjs` : une hache synthétique est tournée dans quatre orientations ; les vecteurs du manche et de la lame et le point de prise doivent rester invariants. Le test Chrome réel exige ensuite `data-weapon-grip="vision-geometry"` et photographie la prise dans l'arène via `fal-animated-auto-grip-idle-live.png`. Aucune requête de vision ni génération 3D n'est déclenchée depuis GitHub Pages.
+
 ## Initialisation et retour automatique à la pose de départ
 
 - **Chargement sans pose en T visible :** le pivot reste masqué le temps de sélectionner et d'appliquer la première image de l'animation Idle. Le maillage est ensuite affiché directement dans une vraie pose de repos.
