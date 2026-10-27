@@ -1,0 +1,16 @@
+{
+  "schema": 2,
+  "trial_id": "marches-axeman-orthographic-tpose-profiles-v2",
+  "pose_contract": "docs/rig-pose-contract.md",
+  "front_sha256": "ddaf1862304adc05d01157bda8caae57b8a549ade83ce70e3ace9638a8997d87",
+  "back_sha256": "c7d3a260fd9fddcdf8da5cb8551bedb971452fcff6abda8308dfbd1fb193dce3",
+  "preserve_original_front_back": true,
+  "regenerate_only": [
+    "left",
+    "right"
+  ],
+  "image_model": "meta/muse-image",
+  "maximum_new_paid_images": 2,
+  "automatic_paid_retries": 0,
+  "output_directory": "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2"
+}
