@@ -70,30 +70,48 @@
     const spreadRatio=Math.max(nearMax,nearMin)/Math.max(.000001,Math.min(nearMax,nearMin));
     if (category==="axe" && spreadRatio<1.23)
       throw Error("Axe head not distinguishable from handle in 3D; manual review required");
-    const signed=headAtMax ? axis : mul(axis,-1); // butt -> cutting head
-    const butt=headAtMax ? pMin : -pMax;
-    const distance=projection.map(t=>(headAtMax?t:-t)-butt);
-    // The grip landmark from the original image is expressed as a fraction of
-    // *handle* length. The last ~20% of the GLB is the head, not the handle.
-    const gripDistance=length*gripFraction*.8;
+    const coarseShaft=headAtMax ? axis : mul(axis,-1);
+    const coarseDistance=projection.map(t=>headAtMax?t-pMin:pMax-t);
+    // The blade skews global PCA. Refit the *handle itself* before locating
+    // its centerline; otherwise the axe head can pull the grip toward the blade.
+    const shaftVertices=points.filter((p,i)=>
+      coarseDistance[i]>=length*.07 && coarseDistance[i]<=length*.57);
+    if(shaftVertices.length<40)throw Error("Not enough handle vertices to fit centerline");
+    const handleCenter=centroid(shaftVertices);
+    const shaftCov=[0,0,0,0,0,0,0,0,0];
+    for(const p of shaftVertices){
+      const v=sub(p,handleCenter);
+      for(let i=0;i<3;i++)for(let j=0;j<3;j++)shaftCov[i*3+j]+=v[i]*v[j];
+    }
+    let signed=coarseShaft;
+    for(let iter=0;iter<40;iter++){
+      const next=unit([dot(shaftCov.slice(0,3),signed),
+        dot(shaftCov.slice(3,6),signed),dot(shaftCov.slice(6,9),signed)]);
+      if(!next)throw Error("Degenerate handle geometry");
+      signed=next;
+    }
+    if(dot(signed,coarseShaft)<0)signed=mul(signed,-1);
+    const onShaft=points.map(p=>dot(sub(p,handleCenter),signed));
+    const shaftButt=Math.min(...onShaft);
+    const trueLength=Math.max(...onShaft)-shaftButt;
+    const distance=onShaft.map(t=>t-shaftButt);
+    const gripDistance=trueLength*gripFraction*.8;
     const shaftCandidates=[];
     for(let i=0;i<points.length;i++)
-      if(Math.abs(distance[i]-gripDistance)<length*.048)shaftCandidates.push(points[i]);
+      if(Math.abs(distance[i]-gripDistance)<trueLength*.035)shaftCandidates.push(points[i]);
     if(shaftCandidates.length<8)throw Error("No shaft vertices near the grip");
     const radialCenter=centroid(shaftCandidates);
-    const grip=add(radialCenter,mul(signed,gripDistance-dot(sub(radialCenter,center),signed)+butt));
-    // Head mass displaced off the shaft reveals the blade plane and which side
-    // of the shaft to point forward in the character's local frame.
+    const grip=add(radialCenter,mul(signed,gripDistance-(dot(sub(radialCenter,handleCenter),signed)-shaftButt)));
     const headCandidates=[];
     for(let i=0;i<points.length;i++)
-      if(distance[i]>length*.76)headCandidates.push(points[i]);
+      if(distance[i]>trueLength*.76)headCandidates.push(points[i]);
     if(headCandidates.length<8)throw Error("No discernible weapon head vertices");
     const headCenter=centroid(headCandidates);
     const transverse=sub(sub(headCenter,grip),mul(signed,dot(sub(headCenter,grip),signed)));
     const blade=unit(transverse);
-    if(!blade || norm(transverse)<length*.023)
+    if(!blade || norm(transverse)<trueLength*.02)
       throw Error("Weapon head has no reliable side; manual review required");
-    return {grip,shaft:signed,blade,length,headWidthRatio:spreadRatio,
+    return {grip,shaft:signed,blade,length:trueLength,headWidthRatio:spreadRatio,
       gripFractionFromButt:gripFraction,vertexCount:points.length};
   }
   return {fitGrip,cross,dot,unit,sub,mul,add,norm};
