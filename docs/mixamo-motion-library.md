@@ -1,41 +1,44 @@
-# WarConquer — mouvements Mixamo existants pour le guerrier à la hache
+# WarConquer — vraie bibliothèque de mouvements Mixamo du guerrier à la hache
 
-## Source trouvée
+## Provenance et droits
 
-- Catalogue original : https://www.mixamo.com/
-- Miroir de recherche des animations : https://huggingface.co/datasets/Linzhan/Mixamo-Animations-Characters
-- Dossier de clips FBX sans géométrie : `animation_motion/` (2 317 clips réels, ~65 os Mixamo, 30 FPS).
-- Export avec personnage témoin Y Bot pour prévisualisation : `animation_motion_ybot/`.
-- Licence du miroir : `adobe-mixamo-terms`, **pas CC0**. Avant distribution du jeu, utiliser des assets dûment obtenus via Mixamo, et ne pas distribuer un paquet d'animations FBX brutes comme bibliothèque autonome.
+- Catalogue : https://www.mixamo.com/
+- Miroir de recherche indexé : https://huggingface.co/datasets/Linzhan/Mixamo-Animations-Characters
+- 2 317 clips animés, squelette standard Mixamo (~65 os), 30 FPS.
+- Archive utilisée dans CI : `animation_motion_ybot/` (FBX d'une animation sur Y Bot, convertible en glTF puis retargetable). Sources temporaires uniquement.
+- Licence du miroir : `adobe-mixamo-terms`. Le résultat combine des animations dans un GLB jouable, pas une bibliothèque de FBX bruts. Avant distribution, vérifier la provenance/droits des assets provenant de ce miroir et, si nécessaire, les obtenir depuis Mixamo.
 
-## Clips choisis — tous « with axe »
+## Quatre fichiers effectivement utilisés (révision du 27 octobre 2026)
 
-| Fonction | Fichier de la bibliothèque | Frames à 30 FPS | ID du mouvement Mixamo |
-| --- | --- | ---: | --- |
-| Idle armé | `Standing_Idle_3.fbx` | 56 | `c9ced017-b96c-11e4-a802-0aaa78deedf9` |
-| Marche en avant | `Standing_Walk_Forward_3.fbx` | 41 | `c9cee62c-b96c-11e4-a802-0aaa78deedf9` |
-| Course en avant | `Standing_Run_Forward_3.fbx` | 23 | `c9cee049-b96c-11e4-a802-0aaa78deedf9` |
-| Coup descendant | `Standing_Melee_Attack_Downward.fbx` | 107 | `c9ced340-b96c-11e4-a802-0aaa78deedf9` |
-| Coupe horizontale (alternative) | `Standing_Melee_Attack_Horizontal.fbx` | 171 | `c9ced411-b96c-11e4-a802-0aaa78deedf9` |
+| Fonction | Source Mixamo | Description du catalogue | Frames d'origine |
+| --- | --- | --- | ---: |
+| Idle | `2hand_Idle.fbx` | **Two Handed Weapon Stance** : tenue d'arme tranquille | 144 |
+| Walk | `Walking_21.fbx` | **Male Standard Walk** : mouvement des bras naturel | 38 |
+| Run | `Run_With_Sword.fbx` | **Running With A Sword In The Right Hand** : locomotion armée | 25 |
+| Attack | `Standing_Melee_Attack_Downward.fbx` | **Downward Attack With Axe** | 107 |
 
-URL directe d'un fichier (remplacer `CLIP`) :
-`https://huggingface.co/datasets/Linzhan/Mixamo-Animations-Characters/resolve/main/animation_motion/CLIP.fbx`
+Le suffixe `WithAxe` des noms d'animation dans le GLB est un nom de compatibilité d'interface; les sources Idle/Walk/Run ne sont pas toutes des clips explicitement prévus « avec hache ». L'objet TRELLIS est attaché à la main par le navigateur.
 
-Exemple : https://huggingface.co/datasets/Linzhan/Mixamo-Animations-Characters/resolve/main/animation_motion/Standing_Walk_Forward_3.fbx
+Les trois anciennes sources `Standing_Idle_3`, `Standing_Walk_Forward_3`, `Standing_Run_Forward_3` étaient de vrais clips Mixamo, mais inadaptés au résultat souhaité; **elles ont été remplacées**. Leurs métadonnées restent disponibles dans le catalogue Hugging Face; elles ne sont plus incorporées au GLB actif.
 
-Catalogue et descriptions observés :
-- https://huggingface.co/datasets/Linzhan/Mixamo-Animations-Characters/viewer/animations/train?p=19
-- https://huggingface.co/datasets/Linzhan/Mixamo-Animations-Characters/viewer/animations/train?p=20
+## Pipeline réel
 
-## Intégration technique restante
+1. Télécharger les quatre FBX YBot existants dans `$RUNNER_TEMP` (jamais les publier comme fichiers autonomes).
+2. Convertir les FBX en GLB via le binaire Linux précompilé `fbx2gltf@0.9.7-p1`. Blender n'est plus nécessaire en CI.
+3. Lire les os de la peau et **inverseBindMatrices** des GLB sources. L'orientation des nœuds exportés correspond souvent à la **première image animée**, pas à la T-pose. La soustraire directement à la première image effaçait toute la position des bras !
+4. Calculer chaque mouvement relatif à la *bind pose* de sa source et le transférer en rotations locales sur les 52 os approuvés du guerrier; le déplacement du pivot est géré séparément par WASD.
+5. Construire l'atlas UV à partir des PNG T-pose (face, dos, gauche, droite), en respectant l'origine glTF **en haut à gauche** (pas de renversement vertical des UV).
+6. Écrire un seul `assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/mixamo-axe-v1/warconquer-playable.glb` contenant texture et quatre clips.
+7. Vérifier en Chrome réel via `scripts/test-character-lab-motion.mjs` : Idle, W = Walk, Shift+W = Run, Espace = Attack, avec captures et mouvement du personnage.
 
-1. Obtenir les FBX légitimement. Le miroir de recherche fournit un index exploitable, mais WarConquer n'embarque pas encore ces fichiers.
-2. Convertir FBX vers glTF/GLB hors-ligne (Blender par exemple). Ne pas substituer Y Bot à notre guerrier.
-3. Retargeter les rotations du squelette Mixamo de 65 articulations vers les 52 os réellement présents sur le GLB WarConquer; aligner poses de repos et axes. Conserver la peau, la géométrie et les poids du rig existant. Neutraliser la translation globale des clips locomotion si WASD gère le déplacement.
-4. Réunir Idle, Walk, Run et Attack comme **quatre vrais clips distincts** dans un GLB jouable.
-5. Tester la pose des bras, les pieds, les boucles et l'attaque dans Character Lab (WASD, Shift, Espace), puis inspecter une capture vidéo/les poses.
-6. Appliquer séparément une texture UV aux quatre vues sources; ce travail n'est pas effectué par les fichiers de mouvement.
+La vérification géométrique du résultat et des contacts au sol reste un travail distinct de la présence d'animations dans le conteneur GLB.
 
-Le coup de hache actuellement présent est issu d'`uthana/text-to-motion-diffusion-v2`, sur un squelette UE5 Manny, généré avec le prompt de `scripts/generate-rig-ready-motion.py`, puis transféré sur notre squelette Mixamo. Ce n'est pas un clip Mixamo et sa qualité visuelle n'est pas approuvée.
+## Références du dépôt
 
-**État : fichiers Mixamo réels identifiés en ligne; pas encore téléchargés, retargetés ni testés sur WarConquer.** Aucun cycle de marche/course procédural n'est requis.
+- `.github/workflows/build-mixamo-playable.yml`
+- `scripts/convert-mixamo-fbx.py`
+- `scripts/build-mixamo-playable.py`
+- `assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/mixamo-axe-v1/report.json`
+- `docs/character-lab.md`
+
+L'ancien coup de hache `axe-chop-v1` dérivait d'une animation générée par Uthana, pas de Mixamo. Il reste disponible pour comparaison mais n'est plus le choix par défaut.
