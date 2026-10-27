@@ -43,7 +43,7 @@ def download(directory):
 def convert(directory):
     """Use pinned precompiled FBX2glTF, no Blender or GPU required."""
     import subprocess
-    binary=Path(os.environ.get("FBX2GLTF_BIN","node_modules/.bin/fbx2gltf"))
+    binary=Path(os.environ.get("FBX2GLTF_BIN","node_modules/fbx2gltf/bin/Linux/FBX2glTF"))
     if not binary.is_file():
         raise FileNotFoundError("FBX2glTF precompiled executable not installed: "+str(binary))
     for clip in CLIPS:
