@@ -46,6 +46,10 @@ L'objectif de ce labo est de voir les limites du résultat en situation de jeu a
 
 Le modèle **fal-ai/hunyuan3d/v2/multi-view** a été exécuté **une seule fois** (requête `01a17d78-2b2e-74e1-91b6-64956ab4adfd`) à coût estimé de **0,48 $ US**, avec les vues face, dos, gauche en T-pose. Résultat indépendant : `assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-textured.glb` (4,88 Mo), comportant un maillage, des UV et un matériau PBR avec texture incluse. **Aucun rig ni clip de mouvement** : le GLB Mixamo jouable original reste la variante par défaut. Le Character Lab expose le pilote comme `05 · fal.ai · Texture UV (sans rig)` et la QA Chrome sauvegarde également les gros plans `fal-textured-*-detail-live.png` pour évaluer le visage et les coutures. La QA abaisse `lowerRadiusLimit` à 2,8 pour autoriser le gros plan, ajuste le rayon de la caméra orthographique après `setTarget`, puis vérifie la valeur effective du zoom : régler seulement `orthoTop` serait immédiatement écrasé par la boucle de rendu. Le visage et les coutures doivent être inspectés sur ces gros plans avant toute décision de rigging.
 
+## Personnage fal.ai désormais riggé et animé
+
+La variante séparée `motion/fal-mixamo-v1/warconquer-textured-playable.glb` utilise directement le maillage et la texture UV/PBR de fal.ai, riggés par **une prédiction unique Uthana** (52 os), avec les vrais FBX Mixamo Idle, Walk, Run et Attack. Le script `scripts/build-fal-rig-playable.py` contrôle le SHA du GLB source, sauvegarde l'identifiant de prédiction avant l'attente, refuse tout double appel, conserve les UV natifs et vérifie les quatre clips. Le catalogue expose ce modèle sous `06 · fal.ai · UV + Uthana + Mixamo`. Il n'est pas encore le modèle par défaut tant que le navigateur n'a pas confirmé les déformations, textures et contacts au sol. La QA Chrome inclut les captures `fal-animated-*-live.png`, marche et course sous WASD.
+
 ## Compatibilité du catalogue
 
 Le serveur découvre automatiquement la hiérarchie :
