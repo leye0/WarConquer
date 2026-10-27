@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "experiment": "marches-axe-prop-trellis-v1",
+  "source_image": "assets/concepts/marches/objects/hache_arme.png",
+  "source_sha256": null,
+  "source_visually_approved": false,
+  "replicate_model": "firtoz/trellis",
+  "replicate_version": "e8f6c45206993f297372f5436b90350817bd9b4a0d52d2a76df50c1c8afa2b3c",
+  "model_inputs": {
+    "generate_model": true,
+    "generate_color": true,
+    "generate_normal": true,
+    "texture_size": 1024,
+    "mesh_simplify": 0.95,
+    "randomize_seed": false,
+    "seed": 20261027,
+    "ss_sampling_steps": 12,
+    "slat_sampling_steps": 12,
+    "ss_guidance_strength": 7.5,
+    "slat_guidance_strength": 3
+  },
+  "maximum_paid_predictions": 1,
+  "automatic_paid_retries": 0,
+  "output_path": "assets/experiments/props/marches_hache/trellis-v1/axe.glb"
+}
