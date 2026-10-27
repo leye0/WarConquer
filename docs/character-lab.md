@@ -35,6 +35,10 @@ La page est [character-lab.html](../character-lab.html), la logique du terrain [
 | **Rotation 90°** | Corrige l'orientation initiale d'un modèle GLB |
 | **Activer/désactiver le suivi** | Fige ou libère la cible de caméra |
 | **Pavé WASD à l'écran** | Déplacement tactile/pointeur |
+| **Courir** (bouton tactile ou `Shift`) | Active/désactive la course, y compris pendant le déplacement au téléphone |
+| **Hache** (bouton tactile ou `Espace`) | Déclenche l'attaque réelle Mixamo |
+| **Feu** (bouton tactile ou `F`) | Joue le mouvement réel Mixamo « lancer un sort » puis projette une boule de feu dans la scène |
+| **Menu Animation à tester au repos** | Quatre poses/mouvements Idle et une action de lancement de boule de feu |
 
 Le déplacement n'utilise pas de sprites : un pivot 3D est déplacé dans une scène Babylon et sa rotation suit la direction du déplacement. L'importeur mesure les bornes mondiales et corrige une orientation horizontale ainsi qu'une unité réduite (cas des rigs Uthana à armature centimétrique).
 
@@ -75,6 +79,17 @@ assets/experiments/rig-ready-3d/<unit>/<pose>/
 GET /api/character-lab fournit les modèles découverts, les références et les métriques connues. Un modèle futur ne nécessite donc pas de modifier la liste codée en dur. Le fichier peut aussi être importé par glisser-déposer sur le terrain.
 
 Le fichier `warconquer-playable.glb` regroupe maintenant la marche, la course, l'immobilité et l'attaque. Les étapes suivantes sont **des tests visuels**, notamment pieds (glissement, pénétration dans le sol), proportions, coutures de texture, enchaînement marche/arrêt, combat et prise de la hache TRELLIS. La caméra démarre cadrée près du personnage et le moteur offre un contrôle WASD plutôt qu'une lecture automatique.
+
+## Nouveaux essais tactiles et animations (27 octobre 2026)
+
+Le modèle texturé et riggé `fal-mixamo-v1/warconquer-textured-playable.glb` contient désormais **huit animations Mixamo réelles** :
+`Idle` (neutre), `Idle_Relaxed` (détendu), `Idle_Wipe` (s'essuie), `Idle_Magic` (jeu de magie), `Walk`, `Run`, `Attack`, `Cast_Fireball`. Le lancement de sort joue le mouvement du bras avant d'émettre un projectile lumineux dans la même arène. Aucun remplacement de modèle ni calcul 3D payant pour choisir une action.
+
+Le champ **Animation à tester au repos** est alimenté par les animations effectivement intégrées dans le GLB courant. Les boutons **Courir / Hache / Feu** du terrain sont tactiles; les pictogrammes de touches sous le terrain sont également de vrais boutons. La course tactile est un interrupteur : appuyer une fois avant de marcher, appuyer de nouveau pour l'arrêter. Les options d'animation ne sont proposées que lorsque le modèle les possède.
+
+**Diagnostic de la tête :** le squelette possède bien les articulations de tête et de cou, toutes deux animées. L'analyse des quaternions montre des oscillations de la tête d'environ **2,6°** au repos neutre et plus marquées pendant la marche, la course et les gestes. Une capture du modèle Uthana **sans animation, en bind pose**, montre pourtant déjà la tête orientée vers le bas : l'orientation statique vient du modèle/rig initial, non d'un défaut d'animation. Réorienter arbitrairement tous les mouvements risquerait de déformer le cou; un modèle source avec regard horizontal ou une correction validée sur la structure de la tête serait nécessaire pour réparer proprement ce défaut.
+
+Le test Chrome automatisé vérifie la présence des choix de repos et des boutons de course tactile, puis l'activation de la course, le lancement de la boule de feu et ses captures sur mobile. Les fichiers PNG sont sauvegardés dans [character-lab-qa](../assets/experiments/character-lab-qa/).
 
 ## Tests
 
