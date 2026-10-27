@@ -7,6 +7,7 @@ on:
       - 'character-lab.html'
       - 'scripts/character-lab-client.js'
       - 'scripts/weapon-grip-geometry.js'
+      - 'scripts/equipment-animation-policy.js'
       - 'scripts/serve-character-lab.mjs'
       - 'scripts/build-character-lab-pages.mjs'
       - 'assets/experiments/rig-ready-3d/**'
@@ -39,6 +40,8 @@ jobs:
         run: |
           node --check scripts/character-lab-client.js
           node --check scripts/weapon-grip-geometry.js
+          node --check scripts/equipment-animation-policy.js
+          node scripts/test-equipment-animation-policy.mjs
           node --check scripts/serve-character-lab.mjs
           node --check scripts/build-character-lab-pages.mjs
       - name: Build minimal public Character Lab bundle
@@ -55,6 +58,7 @@ jobs:
             assert(existsSync(join(dir, "index.html")));
             assert(existsSync(join(dir, "scripts/character-lab-client.js")));
             assert(existsSync(join(dir, "scripts/weapon-grip-geometry.js")));
+            assert(existsSync(join(dir, "scripts/equipment-animation-policy.js")));
             const data = JSON.parse(readFileSync(join(dir, "api/character-lab.json")));
             const props=data.characters.flatMap(c=>c.props||[]);
             assert(props.length>0,"No generic vision attachment plans discovered");
