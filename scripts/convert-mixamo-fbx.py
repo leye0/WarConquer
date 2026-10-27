@@ -22,6 +22,13 @@ CLIPS={
 }
 if os.environ.get("WARCONQUER_STANDARD_IDLE") == "1":
     CLIPS["Standard_Idle"] = "genuine standing neutral Mixamo idle (YBot)"
+if os.environ.get("WARCONQUER_IDLE_VARIANTS") == "1":
+    CLIPS.update({
+        "Unarmed_Idle_01_2": "genuine relaxed unarmed idle (Mixamo YBot)",
+        "Wiping_Sweat": "genuine wiping sweat idle (Mixamo YBot)",
+        "Standing_Idle_03": "genuine playing-with-magic idle (Mixamo YBot)",
+        "Standing_1H_Magic_Attack_01": "genuine one-handed forward spell cast (Mixamo YBot)",
+    })
 PREFIX="https://huggingface.co/datasets/Linzhan/Mixamo-Animations-Characters/resolve/main/animation_motion_ybot/"
 def download(directory):
     directory.mkdir(parents=True,exist_ok=True)
