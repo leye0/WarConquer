@@ -115,6 +115,14 @@ def valid(raw):
  if raw["confidence"]<.65:raise ValueError("Vision not confident enough for a 3D preview")
  return raw
 
+def vision_text(brief):
+ # Intentionally isolated: prior plan ratios and previous model explanations
+ # must not contaminate the model's independent scale judgement.
+ return ("ORIGINAL GENERATION BRIEF:\\n"+brief+
+         "\\nAnalyze the original designed proportions and equipped renders. "
+         "Choose the best proportional size, grip and orientation; "
+         "ignore game UI overlays and diagnose the visible equipment independently.")
+
 def image(p, arena=False):
  # Modest, deterministic image budget; text and images only, never binary GLB.
  with Image.open(p) as original:
@@ -171,10 +179,7 @@ def run(request,check):
     "messages":[
       {"role":"system","content":PROMPT},
       {"role":"user","content":[
-        {"type":"text","text":"ORIGINAL GENERATION BRIEF:\n"+source["prompt"]+
-         "\nAnalyze the original designed proportions and equipped renders. "
-         "Choose the best proportional size, grip and orientation; "
-         "ignore game UI overlays and diagnose the visible equipment independently."},
+        {"type":"text","text":vision_text(source["prompt"])},
         {"type":"text","text":"IMAGE 1: source unit with originally designed equipment"},images["source_character"][0],
         {"type":"text","text":"IMAGE 2: isolated prop rendering"},images["source_prop"][0],
         {"type":"text","text":"IMAGE 3: live 3D rendered arena IDLE"},images["current_render_idle"][0],
