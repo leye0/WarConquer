@@ -1,10 +1,10 @@
 {
-  "status": "browser-qa-pass-with-visible-limitations",
+  "status": "generated-awaiting-live-browser-QA",
   "source": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-textured.glb",
   "rigged_model": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/fal-rigged.glb",
   "playable_model": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/warconquer-textured-playable.glb",
-  "output_sha256": "222606457fd4b59405c721c3329d1c095eb9788148aaab6bf1fd0c5c7fd01a5a",
-  "bytes": 5475764,
+  "output_sha256": "bd292a88d17b0022a7e6b01ee36ae330912b37abd2309cf8368bf9ab7bef47f6",
+  "bytes": 6062996,
   "texture_method": "original fal.ai native embedded UV/PBR, no new projection",
   "rigging_model": "uthana/create-character-v1",
   "rigging_prediction": "61jjyxzansrmw0d1fqmvcy4axg",
@@ -21,14 +21,14 @@
     "skin_count": 1,
     "joint_count": 52,
     "skinned_primitives": 1,
-    "animation_count": 4
+    "animation_count": 8
   },
   "animation_clips": [
     {
       "name": "Idle",
       "fbx": "Standard_Idle.fbx",
       "source_glb_sha256": "557ad0006ad2bf5abf52eb5082535dc2f6b9d26cb7c784b4a407c7fadec69b75",
-      "duration": 3,
+      "duration": 3.0,
       "frames": 91,
       "mapped_joints": 52,
       "rotation_channels": 52,
@@ -79,32 +79,63 @@
         "leftarm": 46.91,
         "rightarm": 65.05
       }
+    },
+    {
+      "name": "Idle_Relaxed",
+      "fbx": "Unarmed_Idle_01_2.fbx",
+      "source_glb_sha256": "3932e822eabd30e435e3e864b74e5c76b1f4d6e5cdbae84022408826b91cb755",
+      "duration": 5.067,
+      "frames": 153,
+      "mapped_joints": 52,
+      "rotation_channels": 52,
+      "largest_rotation_degrees": 18.98,
+      "initial_upper_arm_offset_degrees": {
+        "leftarm": 77.87,
+        "rightarm": 75.26
+      }
+    },
+    {
+      "name": "Idle_Wipe",
+      "fbx": "Wiping_Sweat.fbx",
+      "source_glb_sha256": "daa43d7ec5466de7d68cbbb903935eab42599e9ef17a67d0643ed75c61f3d31c",
+      "duration": 2.633,
+      "frames": 80,
+      "mapped_joints": 52,
+      "rotation_channels": 52,
+      "largest_rotation_degrees": 98.79,
+      "initial_upper_arm_offset_degrees": {
+        "leftarm": 65.03,
+        "rightarm": 64.56
+      }
+    },
+    {
+      "name": "Idle_Magic",
+      "fbx": "Standing_Idle_03.fbx",
+      "source_glb_sha256": "5d6508299f55e7fff661d9322b177da1067e0ea59e8d6b74436f58817edcb588",
+      "duration": 11.4,
+      "frames": 343,
+      "mapped_joints": 52,
+      "rotation_channels": 52,
+      "largest_rotation_degrees": 96.39,
+      "initial_upper_arm_offset_degrees": {
+        "leftarm": 45.66,
+        "rightarm": 61.94
+      }
+    },
+    {
+      "name": "Cast_Fireball",
+      "fbx": "Standing_1H_Magic_Attack_01.fbx",
+      "source_glb_sha256": "3fcaccf1b54adf2a99c9b8b14197f7df448a5e3cf692f632e1b31cd781d68e9b",
+      "duration": 2.267,
+      "frames": 69,
+      "mapped_joints": 52,
+      "rotation_channels": 52,
+      "largest_rotation_degrees": 108.09,
+      "initial_upper_arm_offset_degrees": {
+        "leftarm": 45.66,
+        "rightarm": 61.94
+      }
     }
   ],
-  "visual_QA": {
-    "run": "https://github.com/leye0/WarConquer/actions/runs/40532249019",
-    "passed": [
-      "Real Babylon GLB loads",
-      "52 bones + one skin",
-      "native embedded UV/PBR visible",
-      "Standard Idle upright",
-      "Walk via W with displacement",
-      "Run via Shift+W",
-      "Attack via Space/button",
-      "Legacy character remains selectable"
-    ],
-    "limitations": [
-      "TRELLIS axe still hangs low beside the right leg in some idle frames; grip needs visual refinement",
-      "Finger and hair geometry remain simplified",
-      "Precise close-up frontal facial rendering of the skinned character not conclusively isolated by camera QA; original unskinned face was inspected"
-    ],
-    "screenshots": [
-      "assets/experiments/character-lab-qa/fal-animated-idle-live.png",
-      "assets/experiments/character-lab-qa/fal-animated-walk-live.png",
-      "assets/experiments/character-lab-qa/fal-animated-run-live.png",
-      "assets/experiments/character-lab-qa/fal-animated-attack-live.png",
-      "assets/experiments/character-lab-qa/fal-animated-idle-face-live.png"
-    ],
-    "default_in_character_lab": true
-  }
+  "visual_QA": "pending: joints, materials, walk, run and axe require actual browser screenshots"
 }
