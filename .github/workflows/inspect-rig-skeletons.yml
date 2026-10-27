@@ -1,0 +1,37 @@
+name: Rig-ready motion · inspect skeleton compatibility
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/inspect-rig-skeletons.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Analyze joint mapping, T-pose transforms and animation channels
+        run: |
+          python -m py_compile scripts/inspect-rig-skeletons.py
+          python scripts/inspect-rig-skeletons.py
+      - name: Commit retarget preflight to main
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/axe-chop-v1/retarget-preflight.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: inspect motion-to-character skeleton compatibility'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
