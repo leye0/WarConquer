@@ -4,7 +4,9 @@
 (() => {
   "use strict";
   const byId = id => document.getElementById(id);
-  const TRELLIS_AXE_URL = "/assets/experiments/props/marches_hache/trellis-v1/axe.glb";
+  const TRELLIS_AXE_URL = "assets/experiments/props/marches_hache/trellis-v1/axe.glb";
+  // Resolve asset URLs under both localhost / and GitHub Pages /WarConquer/.
+  const assetUrl = path => path?.startsWith("/assets/") ? "." + path : path;
   const FALLBACK = {
     schema: 1,
     characters: [{
@@ -63,7 +65,7 @@
       const card = document.createElement("figure");
       card.className = "source-card";
       const img = document.createElement("img");
-      img.src = item.path; img.alt = item.name; img.loading = "lazy";
+      img.src = assetUrl(item.path); img.alt = item.name; img.loading = "lazy";
       const label = document.createElement("figcaption");
       label.textContent = item.name;
       card.append(img,label);
@@ -114,7 +116,7 @@
 
   async function fetchCatalog() {
     try {
-      const response = await fetch("/api/character-lab", { cache: "no-store" });
+      const response = await fetch("api/character-lab.json", { cache: "no-store" });
       if (!response.ok) throw new Error("No local catalog");
       const data = await response.json();
       if (!Array.isArray(data.characters)) throw new Error("Invalid catalog");
@@ -348,7 +350,7 @@
           imported=await BABYLON.SceneLoader.ImportMeshAsync(null,"",blobUrl,state.scene,null,".glb");
         } finally { URL.revokeObjectURL(blobUrl); }
       } else {
-        imported=await BABYLON.SceneLoader.ImportMeshAsync(null,"",url,state.scene);
+        imported=await BABYLON.SceneLoader.ImportMeshAsync(null,"",assetUrl(url),state.scene);
       }
       if (token!==state.pendingLoad) {
         imported.meshes.forEach(m=>m.dispose(false,true));
