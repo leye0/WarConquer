@@ -1,0 +1,16 @@
+{
+  "trial_id": "marches-axeman-rig-ready-tpose-v1",
+  "stage": "rig",
+  "model": "uthana/create-character-v1",
+  "model_version": "6b1fe45c55256a159804f4794afcdcdf9a54c5ca90e9883ddc725863153c727f",
+  "prediction_id": "m8abj22r75rmy0d1fcy9xzy1er",
+  "initial_status": "starting",
+  "source_sha256": {
+    "front": "ddaf1862304adc05d01157bda8caae57b8a549ade83ce70e3ace9638a8997d87",
+    "back": "c7d3a260fd9fddcdf8da5cb8551bedb971452fcff6abda8308dfbd1fb193dce3",
+    "left": "f29d996d5c071fea6f73168f4a9718e6fb2c0318569fd2c73fdc65389bd4e367",
+    "right": "74d9d0d09e91413afa11f0bc45c540a986dec189cb3f7db80c54800066d348b2"
+  },
+  "input_mesh_sha256": "1ce16dfd46991530343c2cdd4dff3de4a5c0cee7eb54c3fe1a1d753e97b06da1",
+  "paid_predictions_submitted": 1
+}
