@@ -1,0 +1,92 @@
+name: Pilot · Crown archer real 3D generation via project CLI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-couronne-archer-pilot.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: crown-archer-first-3d-generation
+  cancel-in-progress: false
+
+jobs:
+  construct:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      OPENROUTER_IMAGE_MODEL: ${{ secrets.OPENROUTER_IMAGE_MODEL }}
+      FAL_KEY: ${{ secrets.FAL_API_KEY }}
+      OMP_NUM_THREADS: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify generic manifest and 2D source, no incorrect reused model
+        run: |
+          python -m py_compile scripts/unit-pipeline.py scripts/build-unit-3d.py
+          python scripts/unit-pipeline.py status --unit couronne_archer
+          python scripts/unit-pipeline.py run --unit couronne_archer --stage source
+          python scripts/unit-pipeline.py run --unit couronne_archer --dry-run
+          test -f assets/concepts/couronne/units/archer.png
+      - name: Install dependencies for the selected unit
+        run: |
+          python -m pip install 'Pillow==11.3.0' 'numpy==2.2.6' 'scipy==1.16.2' 'fal-client==0.14.0'
+      - name: Generate four real references from the original archer (maximum one request per view)
+        run: |
+          python scripts/unit-pipeline.py run --unit couronne_archer --stage turnaround --allow-paid
+      - name: Save per-view PNGs and receipts to main even on failure
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A assets/experiments/rig-source-turnaround/couronne_archer/ 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -m "assets: preserve archer turnaround views and model request receipts"
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Generate real textured GLB via fal.ai selected by manifest
+        run: |
+          python scripts/unit-pipeline.py run --unit couronne_archer --stage body --allow-paid
+      - name: Save 3D GLB, fal request ID and report to main even if download fails
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A assets/experiments/rig-ready-3d/couronne_archer/ 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -m "assets: preserve generated Crown archer GLB and fal receipt"
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Verify new unit has an independent 3D body
+        run: |
+          python scripts/unit-pipeline.py status --unit couronne_archer
+          python scripts/build-unit-3d.py --unit couronne_archer --check
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/fal-textured.glb')
+          assert p.exists() and p.read_bytes()[:4]==b'glTF'
+          print('PASS: actual 3D archer generated, bytes:',p.stat().st_size)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: couronne-archer-pilot-intermediates
+          path: |
+            assets/experiments/rig-source-turnaround/couronne_archer/
+            assets/experiments/rig-ready-3d/couronne_archer/
+          retention-days: 7
+          if-no-files-found: ignore
