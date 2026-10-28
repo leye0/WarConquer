@@ -21,11 +21,14 @@ const UNIT_MANIFESTS_ROOT = join(REPO, "data/units");
 function unitManifests(){
   const units=[];
   if(!existsSync(UNIT_MANIFESTS_ROOT))return units;
-  for(const name of readdirSync(UNIT_MANIFESTS_ROOT).filter(n=>/^[a-z][a-z0-9_]*\\.json$/.test(n))){
+  for(const name of readdirSync(UNIT_MANIFESTS_ROOT).filter(n=>n.endsWith(".json") && /^[a-z][a-z0-9_]*$/.test(n.slice(0,-5)))){
     const doc=parseJson(join(UNIT_MANIFESTS_ROOT,name));
     if(doc?.schema===1 && doc.id===name.slice(0,-5) &&
        typeof doc.source?.character_image==="string" &&
-       /^assets\\/concepts\\/[a-z0-9_/-]+\\.png$/.test(doc.source.character_image) &&
+       doc.source.character_image.startsWith("assets/concepts/") &&
+       doc.source.character_image.endsWith(".png") &&
+       !doc.source.character_image.includes("..") &&
+       !doc.source.character_image.includes("\\") &&
        existsSync(join(REPO,doc.source.character_image)))units.push(doc);
   }
   return units;
