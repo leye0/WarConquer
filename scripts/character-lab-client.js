@@ -676,7 +676,7 @@
           throw Error("Le rattachement rigide ne conserve pas la prise calibrée");
         const rigidActionRotation=anchor.rotationQuaternion.clone();
         const v=window.WCWeaponGrip;
-        let tick=0,previousAction=false;
+        let previousAction=false;
         const observer=state.scene.onBeforeRenderObservable.add(()=>{
           if(anchor.isDisposed()||state.weaponAnchor!==anchor){
             state.scene.onBeforeRenderObservable.remove(observer);return;
@@ -688,7 +688,6 @@
             return;
           }
           previousAction=false;
-          if(++tick%5!==0)return;
           try{
             const next=findGripAnatomy(imported,side).joints;
             const nextFrame=window.WCRigContact.bodyFrame(next);
@@ -699,6 +698,18 @@
             const radius=Math.max(.17,shoulder*.46);
             const capsules=[{a:next.Hips,b:next.Chest,radius},
               {a:next.Chest,b:next.Neck||next.Chest,radius:radius*.75}];
+            anchor.computeWorldMatrix(true);offset.computeWorldMatrix(true);
+            const currentPoints=importedPropPoints(prop.meshes||[],140);
+            const currentClearance=v.capsuleClearance(currentPoints,capsules);
+            const currentMass=v.mul(currentPoints.reduce(v.add,[0,0,0]),1/currentPoints.length);
+            const mapped=p=>B.Vector3.TransformCoordinates(
+              new B.Vector3(...v.sub(p,frame.grip)),anchor.getWorldMatrix()).asArray();
+            const currentEdge=v.unit(v.sub(mapped(meshPoints.functional_edge),
+              mapped(meshPoints.working_head)));
+            const outwardSide=side==="right"?nextFrame.right:v.mul(nextFrame.right,-1);
+            const currentFaceAway=v.dot(currentEdge,outwardSide);
+            if(currentMass[1]-palm.grip[1]<-.03 &&
+              currentClearance>.065 && currentFaceAway>-.08)return;
             const handScale=new B.Vector3(),handRotation=new B.Quaternion();
             hand.computeWorldMatrix(true);
             hand.getWorldMatrix().decompose(handScale,handRotation);
