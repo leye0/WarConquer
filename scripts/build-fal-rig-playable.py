@@ -25,6 +25,36 @@ CHECKPOINT = MOTION / "rig-prediction.json"
 REPORT = MOTION / "report.json"
 REQUEST = ROOT / "fal-rig-request.json"
 MODEL = "uthana/create-character-v1"
+ACTIVE_UNIT = "marches_hache"
+
+def set_unit(unit):
+    """All paths derive from the selected JSON, not GitHub Actions."""
+    global BASE, MOTION, INPUT, RIGGED, PLAYABLE, CHECKPOINT, REPORT, REQUEST, ACTIVE_UNIT
+    if unit == "marches_hache":
+        return
+    from pathlib import Path
+    import json
+    if not isinstance(unit,str) or not unit or any(c not in "abcdefghijklmnopqrstuvwxyz0123456789_" for c in unit):
+        raise ValueError("Invalid unit")
+    manifest_path=ROOT / "data/units" / (unit+".json")
+    doc=json.loads(manifest_path.read_text(encoding="utf8"))
+    if doc.get("id")!=unit or doc.get("schema")!=1 or doc.get("adapter")!="manifest_v1":
+        raise ValueError("Unsupported rig unit manifest")
+    src=(ROOT/doc["body"]["glb"]).resolve()
+    out=(ROOT/doc["body"]["rigged_glb"]).resolve()
+    playable=(ROOT/doc["body"]["playable_glb"]).resolve()
+    if not all(x.is_relative_to(ROOT/"assets/experiments/rig-ready-3d"/unit) for x in (src,out,playable)):
+        raise ValueError("Cross-unit rig or animation path")
+    BASE=src.parent
+    MOTION=out.parent
+    INPUT=src
+    RIGGED=out
+    PLAYABLE=playable
+    CHECKPOINT=MOTION/"rig-prediction.json"
+    REPORT=MOTION/"report.json"
+    REQUEST=ROOT/"data/units"/unit/"rig-request.json"
+    ACTIVE_UNIT=unit
+
 
 def support(name, relative):
     spec = importlib.util.spec_from_file_location(name, ROOT / relative)
@@ -46,6 +76,22 @@ def save(path, data):
 
 def approval():
     cfg = json.loads(REQUEST.read_text(encoding="utf-8"))
+    if ACTIVE_UNIT != "marches_hache":
+        exact = {
+            "schema": 1, "unit": ACTIVE_UNIT,
+            "source": str(INPUT.relative_to(ROOT)),
+            "source_sha256": sha(INPUT),
+            "rig_model": MODEL,
+            "maximum_new_paid_rig_predictions": 1,
+            "require_textured_output": True,
+            "motion_source": "archived_mixamo_fbx",
+        }
+        if cfg != exact:
+            raise ValueError("Selected unit rig request is not approved for one call")
+        source, _ = glb.load_glb(INPUT)
+        if not texture_stats(source)["valid"]:
+            raise ValueError("Selected unit lacks embedded native UV texture")
+        return cfg
     exact = {
         "schema": 1,
         "source": str(INPUT.relative_to(ROOT)),
@@ -187,10 +233,20 @@ def animate():
         ("Idle_Magic", "Standing_Idle_03"),
         ("Cast_Fireball", "Standing_1H_Magic_Attack_01"),
     ]
+    if ACTIVE_UNIT != "marches_hache":
+        # No real bow draw/release clip is available yet. Retain neutral idle,
+        # walking and running; never label a downward AXE strike as archery.
+        extras=[("Idle_Relaxed","Unarmed_Idle_01_2"),("Idle_Wipe","Wiping_Sweat")]
     clips = glb.transfer_clips(doc, binary, Path(folder),
                                clip_stems={"Idle": "Standard_Idle"}, extra_clips=extras)
-    if len(clips) != 8 or len(doc.get("animations", [])) != 8:
-        raise RuntimeError("Eight authentic Mixamo clips required")
+    if ACTIVE_UNIT != "marches_hache":
+        doc["animations"]=[a for a in doc.get("animations",[])
+                           if not a.get("name","").startswith("Attack_")]
+        clips=[c for c in clips if not (c.get("name","").startswith("Attack_")
+                                       if isinstance(c,dict) else str(c).startswith("Attack"))]
+    expected=8 if ACTIVE_UNIT=="marches_hache" else 5
+    if len(clips)!=expected or len(doc.get("animations",[]))!=expected:
+        raise RuntimeError("Selected unit's genuine Mixamo clip count mismatch")
     if (json.dumps(doc["skins"], sort_keys=True) != original_skins or
         json.dumps(doc.get("materials", []), sort_keys=True) != original_materials or
         json.dumps(doc.get("textures", []), sort_keys=True) != original_textures or
@@ -200,7 +256,7 @@ def animate():
     output, _ = glb.load_glb(PLAYABLE)
     after = texture_stats(output)
     if not (after["valid"] and after["joint_count"] == 52 and
-            after["animation_count"] == 8 and after["skinned_primitives"] >= 1):
+            after["animation_count"] == expected and after["skinned_primitives"] >= 1):
         raise RuntimeError("Playable GLB fails material/skeleton/motion validation")
     report = {
         "status": "generated-awaiting-live-browser-QA",
@@ -213,7 +269,7 @@ def animate():
         "animations_origin": "genuine archived Mixamo FBX converted with FBX2glTF",
         "texture_and_skeleton": after,
         "animation_clips": clips,
-        "visual_QA": "pending: joints, materials, walk, run and axe require actual browser screenshots",
+        "visual_QA": "pending: joints, materials, walk, run; bow draw/release not yet implemented",
     }
     save(REPORT, report)
     print("PLAYABLE_VALID", json.dumps(report))
@@ -221,7 +277,10 @@ def animate():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--stage", choices=("validate", "rig-submit", "rig-collect", "animate"), required=True)
-    stage = parser.parse_args().stage
+    parser.add_argument("--unit", default="marches_hache")
+    args=parser.parse_args()
+    set_unit(args.unit)
+    stage=args.stage
     approval()
     if stage == "validate":
         print("Approved original fal UV-textured source and SHA256; ready for one Uthana submission")
