@@ -55,6 +55,23 @@ sémantique. Déplacer automatiquement le point vers une extrémité jugée
 probable est interdit. La PCA reste autorisée pour orienter les **caméras**
 et mesurer des dimensions, jamais pour attribuer une fonction à un sommet.
 
+Les nouvelles annotations GLB sont indexées sur les **identifiants confirmés**
+du contrat initial : chaque prise `grips[id]` et chaque origine/direction
+`features[id]` doit être localisée sur un véritable sommet. Chaque rôle peut
+utiliser une vue orthographique différente. Une prise secondaire ou une surface
+fonctionnelle manquante ne peut pas être recréée par une règle de proportion :
+le stage `object_landmarks` reste alors incomplet.
+
+Le solveur géométrique pur `prop-motion-contact.js` reçoit deux prises déjà
+localisées, deux paumes issues de la vraie pose et une direction d'action
+explicitement demandée par le mode. Il calcule un alignement rigide signé,
+le point exact où la main secondaire **devrait** être (cible IK), l'écart avec
+sa position actuelle et l'accessibilité de cette cible d'après les longueurs
+réelles du bras et de l'avant-bras. Si la fonction est colinéaire aux prises,
+le roulis demeure indéterminé et le calcul rejette la pose plutôt que de le
+deviner. Ce calcul **ne déforme pas encore le squelette** et n'autorise donc
+pas de prétendre que le contact secondaire est résolu.
+
 ## Validation en deux temps
 
 1. **Avant le GLB/fitting** : confirmer les fonctions, les prises attendues et
