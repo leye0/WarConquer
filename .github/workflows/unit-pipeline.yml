@@ -7,6 +7,9 @@ on:
       - 'data/units/**'
       - 'scripts/unit-pipeline.py'
       - 'scripts/test-unit-pipeline.py'
+      - 'scripts/serve-character-lab.mjs'
+      - 'scripts/build-character-lab-pages.mjs'
+      - 'character-lab.html'
       - '.github/workflows/unit-pipeline.yml'
   workflow_dispatch:
     inputs:
@@ -67,6 +70,8 @@ jobs:
           python -m py_compile scripts/unit-pipeline.py scripts/test-unit-pipeline.py
           python scripts/test-unit-pipeline.py
           python scripts/unit-pipeline.py list
+          python scripts/unit-pipeline.py status --unit couronne_archer
+          python scripts/unit-pipeline.py run --unit couronne_archer --stage source
           python scripts/unit-pipeline.py status --unit "$UNIT_ID"
           python scripts/unit-pipeline.py run --unit "$UNIT_ID" --stage "$PIPELINE_STAGE" --dry-run
           # This full local integration checks the generated site catalog and
