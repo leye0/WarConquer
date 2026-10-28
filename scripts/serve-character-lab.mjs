@@ -8,6 +8,7 @@
  */
 import { createServer } from "node:http";
 import { createReadStream, existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { dirname, extname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -74,6 +75,22 @@ function propPlans(unitId) {
     const prop = {id:unitId+"/"+variant, name:plan.specifications?.object_kind||"Objet",
       gripPlan:publicPath(planFile), gripReviewStatus:plan.visual_qa?.status||"baseline",
       model:publicPath(actual)};
+    // Public only when the shipped grip plan already pins this exact vision
+    // contract AND every named role was lifted onto the physical GLB.
+    const provenance=plan.interaction_provenance;
+    if(typeof provenance?.path==="string"&&
+       /^assets\/experiments\/props\/[a-z0-9_/-]+\/interaction-contract\.json$/.test(provenance.path)){
+      const contractFile=resolve(REPO,provenance.path);
+      if(contractFile.startsWith(PROPS_ROOT+sep)&&existsSync(contractFile)){
+        const fingerprint=createHash("sha256").update(readFileSync(contractFile)).digest("hex");
+        const contract=parseJson(contractFile);
+        if(fingerprint===provenance.sha256 &&
+           fingerprint===plan.mesh_landmarks?.interaction_sha256 &&
+           contract?.semantic_status==="confirmed" &&
+           contract?.mixamo_pose_status==="pending_real_joint_validation")
+          prop.interactionContract=publicPath(contractFile);
+      }
+    }
     // Physical size is an independent, approximate metric measurement; the
     // old semantic attachment file is never permitted to dictate it.
     const sizeFile = join(folder, variant, "physical-size.json");
@@ -148,7 +165,12 @@ export function inventory() {
         unitId:doc.id,stage:"source",message:"Illustration prête · modèle 3D non produit"}
     });
   }
-  return { schema: 1, characters, generatedAt: new Date().toISOString(),
+  const motion=parseJson(join(REPO,"data/motion-library.json"));
+  const motionRoles=(motion?.schema===1 ? motion.clips : [])
+    .filter(c=>c.included===true && typeof c.role==="string" &&
+      typeof c.group_prefix==="string")
+    .map(({role,group_prefix,equipment})=>({role,group_prefix,equipment}));
+  return { schema: 1, characters, motionRoles, generatedAt: new Date().toISOString(),
     note: "Units have explicit source_only, mesh_only, rigged or playable build status. Genuine Mixamo animations are available only when present in each unit GLB." };
 }
 
@@ -168,7 +190,7 @@ const server = createServer((req, res) => {
   }
   if (pathname === "/" || pathname === "/character-lab.html") {
     pathname = "/character-lab.html";
-  } else if (!["/scripts/character-lab-client.js","/scripts/weapon-grip-geometry.js","/scripts/rig-contact-landmarks.js","/scripts/equipment-animation-policy.js","/scripts/arena-scene.js"].includes(pathname) && !pathname.startsWith("/assets/")) {
+  } else if (!["/scripts/character-lab-client.js","/scripts/weapon-grip-geometry.js","/scripts/rig-contact-landmarks.js","/scripts/prop-motion-contact.js","/scripts/equipment-animation-policy.js","/scripts/arena-scene.js"].includes(pathname) && !pathname.startsWith("/assets/")) {
     return send(res, 404, "Not found");
   }
   let absolute;
