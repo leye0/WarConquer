@@ -168,7 +168,7 @@
         byId("conceptPreview").hidden=true;
         byId("world").closest(".playbox").dataset.unitState="ready";
         byId("world").dataset.unitId=c.id;
-        byId("world").dataset.unitBuildStatus="playable";
+        byId("world").dataset.unitBuildStatus=c.buildStatus||"mesh_only";
         text("unitBuildStatus",model.kind==="mesh"
           ? "Maillage 3D disponible · squelette et animations à produire"
           : "Modèle 3D disponible · prêt à tester");
