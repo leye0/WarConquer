@@ -543,24 +543,14 @@
       const bladeWorld=new B.Vector3(...contact.blade);
       const worldRotation=buildGripRotation(
         gravityCarry?{...frame,shaft:frame.carryShaft}:frame,shaftWorld,bladeWorld);
-      const parentScale=new B.Vector3(),parentRotation=new B.Quaternion();
-      hand.getWorldMatrix().decompose(parentScale,parentRotation);
-      const unitScale=(Math.abs(parentScale.x)+Math.abs(parentScale.y)+Math.abs(parentScale.z))/3;
-      if(!Number.isFinite(unitScale)||unitScale<1e-7)throw Error("Échelle de main invalide");
-      // Only the grip is parented to the animated hand. The weapon shaft
-      // extends toward the forearm and the cutting edge toward the avatar's front.
-      // Character Lab normalizes the warrior to 1.9 scene units; within
-      // this scene we use 1 unit = 1 metre. A 115 cm axe is 1.15 units.
+      // The hand's imported transform may include nonuniform scale or mirrored
+      // GLB basis. Keep the rigid prop in WORLD space and track its anatomical
+      // grip explicitly, so child-parent quaternion conventions cannot flip
+      // the functional face. 1 scene unit = 1 metre.
       anchor=new B.TransformNode("wc-auto-grip-"+side+"-hand",state.scene);
-      anchor.parent=hand;
-      anchor.position.copyFrom(B.Vector3.TransformCoordinates(
-        new B.Vector3(...contact.grip),B.Matrix.Invert(hand.getWorldMatrix())));
-      // Babylon composes child rotations as local * parent, so undoing the
-      // hand's world rotation is desiredWorld * inverse(parentWorld).
-      // Reversing this product produces a plausible but physically incorrect
-      // orientation for any rotated humanoid hand.
-      anchor.rotationQuaternion=worldRotation.multiply(B.Quaternion.Inverse(parentRotation));
-      anchor.scaling.setAll(desiredLength/(frame.length*unitScale));
+      anchor.position=new B.Vector3(...contact.grip);
+      anchor.rotationQuaternion=worldRotation;
+      anchor.scaling.setAll(desiredLength/frame.length);
       const offset=new B.TransformNode("wc-weapon-local-grip-origin",state.scene);
       offset.parent=anchor;
       offset.position=new B.Vector3(...frame.grip).negate();
@@ -574,6 +564,7 @@
       let actualBalanceY=NaN;
       let actualGripError=NaN;
       let actualWorkingFace=NaN;
+      let selectedFit=null;
       if(bodyCapsules.length&&outwardWorld){
         const v=window.WCWeaponGrip;
         const margin=bodyCapsules[0].radius*.8;
@@ -582,7 +573,7 @@
         for(const transpose of [false,true])for(const candidate of candidates){
           const q=buildGripRotation(gripFrame,
             new B.Vector3(...candidate.shaft),bladeWorld,transpose);
-          anchor.rotationQuaternion=q.multiply(B.Quaternion.Inverse(parentRotation));
+          anchor.rotationQuaternion=q;
           anchor.computeWorldMatrix(true);
           offset.computeWorldMatrix(true);
           const mounted=importedPropPoints(prop.meshes||[]);
@@ -609,19 +600,53 @@
               transpose:best.transpose,tilt:best.tilt,balance:best.balanceY,
               face:best.face,grip:best.gripError,clearance:best.actual}));
           actualClearance=best.actual;
+          selectedFit=best;
           actualBalanceY=best.balanceY;
           actualGripError=best.gripError;
           actualWorkingFace=best.face;
           carryFit={...carryFit,shaft:best.shaft,tilt:best.tilt};
           const q=buildGripRotation(gripFrame,new B.Vector3(...best.shaft),
             bladeWorld,best.transpose);
-          anchor.rotationQuaternion=q.multiply(B.Quaternion.Inverse(parentRotation));
+          anchor.rotationQuaternion=q;
           anchor.computeWorldMatrix(true);
           offset.computeWorldMatrix(true);
         }
       }
       state.weaponImport=prop;
       state.weaponAnchor=anchor;
+      if(selectedFit){
+        const v=window.WCWeaponGrip;
+        const observer=state.scene.onBeforeRenderObservable.add(()=>{
+          if(anchor.isDisposed()||state.weaponAnchor!==anchor){
+            state.scene.onBeforeRenderObservable.remove(observer);return;
+          }
+          try{
+            const nextAnatomy=findGripAnatomy(imported,side);
+            if(!nextAnatomy)return;
+            const nextJoints=nextAnatomy.joints;
+            const nextContact=window.WCRigContact.contactFrame(nextJoints,{
+              hand:side,palm_fraction:spec.palm_from_wrist,
+              shaft_direction:state.attacking?spec.head_direction:"gravity",
+              working_face:spec.edge_direction
+            });
+            anchor.position.copyFrom(new B.Vector3(...nextContact.grip));
+            let shaft=nextContact.shaft;
+            if(!state.attacking){
+              const center=v.add(v.mul(nextJoints.Hips,.45),v.mul(nextJoints.Chest,.55));
+              const outward=v.unit(v.sub(nextContact.grip,center));
+              const lateral=v.unit([outward[0],0,outward[2]]);
+              shaft=v.unit(v.add([0,-1,0],v.mul(lateral,selectedFit.tilt)));
+            }
+            anchor.rotationQuaternion=buildGripRotation(gripFrame,
+              new B.Vector3(...shaft),new B.Vector3(...nextContact.blade),
+              selectedFit.transpose);
+          }catch(error){
+            // Keep the last valid rigid pose when an animation temporarily
+            // collapses a joint reference; never attach to guessed coordinates.
+            byId("world").dataset.weaponContactUpdateError=String(error.message||error);
+          }
+        });
+      }
       text("weaponMetric","Prise anatomique auto · vision sur GLB · main "+side+
         (spec.hold_mode==="two_hands"?" (seconde main non pilotée)":"")+
         (estimatedLengthCm===null
