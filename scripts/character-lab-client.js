@@ -330,14 +330,14 @@
   // Vision decides the whole pose/scale/hand specification offline; geometry fits GLB.
   // Recompute the shaft/head frame from Babylon's actual imported vertices;
   // GLB axes cannot be taken from the original picture or hard-coded.
-  function importedPropPoints(meshes) {
+  function importedPropPoints(meshes,maxPerMesh=24000) {
     const B=BABYLON,points=[];
     for(const mesh of meshes) {
       if(!mesh.getTotalVertices?.())continue;
       const positions=mesh.getVerticesData(B.VertexBuffer.PositionKind);
       if(!positions)continue;
       const matrix=mesh.computeWorldMatrix(true);
-      const stride=Math.max(1,Math.ceil(positions.length/3/24000));
+      const stride=Math.max(1,Math.ceil(positions.length/3/maxPerMesh));
       for(let i=0;i<positions.length;i+=3*stride) {
         const p=B.Vector3.TransformCoordinates(
           new B.Vector3(positions[i],positions[i+1],positions[i+2]),matrix);
@@ -666,6 +666,8 @@
       if(selectedFit){
         const v=window.WCWeaponGrip;
         let actionReference=null;
+        let liveFit={...selectedFit};
+        let clearanceTick=0;
         const handRotation=()=>{
           hand.computeWorldMatrix(true);
           const scale=new B.Vector3(),rotation=new B.Quaternion();
@@ -683,7 +685,7 @@
             const nextContact=window.WCRigContact.contactFrame(nextJoints,{
               hand:side,palm_fraction:spec.palm_from_wrist,
               shaft_direction:"gravity",
-              working_face:selectedFit.faceDirection
+              working_face:liveFit.faceDirection
             });
             anchor.position.copyFrom(new B.Vector3(...nextContact.grip));
             if(!state.attacking){
@@ -691,10 +693,61 @@
               const center=v.add(v.mul(nextJoints.Hips,.45),v.mul(nextJoints.Chest,.55));
               const outward=v.unit(v.sub(nextContact.grip,center));
               const lateral=v.unit([outward[0],0,outward[2]]);
-              const shaft=v.unit(v.add([0,-1,0],v.mul(lateral,selectedFit.tilt)));
+              const shaft=v.unit(v.add([0,-1,0],v.mul(lateral,liveFit.tilt)));
               anchor.rotationQuaternion=buildGripRotation(gripFrame,
                 new B.Vector3(...shaft),new B.Vector3(...nextContact.blade),
-                selectedFit.transpose);
+                liveFit.transpose);
+              // Walking arms and clothing move relative to the torso. An
+              // initial static fit cannot certify all subsequent frames.
+              // Refit locally from sparse REAL mesh vertices when the carried
+              // prop approaches an anatomical collision envelope.
+              if(++clearanceTick%8===0){
+                const shoulder=v.norm(v.sub(nextJoints.LeftShoulder,nextJoints.RightShoulder));
+                const r=Math.max(.17,shoulder*.46);
+                const capsules=[{a:nextJoints.Hips,b:nextJoints.Chest,radius:r},
+                  {a:nextJoints.Chest,b:nextJoints.Neck||nextJoints.Chest,radius:r*.75}];
+                anchor.computeWorldMatrix(true);offset.computeWorldMatrix(true);
+                let measured=v.capsuleClearance(importedPropPoints(prop.meshes||[],350),capsules);
+                if(measured<.065){
+                  let winner=null;
+                  for(const name of [...new Set([liveFit.faceDirection,spec.edge_direction,"forward"])]){
+                    const faceContact=window.WCRigContact.contactFrame(nextJoints,{
+                      hand:side,palm_fraction:spec.palm_from_wrist,
+                      shaft_direction:"gravity",working_face:name
+                    });
+                    for(const candidate of v.gravityCarryCandidates(faceContact.blade,outward)){
+                      if(candidate.tilt>1.4)continue;
+                      const q=buildGripRotation(gripFrame,new B.Vector3(...candidate.shaft),
+                        new B.Vector3(...faceContact.blade),liveFit.transpose);
+                      anchor.rotationQuaternion=q;
+                      anchor.computeWorldMatrix(true);offset.computeWorldMatrix(true);
+                      const mounted=importedPropPoints(prop.meshes||[],350);
+                      const nearest=v.capsuleClearance(mounted,capsules);
+                      const mass=v.mul(mounted.reduce(v.add,[0,0,0]),1/mounted.length);
+                      const massY=mass[1]-faceContact.grip[1];
+                      const deficit=Math.max(0,.085-nearest);
+                      const wrongGravity=Math.max(0,massY+.035);
+                      const score=deficit*deficit*500+wrongGravity*wrongGravity*300+
+                        candidate.tilt*.03+(name==="forward"?0:.18)+
+                        Math.abs(candidate.tilt-liveFit.tilt)*.02;
+                      if(!winner||score<winner.score)winner={...candidate,
+                        faceDirection:name,transpose:liveFit.transpose,
+                        score,nearest};
+                    }
+                  }
+                  if(winner){
+                    liveFit=winner;
+                    const face=window.WCRigContact.contactFrame(nextJoints,{
+                      hand:side,palm_fraction:spec.palm_from_wrist,
+                      shaft_direction:"gravity",working_face:liveFit.faceDirection
+                    });
+                    anchor.rotationQuaternion=buildGripRotation(gripFrame,
+                      new B.Vector3(...liveFit.shaft),new B.Vector3(...face.blade),
+                      liveFit.transpose);
+                    byId("world").dataset.weaponLiveClearance=winner.nearest.toFixed(3);
+                  }
+                }
+              }
             }else{
               // The object is rigid in the palm throughout an action. A
               // Mixamo wrist rotation drives the swing; a fixed semantic
