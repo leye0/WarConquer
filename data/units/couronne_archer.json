@@ -3,8 +3,8 @@
   "schema": 1,
   "id": "couronne_archer",
   "title": "Archer · Couronne",
-  "adapter": "unconfigured",
-  "description": "Archer de la Couronne ; concept initial existant, vues de rig, maillage, arc et gestes de tir encore à produire.",
+  "adapter": "manifest_v1",
+  "description": "Archer de la Couronne : vues T-pose et corps 3D générés depuis la fiche originale par le pipeline générique. Rig, arc et tir nécessitent encore des adaptateurs.",
   "source": {
     "character_image": "assets/concepts/couronne/units/archer.png",
     "turnaround_request": "data/units/couronne_archer/turnaround-request.json",
