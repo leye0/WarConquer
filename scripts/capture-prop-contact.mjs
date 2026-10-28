@@ -99,7 +99,10 @@ try{
     return {carry:d.weaponCarry||'unknown',tilt:Number(d.weaponCarryTilt||0),
       clearance:Number(d.weaponCarryClearance||0),
       actualClearance:Number(d.weaponActualClearance||0),
-      bodyRadius:Number(d.weaponBodyRadius||0)}})()`);
+      bodyRadius:Number(d.weaponBodyRadius||0),
+      balanceY:Number(d.weaponBalanceY||0),
+      gripError:Number(d.weaponGripError||0),
+      workingFace:Number(d.weaponWorkingFace||0)}})()`);
   writeFileSync(join(output,"contact-state.json"),JSON.stringify({unit,prop,...diagnostics})+"\n");
   console.log("CONTACT_STATE",JSON.stringify({unit,prop,...diagnostics}));
   await camera(Math.PI/2);await capture("front");

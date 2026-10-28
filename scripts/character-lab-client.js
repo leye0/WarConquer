@@ -563,6 +563,9 @@
       // actual mounted mesh and the *same* generic anatomical constraints.
       const gripFrame=gravityCarry?{...frame,shaft:frame.carryShaft}:frame;
       let actualClearance=NaN;
+      let actualBalanceY=NaN;
+      let actualGripError=NaN;
+      let actualWorkingFace=NaN;
       if(bodyCapsules.length&&outwardWorld){
         const v=window.WCWeaponGrip;
         const margin=bodyCapsules[0].radius*.8;
@@ -574,13 +577,27 @@
           anchor.rotationQuaternion=B.Quaternion.Inverse(parentRotation).multiply(q);
           anchor.computeWorldMatrix(true);
           offset.computeWorldMatrix(true);
-          const actual=v.capsuleClearance(importedPropPoints(prop.meshes||[]),bodyCapsules);
+          const mounted=importedPropPoints(prop.meshes||[]);
+          const landmarks=importedPropLandmarks(prop.meshes||[],vision);
+          const actual=v.capsuleClearance(mounted,bodyCapsules);
+          const mass=v.mul(mounted.reduce(v.add,[0,0,0]),1/mounted.length);
+          const balance=v.sub(mass,landmarks.grip_center);
+          const gripError=v.norm(v.sub(contact.grip,landmarks.grip_center));
+          const edge=v.unit(v.sub(landmarks.functional_edge,landmarks.working_head));
+          const face=v.dot(edge,contact.blade);
           const deficit=Math.max(0,margin-actual);
-          const score=deficit*deficit*100+candidate.tilt*.012;
-          if(!best||score<best.score)best={...candidate,actual,score};
+          const wrongGravity=Math.max(0,balance[1]+desiredLength*.08);
+          const wrongFace=Math.max(0,.6-face);
+          const score=deficit*deficit*100+wrongGravity**2*80+
+            wrongFace**2*3+gripError**2*150+candidate.tilt*.012;
+          if(!best||score<best.score)best={...candidate,actual,score,
+            balanceY:balance[1],gripError,face};
         }
         if(best){
           actualClearance=best.actual;
+          actualBalanceY=best.balanceY;
+          actualGripError=best.gripError;
+          actualWorkingFace=best.face;
           carryFit={...carryFit,shaft:best.shaft,tilt:best.tilt};
           const q=buildGripRotation(gripFrame,new B.Vector3(...best.shaft),bladeWorld);
           anchor.rotationQuaternion=B.Quaternion.Inverse(parentRotation).multiply(q);
@@ -603,6 +620,12 @@
       byId("world").dataset.weaponActualClearance=Number.isFinite(actualClearance)
         ? actualClearance.toFixed(3):"";
       byId("world").dataset.weaponBodyRadius=bodyCapsules[0]?.radius?.toFixed(3)||"";
+      byId("world").dataset.weaponBalanceY=Number.isFinite(actualBalanceY)
+        ? actualBalanceY.toFixed(3):"";
+      byId("world").dataset.weaponGripError=Number.isFinite(actualGripError)
+        ? actualGripError.toFixed(3):"";
+      byId("world").dataset.weaponWorkingFace=Number.isFinite(actualWorkingFace)
+        ? actualWorkingFace.toFixed(3):"";
       byId("world").dataset.weaponGripScale=(desiredLength/1.9).toFixed(3);
       byId("world").dataset.weaponLengthCm=estimatedLengthCm===null
         ? "" : estimatedLengthCm.toFixed(1);
