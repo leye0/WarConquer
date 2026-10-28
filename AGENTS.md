@@ -13,3 +13,10 @@ Use `scripts/websuite.mjs` (zero npm dependencies) and
 `.github/workflows/websuite.yml`. Prefer one run for multiple changed HTML
 files to minimize Actions cost; keep the browser in one session for interactions.
 WebSuite is portable and should remain independent of WarConquer game logic.
+
+For any work involving held props, equipment attachment, hand contact,
+vision landmarks or Mixamo pose QA, follow the non-negotiable plan in
+[plans/held-prop-vision-qa.md](plans/held-prop-vision-qa.md) before implementing
+or declaring a result ready. Verify actual deterministic pose renderings and
+both numerical hand-contact errors and independent vision judgments; passing
+unit tests alone does not establish correct attachment.
