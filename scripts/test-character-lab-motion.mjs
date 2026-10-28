@@ -105,6 +105,20 @@ try {
   await request("Emulation.setDeviceMetricsOverride",{
     width:1280,height:800,deviceScaleFactor:1,mobile:false
   });
+  // Independent second-unit validation comes FIRST. It must pass even if
+  // the Babylon.js CDN is temporarily unavailable in headless CI.
+  await request("Page.navigate",{url:"http://127.0.0.1:4173/character-lab.html?unit=couronne_archer"});
+  const initialArcher=await until(s=>s.unitId==="couronne_archer" &&
+    s.unitBuildStatus==="source_only" && s.conceptVisible,
+    "source-only Crown archer from project manifest",45000);
+  assert.equal(await js("document.getElementById('modelSelect').disabled"),true);
+  assert.equal(await js("document.getElementById('unitSelect').options.length"),2);
+  assert((await js("document.getElementById('conceptImage').getAttribute('src')")).includes(
+    "/assets/concepts/couronne/units/archer.png"));
+  console.log("SECOND_UNIT_SOURCE_ONLY_INITIAL_PASS",JSON.stringify(initialArcher));
+  await screenshot("couronne-archer-source-only-initial-live");
+  // Continue with the full existing real-3D motion suite, preserving the
+  // default warrior fixtures and all previous Babylon assertions.
   await request("Page.navigate",{url:"http://127.0.0.1:4173/character-lab.html"});
   await until(s=>s.status.startsWith("Prêt"),"initial Character Lab GLB ready",45000);
   const legacyPlayable=await js("(()=>{const d=document.getElementById('modelSelect');const o=Array.from(d.options).find(x=>x.value.includes('/mixamo-axe-v1/warconquer-playable.glb'));if(!o)return '';d.value=o.value;d.dispatchEvent(new Event('change',{bubbles:true}));return d.value;})()");
