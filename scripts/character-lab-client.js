@@ -431,14 +431,18 @@
     return {hand,forearm,joints};
   }
 
-  function buildGripRotation(prop, wantedShaft, wantedBlade) {
+  function buildGripRotation(prop, wantedShaft, wantedBlade,transpose=false) {
     const B=BABYLON;
     const r=window.WCWeaponGrip.rotationBetweenFrames(
       prop.shaft,prop.blade,wantedShaft.asArray(),wantedBlade.asArray());
+    // Babylon's quaternion conversion and a source mesh's basis can have a
+    // different handedness. The mounted-vertex feedback below determines the
+    // correct conversion by actual 3D invariants, never by weapon identity.
+    const m=transpose?[r[0],r[3],r[6],r[1],r[4],r[7],r[2],r[5],r[8]]:r;
     const rotation=B.Matrix.FromValues(
-      r[0],r[1],r[2],0,
-      r[3],r[4],r[5],0,
-      r[6],r[7],r[8],0,
+      m[0],m[1],m[2],0,
+      m[3],m[4],m[5],0,
+      m[6],m[7],m[8],0,
       0,0,0,1);
     return B.Quaternion.FromRotationMatrix(rotation).normalize();
   }
@@ -575,9 +579,9 @@
         const margin=bodyCapsules[0].radius*.8;
         const candidates=v.gravityCarryCandidates(contact.blade,outwardWorld);
         let best=null;
-        for(const candidate of candidates){
+        for(const transpose of [false,true])for(const candidate of candidates){
           const q=buildGripRotation(gripFrame,
-            new B.Vector3(...candidate.shaft),bladeWorld);
+            new B.Vector3(...candidate.shaft),bladeWorld,transpose);
           anchor.rotationQuaternion=q.multiply(B.Quaternion.Inverse(parentRotation));
           anchor.computeWorldMatrix(true);
           offset.computeWorldMatrix(true);
@@ -591,19 +595,24 @@
           const face=v.dot(edge,contact.blade);
           const deficit=Math.max(0,margin-actual);
           const wrongGravity=Math.max(0,balance[1]+desiredLength*.08);
-          const wrongFace=Math.max(0,.6-face);
-          const score=deficit*deficit*100+wrongGravity**2*80+
-            wrongFace**2*3+gripError**2*150+candidate.tilt*.012;
-          if(!best||score<best.score)best={...candidate,actual,score,
+          const wrongFace=Math.max(0,.65-face);
+          const score=deficit*deficit*100+wrongGravity**2*300+
+            wrongFace**2*40+gripError**2*150+candidate.tilt*.03;
+          if(!best||score<best.score)best={...candidate,transpose,actual,score,
             balanceY:balance[1],gripError,face};
         }
         if(best){
+          // Image classifiers can be permissive: a GO is not permission to
+          // ignore physical contradictions verified on actual mesh vertices.
+          if(best.balanceY>=0 || best.face<.25 || best.gripError>.04 || best.actual<0)
+            throw Error("Prise physiquement incohérente : gravité/face utile/contact/collision");
           actualClearance=best.actual;
           actualBalanceY=best.balanceY;
           actualGripError=best.gripError;
           actualWorkingFace=best.face;
           carryFit={...carryFit,shaft:best.shaft,tilt:best.tilt};
-          const q=buildGripRotation(gripFrame,new B.Vector3(...best.shaft),bladeWorld);
+          const q=buildGripRotation(gripFrame,new B.Vector3(...best.shaft),
+            bladeWorld,best.transpose);
           anchor.rotationQuaternion=q.multiply(B.Quaternion.Inverse(parentRotation));
           anchor.computeWorldMatrix(true);
           offset.computeWorldMatrix(true);
