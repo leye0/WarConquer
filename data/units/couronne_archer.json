@@ -1,0 +1,38 @@
+{
+  "$schema": "../schemas/unit-manifest.schema.json",
+  "schema": 1,
+  "id": "couronne_archer",
+  "title": "Archer · Couronne",
+  "adapter": "unconfigured",
+  "description": "Archer de la Couronne ; concept initial existant, vues de rig, maillage, arc et gestes de tir encore à produire.",
+  "source": {
+    "character_image": "assets/concepts/couronne/units/archer.png",
+    "turnaround_request": "data/units/couronne_archer/turnaround-request.json",
+    "views": {
+      "front": "assets/experiments/rig-source-turnaround/couronne_archer/tpose-v1/front.png",
+      "back": "assets/experiments/rig-source-turnaround/couronne_archer/tpose-v1/back.png",
+      "left": "assets/experiments/rig-source-turnaround/couronne_archer/tpose-v1/left.png",
+      "right": "assets/experiments/rig-source-turnaround/couronne_archer/tpose-v1/right.png"
+    }
+  },
+  "body": {
+    "glb": "assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/fal-textured.glb",
+    "rigged_glb": "assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/motion/fal-mixamo-v1/fal-rigged.glb",
+    "playable_glb": "assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/motion/fal-mixamo-v1/warconquer-textured-playable.glb",
+    "animations": "data/motion-library.json"
+  },
+  "equipment": [
+    {
+      "id": "bow",
+      "kind": "bow",
+      "source_image": "assets/concepts/couronne/objects/arc_arme.png",
+      "source_request": "data/units/couronne_archer/bow-image-request.json",
+      "glb": "assets/experiments/props/couronne_archer/trellis-v1/bow.glb",
+      "trellis_request": "data/units/couronne_archer/trellis-bow-request.json",
+      "physical_size_request": "assets/experiments/props/couronne_archer/trellis-v1/physical-size-request.json",
+      "physical_size": "assets/experiments/props/couronne_archer/trellis-v1/physical-size.json",
+      "grip_request": "assets/experiments/props/couronne_archer/trellis-v1/grip-request.json",
+      "grip": "assets/experiments/props/couronne_archer/trellis-v1/grip-plan.json"
+    }
+  ]
+}
