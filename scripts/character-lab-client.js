@@ -889,11 +889,19 @@
           let secondaryError=null,ikReachable=null;
           if(useMode.hands===2){
             const requiredPalm=live(sourceSecondary);
-            const adjusted=temporarySecondaryIK(imported,useMode.secondary_hand,
-              requiredPalm,spec.palm_from_wrist);
-            pendingIkUndo=adjusted.undo;
-            secondaryError=adjusted.error;
-            ikReachable=adjusted.reach.reachable;
+            const currentError=v.norm(v.sub(secondaryHand.grip,requiredPalm));
+            if(currentError<=.045){
+              // A genuine Mixamo two-hand pose may already satisfy the
+              // contract. Keep its original elbow animation untouched.
+              secondaryError=currentError;
+              ikReachable=true;
+            }else{
+              const adjusted=temporarySecondaryIK(imported,useMode.secondary_hand,
+                requiredPalm,spec.palm_from_wrist);
+              pendingIkUndo=adjusted.undo;
+              secondaryError=adjusted.error;
+              ikReachable=adjusted.reach.reachable;
+            }
           }
           const marks=importedPropLandmarks(prop.meshes||[],vision);
           const truePrimary=marks.namedGrips[useMode.primary_grip];
