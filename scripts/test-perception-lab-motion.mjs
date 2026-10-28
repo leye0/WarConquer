@@ -105,7 +105,7 @@ try{
   await sleep(680);
   const after=await status();
   const delta=Math.hypot(after.position[0]-initial[0],after.position[1]-initial[1]);
-  assert(delta>.35&&delta<1.5,"World movement must be continuous and human-paced: "+delta);
+  assert(delta>1.3&&delta<2.4,"World movement must match Character Lab Mixamo cadence: "+delta);
   assert(after.walkRatio>.6&&after.walkRatio<1.5,
     "Walk playback should match distance: "+after.walkRatio);
   console.log("GAIT_PASS",JSON.stringify({delta,ratio:after.walkRatio,gait:after.gait}));

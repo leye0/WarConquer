@@ -8,7 +8,11 @@
   else root.WCGait=api;
 })(typeof globalThis==="object"?globalThis:this,function(){
   "use strict";
-  const FACTOR={walk:.9,run:1.5};
+  // The original Character Lab runs this Mixamo warrior at 2.7 m/s on walk
+  // and 2.7 * 1.75 m/s on run, with unmodified animation playback.
+  // Preserve that observed visual cadence: at 1.9 m height and a 1.233 s
+  // walk cycle this is ~3.33 m per animation cycle, not the former 1.71 m.
+  const FACTOR={walk:1.75,run:2};
   function duration(clip){
     const fps=clip?.targetedAnimations?.find(t=>t.animation?.framePerSecond>0)
       ?.animation?.framePerSecond||30;

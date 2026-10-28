@@ -271,7 +271,7 @@
     state.pendingHit=null;
     const outcome=WCCombat.hit({items:state.items,entityId:pending.entityId,
       actor:{x:state.simPose.x,z:state.simPose.z},
-      team:state.brain.team,reach:1.6,damage:34});
+      team:state.brain.team,reach:COMBAT_REACH,damage:34});
     if(!outcome.ok){
       recordEvent("Coup manqué : "+outcome.reason);
       return;
@@ -425,7 +425,7 @@
         if(!obj||!(state.pending==="attack"?obj.kind==="unit"&&obj.team==="red":obj.kind==="resource")){
           message("Sélectionnez "+(state.pending==="attack"?"une unité ennemie.":"une ressource."));return;
         }
-        state.order={type:state.pending,entityId:obj.id,distance:state.pending==="attack"?1.35:Math.max(1.25,obj.radius+1)};
+        state.order={type:state.pending,entityId:obj.id,distance:state.pending==="attack"?ATTACK_DISTANCE:Math.max(1.25,obj.radius+1)};
       }
       message("Ordre actif : "+state.order.type);
       state.pending=null;syncMode();
@@ -448,6 +448,8 @@
     document.querySelector('[data-order="attack"]').disabled=true;
     updateGait();
   }
+  const COMBAT_REACH=1.85;
+  const ATTACK_DISTANCE=1.65;
   const meleeClipPattern=/(^|[_ -])(attack|axe|chop|melee|strike|swing)([_ -]|$)/i;
   function modelScore(model){
     const clips=(model.clips||[]).map(name=>name.toLowerCase());
@@ -596,7 +598,7 @@
       message("Aucun ennemi repéré : approchez-vous pour le percevoir.");
       return;
     }
-    state.order={type:"attack",entityId:enemy.id,distance:1.35};
+    state.order={type:"attack",entityId:enemy.id,distance:ATTACK_DISTANCE};
     state.pending=null;state.tool=null;syncMode();
     message("Ordre d'attaque : "+enemy.id);
   });
