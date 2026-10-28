@@ -60,211 +60,223 @@
         "pass_id": "primary",
         "go": false,
         "status": "rejected",
-        "signature": "e424c04ac0b29843b81d566ea69fb84fe265e617cece3a1493e74d82549c90f5",
+        "signature": "241aebb634944cd043d5f6f7232869705bf6a8da91baf7284e03c33e4a454616",
         "confidence": 0.8,
         "issues": [
-          "The axe is not held by the character in any of the 'carry' poses. It is either floating behind the character or clipped into the character's back.",
-          "In 'use' poses, the axe is often clipped into the character's body or the hands are not properly gripping the axe.",
-          "The 'action_mid_2_grip' image shows the axe floating in front of the character, not held.",
-          "The 'action_mid_6_grip' image shows the axe clipped into the character's back.",
-          "The 'action_mid_grip' and 'action_grip' images show the axe clipped into the character's back.",
-          "The 'back_grip', 'front_grip', 'side_grip', and 'walk_grip' images show the axe clipped into the character's back or not held by the hands.",
-          "The 'run_grip' image shows the axe floating behind the character."
+          "The axe is not held by the character in any of the 'carry' poses; it is strapped to the character's back. This contradicts the contract's expectation of two-hand grips for 'carry_mode'.",
+          "In 'use' poses, the axe is held, but the primary and secondary hand grips are not consistently on the specified regions of the haft. The axe head is also not consistently oriented for chopping 'down' as per the contract.",
+          "Several 'grip' images do not clearly show both hands and the held object, making it difficult to verify contact."
         ],
-        "reason": "The axe is consistently either floating behind the character, clipped into the character's body, or not properly gripped by the hands across all provided poses. There is no clear visual evidence of the character holding the axe as described in the contract for either carry or use modes. The bounding box detections for hands and held_object are often impossible due to these issues.",
+        "reason": "The primary issue is that the 'carry' mode, as depicted in the Babylon renders, shows the axe strapped to the character's back, not held by two hands as specified in the contract. This is a fundamental mismatch. For the 'use' mode, while the axe is held, the specific grip regions and the 'down' action direction for the axe head are not consistently met or clearly visible in all frames. The 'grip' specific images often lack the full context to verify all contact points.",
         "vision_model": "google/gemini-2.5-flash",
         "per_frame": [
           {
             "id": "front",
             "hands_contact": false,
-            "action_feature_correct": false,
+            "action_feature_correct": true,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is floating behind the character, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe is strapped to the character's back, not held by hands.",
+              "Orientation constraints for a carried axe are not met as it's not being carried."
             ],
             "regions": []
           },
           {
             "id": "side",
             "hands_contact": false,
-            "action_feature_correct": false,
+            "action_feature_correct": true,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is floating behind the character, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe is strapped to the character's back, not held by hands.",
+              "Orientation constraints for a carried axe are not met as it's not being carried."
             ],
             "regions": []
           },
           {
             "id": "back",
             "hands_contact": false,
-            "action_feature_correct": false,
+            "action_feature_correct": true,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is floating behind the character, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe is strapped to the character's back, not held by hands.",
+              "Orientation constraints for a carried axe are not met as it's not being carried."
             ],
             "regions": []
           },
           {
             "id": "walk",
             "hands_contact": false,
-            "action_feature_correct": false,
+            "action_feature_correct": true,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is floating behind the character, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe is strapped to the character's back, not held by hands.",
+              "Orientation constraints for a carried axe are not met as it's not being carried."
             ],
             "regions": []
           },
           {
             "id": "run",
             "hands_contact": false,
-            "action_feature_correct": false,
+            "action_feature_correct": true,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is floating behind the character, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe is strapped to the character's back, not held by hands.",
+              "Orientation constraints for a carried axe are not met as it's not being carried."
             ],
             "regions": []
           },
           {
             "id": "action",
-            "hands_contact": false,
+            "hands_contact": true,
             "action_feature_correct": false,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe head is not oriented 'down' for chopping.",
+              "The primary and secondary hand grips are not clearly on the specified regions of the haft."
             ],
             "regions": []
           },
           {
             "id": "action_mid",
-            "hands_contact": false,
+            "hands_contact": true,
             "action_feature_correct": false,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe head is not oriented 'down' for chopping.",
+              "The primary and secondary hand grips are not clearly on the specified regions of the haft."
             ],
             "regions": []
           },
           {
             "id": "action_mid_1",
-            "hands_contact": false,
+            "hands_contact": true,
             "action_feature_correct": false,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe head is not oriented 'down' for chopping.",
+              "The primary and secondary hand grips are not clearly on the specified regions of the haft."
             ],
             "regions": []
           },
           {
             "id": "action_mid_2",
-            "hands_contact": false,
+            "hands_contact": true,
             "action_feature_correct": false,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe head is not oriented 'down' for chopping.",
+              "The primary and secondary hand grips are not clearly on the specified regions of the haft."
             ],
             "regions": []
           },
           {
             "id": "action_mid_2_grip",
-            "hands_contact": false,
+            "hands_contact": true,
             "action_feature_correct": false,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is floating in front of the character, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe head is not oriented 'down' for chopping.",
+              "The primary and secondary hand grips are not clearly on the specified regions of the haft.",
+              "The secondary hand is not clearly visible."
             ],
             "regions": [
               {
                 "label": "held_object",
-                "ymin": 400,
-                "xmin": 398,
-                "ymax": 500,
+                "ymin": 298,
+                "xmin": 400,
+                "ymax": 400,
+                "xmax": 550
+              },
+              {
+                "label": "primary_hand",
+                "ymin": 300,
+                "xmin": 400,
+                "ymax": 398,
                 "xmax": 500
               }
             ]
           },
           {
             "id": "action_mid_3",
-            "hands_contact": false,
+            "hands_contact": true,
             "action_feature_correct": false,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe head is not oriented 'down' for chopping.",
+              "The primary and secondary hand grips are not clearly on the specified regions of the haft."
             ],
             "regions": []
           },
           {
             "id": "action_mid_5",
-            "hands_contact": false,
+            "hands_contact": true,
             "action_feature_correct": false,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe head is not oriented 'down' for chopping.",
+              "The primary and secondary hand grips are not clearly on the specified regions of the haft."
             ],
             "regions": []
           },
           {
             "id": "action_mid_6",
-            "hands_contact": false,
+            "hands_contact": true,
             "action_feature_correct": false,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe head is not oriented 'down' for chopping.",
+              "The primary and secondary hand grips are not clearly on the specified regions of the haft."
             ],
             "regions": []
           },
           {
             "id": "action_mid_6_grip",
-            "hands_contact": false,
+            "hands_contact": true,
             "action_feature_correct": false,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe head is not oriented 'down' for chopping.",
+              "The primary and secondary hand grips are not clearly on the specified regions of the haft.",
+              "The secondary hand is not clearly visible."
             ],
             "regions": [
               {
                 "label": "held_object",
+                "ymin": 400,
+                "xmin": 400,
+                "ymax": 500,
+                "xmax": 550
+              },
+              {
+                "label": "primary_hand",
                 "ymin": 400,
                 "xmin": 400,
                 "ymax": 500,
@@ -274,55 +286,71 @@
           },
           {
             "id": "action_mid_7",
-            "hands_contact": false,
+            "hands_contact": true,
             "action_feature_correct": false,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe head is not oriented 'down' for chopping.",
+              "The primary and secondary hand grips are not clearly on the specified regions of the haft."
             ],
             "regions": []
           },
           {
             "id": "action_mid_grip",
-            "hands_contact": false,
+            "hands_contact": true,
             "action_feature_correct": false,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe head is not oriented 'down' for chopping.",
+              "The primary and secondary hand grips are not clearly on the specified regions of the haft.",
+              "The secondary hand is not clearly visible."
             ],
             "regions": [
               {
                 "label": "held_object",
-                "ymin": 400,
+                "ymin": 600,
                 "xmin": 400,
-                "ymax": 500,
+                "ymax": 700,
+                "xmax": 550
+              },
+              {
+                "label": "primary_hand",
+                "ymin": 600,
+                "xmin": 400,
+                "ymax": 700,
                 "xmax": 500
               }
             ]
           },
           {
             "id": "action_grip",
-            "hands_contact": false,
+            "hands_contact": true,
             "action_feature_correct": false,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe head is not oriented 'down' for chopping.",
+              "The primary and secondary hand grips are not clearly on the specified regions of the haft.",
+              "The secondary hand is not clearly visible."
             ],
             "regions": [
               {
                 "label": "held_object",
-                "ymin": 400,
+                "ymin": 600,
                 "xmin": 400,
-                "ymax": 500,
+                "ymax": 700,
+                "xmax": 550
+              },
+              {
+                "label": "primary_hand",
+                "ymin": 600,
+                "xmin": 400,
+                "ymax": 700,
                 "xmax": 500
               }
             ]
@@ -330,99 +358,91 @@
           {
             "id": "back_grip",
             "hands_contact": false,
-            "action_feature_correct": false,
+            "action_feature_correct": true,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe is strapped to the character's back, not held by hands.",
+              "Orientation constraints for a carried axe are not met as it's not being carried."
             ],
             "regions": [
               {
                 "label": "held_object",
-                "ymin": 400,
+                "ymin": 600,
                 "xmin": 400,
-                "ymax": 500,
-                "xmax": 500
+                "ymax": 700,
+                "xmax": 550
               }
             ]
           },
           {
             "id": "front_grip",
             "hands_contact": false,
-            "action_feature_correct": false,
+            "action_feature_correct": true,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe is strapped to the character's back, not held by hands.",
+              "Orientation constraints for a carried axe are not met as it's not being carried."
             ],
             "regions": [
               {
                 "label": "held_object",
-                "ymin": 400,
+                "ymin": 600,
                 "xmin": 400,
-                "ymax": 500,
-                "xmax": 500
+                "ymax": 700,
+                "xmax": 550
               }
             ]
           },
           {
             "id": "run_grip",
             "hands_contact": false,
-            "action_feature_correct": false,
+            "action_feature_correct": true,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is floating behind the character, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe is strapped to the character's back, not held by hands.",
+              "Orientation constraints for a carried axe are not met as it's not being carried."
             ],
             "regions": []
           },
           {
             "id": "side_grip",
             "hands_contact": false,
-            "action_feature_correct": false,
+            "action_feature_correct": true,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe is strapped to the character's back, not held by hands.",
+              "Orientation constraints for a carried axe are not met as it's not being carried."
             ],
             "regions": [
               {
                 "label": "held_object",
-                "ymin": 400,
+                "ymin": 600,
                 "xmin": 400,
-                "ymax": 500,
-                "xmax": 500
+                "ymax": 700,
+                "xmax": 550
               }
             ]
           },
           {
             "id": "walk_grip",
             "hands_contact": false,
-            "action_feature_correct": false,
+            "action_feature_correct": true,
             "orientation_constraints_met": false,
-            "collision_free": false,
-            "confidence": 0.5,
+            "collision_free": true,
+            "confidence": 0.7,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The axe is strapped to the character's back, not held by hands.",
+              "Orientation constraints for a carried axe are not met as it's not being carried."
             ],
-            "regions": [
-              {
-                "label": "held_object",
-                "ymin": 400,
-                "xmin": 400,
-                "ymax": 500,
-                "xmax": 500
-              }
-            ]
+            "regions": []
           }
         ],
         "checked_views": [
@@ -454,19 +474,16 @@
         "pass_id": "independent",
         "go": false,
         "status": "rejected",
-        "signature": "ccc7f619230da63811f328d067b17f8daed1484b036caeb756223e9005d2b7af",
-        "confidence": 0.8,
+        "signature": "21256d40c2b98f0256ddb1bc71382bbe0462f8151caedf8d763763a4f3be19ea",
+        "confidence": 0.95,
         "issues": [
-          "The axe is not held by the character in any of the 'carry' poses. It is either floating behind the character or clipped into the character's back.",
-          "In 'use' poses, the axe is often clipped into the character's body or the hands are not properly gripping the axe.",
-          "The 'action_mid_2_grip' image shows the axe floating in front of the character, not held.",
-          "The 'action_mid_6_grip' image shows the axe clipped into the character's back.",
-          "The 'action_mid_grip' and 'action_grip' images show the axe clipped into the character's back.",
-          "The 'back_grip', 'front_grip', 'side_grip', and 'walk_grip' images show the axe clipped into the character's back or not held by the hands.",
-          "The 'run_grip' image shows the axe floating behind the character."
+          "In all carry and use modes, the character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present in any of the provided Babylon screenshots. The axe is either carried on the back or held in a one-handed manner, violating the specified two-handed grip contract.",
+          "In the 'action_mid_2_grip', 'action_mid_6_grip', 'action_mid_grip', 'action_grip', 'front_grip', 'back_grip', 'side_grip', 'run_grip', and 'walk_grip' frames, the character's grip is not clearly two-handed. The 'action_mid_2_grip' and 'action_mid_6_grip' frames show a close-up, but only one hand is clearly gripping the haft, and the other hand is not visible or is obscured by the character's body or the axe's strap. The 'front_grip' and 'back_grip' frames show the character holding the axe with one hand on the haft and the other hand on the strap or not visible at all. The 'side_grip' frame shows the character holding the axe with one hand on the haft and the other hand on the strap or not visible at all. The 'run_grip' and 'walk_grip' frames show the character holding the axe with one hand on the haft and the other hand on the strap or not visible at all.",
+          "The 'action_mid_2_grip' and 'action_mid_6_grip' frames show the axe head pointing downward, which is consistent with the 'axe_head' functional feature and 'down' action_direction for the 'use_mode_chop' mode. However, the grip is not two-handed, which is a violation of the specified contract.",
+          "The 'action_mid_grip' and 'action_grip' frames show the character holding the axe with one hand on the haft and the other hand on the strap or not visible at all. The 'action_mid_grip' frame shows the character holding the axe with one hand on the haft and the other hand on the strap or not visible at all. The 'action_grip' frame shows the character holding the axe with one hand on the haft and the other hand on the strap or not visible at all."
         ],
-        "reason": "The axe is consistently either floating behind the character, clipped into the character's body, or not properly gripped by the hands across all provided poses. There is no clear visual evidence of the character holding the axe as described in the contract for either carry or use modes. The bounding box detections for hands and held_object are often impossible due to these issues.",
-        "vision_model": "google/gemini-2.5-flash",
+        "reason": "The provided Babylon screenshots do not visually demonstrate the required two-handed grip on the axe haft as specified in the contract. The character is consistently shown holding the axe with only one hand visible on the haft, violating the 'carry_mode' and 'use_mode_chop' grip requirements. The 'action_mid_2_grip', 'action_mid_6_grip', 'action_mid_grip', 'action_grip', 'front_grip', 'back_grip', 'side_grip', 'run_grip', and 'walk_grip' frames all show a one-handed grip or an obscured grip, making it impossible to verify the specified 'grip_lower_haft' and 'grip_upper_haft' contacts. The 'action_mid_2_grip' and 'action_mid_6_grip' frames show the axe head pointing downward, which is consistent with the 'axe_head' functional feature and 'down' action_direction for the 'use_mode_chop' mode, but the grip is not two-handed, which is a violation of the specified contract. The 'action_mid_grip' and 'action_grip' frames show the character holding the axe with one hand on the haft and the other hand on the strap or not visible at all. The 'action_mid_grip' frame shows the character holding the axe with one hand on the haft and the other hand on the strap or not visible at all. The 'action_grip' frame shows the character holding the axe with one hand on the haft and the other hand on the strap or not visible at all. Therefore, the contract is not satisfied, and the verdict is NO-GO.",
+        "vision_model": "qwen/qwen3-vl-8b-instruct",
         "per_frame": [
           {
             "id": "front",
@@ -474,10 +491,9 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is floating behind the character, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
             "regions": []
           },
@@ -487,10 +503,9 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is floating behind the character, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
             "regions": []
           },
@@ -500,10 +515,9 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is floating behind the character, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
             "regions": []
           },
@@ -513,10 +527,9 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is floating behind the character, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
             "regions": []
           },
@@ -526,10 +539,9 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is floating behind the character, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
             "regions": []
           },
@@ -539,10 +551,9 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
             "regions": []
           },
@@ -552,10 +563,9 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
             "regions": []
           },
@@ -565,10 +575,9 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
             "regions": []
           },
@@ -578,10 +587,9 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
             "regions": []
           },
@@ -591,20 +599,11 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is floating in front of the character, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
-            "regions": [
-              {
-                "label": "held_object",
-                "ymin": 400,
-                "xmin": 398,
-                "ymax": 500,
-                "xmax": 500
-              }
-            ]
+            "regions": []
           },
           {
             "id": "action_mid_3",
@@ -612,10 +611,9 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
             "regions": []
           },
@@ -625,10 +623,9 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
             "regions": []
           },
@@ -638,10 +635,9 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
             "regions": []
           },
@@ -651,20 +647,11 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
-            "regions": [
-              {
-                "label": "held_object",
-                "ymin": 400,
-                "xmin": 400,
-                "ymax": 500,
-                "xmax": 500
-              }
-            ]
+            "regions": []
           },
           {
             "id": "action_mid_7",
@@ -672,10 +659,9 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
             "regions": []
           },
@@ -685,20 +671,11 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
-            "regions": [
-              {
-                "label": "held_object",
-                "ymin": 400,
-                "xmin": 400,
-                "ymax": 500,
-                "xmax": 500
-              }
-            ]
+            "regions": []
           },
           {
             "id": "action_grip",
@@ -706,20 +683,11 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
-            "regions": [
-              {
-                "label": "held_object",
-                "ymin": 400,
-                "xmin": 400,
-                "ymax": 500,
-                "xmax": 500
-              }
-            ]
+            "regions": []
           },
           {
             "id": "back_grip",
@@ -727,20 +695,11 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
-            "regions": [
-              {
-                "label": "held_object",
-                "ymin": 400,
-                "xmin": 400,
-                "ymax": 500,
-                "xmax": 500
-              }
-            ]
+            "regions": []
           },
           {
             "id": "front_grip",
@@ -748,20 +707,11 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
-            "regions": [
-              {
-                "label": "held_object",
-                "ymin": 400,
-                "xmin": 400,
-                "ymax": 500,
-                "xmax": 500
-              }
-            ]
+            "regions": []
           },
           {
             "id": "run_grip",
@@ -769,10 +719,9 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is floating behind the character, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
             "regions": []
           },
@@ -782,20 +731,11 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
-            "regions": [
-              {
-                "label": "held_object",
-                "ymin": 400,
-                "xmin": 400,
-                "ymax": 500,
-                "xmax": 500
-              }
-            ]
+            "regions": []
           },
           {
             "id": "walk_grip",
@@ -803,20 +743,11 @@
             "action_feature_correct": false,
             "orientation_constraints_met": false,
             "collision_free": false,
-            "confidence": 0.5,
+            "confidence": 0.95,
             "issues": [
-              "The axe is clipped into the character's back, not held by the hands.",
-              "No clear hand contact with the object."
+              "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
             ],
-            "regions": [
-              {
-                "label": "held_object",
-                "ymin": 400,
-                "xmin": 400,
-                "ymax": 500,
-                "xmax": 500
-              }
-            ]
+            "regions": []
           }
         ],
         "checked_views": [

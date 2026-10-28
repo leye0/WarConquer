@@ -1,0 +1,283 @@
+{
+  "schema": 2,
+  "signature": "21256d40c2b98f0256ddb1bc71382bbe0462f8151caedf8d763763a4f3be19ea",
+  "pass_id": "independent",
+  "vision_model": "qwen/qwen3-vl-8b-instruct",
+  "raw_review": {
+    "go": false,
+    "confidence": 0.95,
+    "issues": [
+      "In all carry and use modes, the character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present in any of the provided Babylon screenshots. The axe is either carried on the back or held in a one-handed manner, violating the specified two-handed grip contract.",
+      "In the 'action_mid_2_grip', 'action_mid_6_grip', 'action_mid_grip', 'action_grip', 'front_grip', 'back_grip', 'side_grip', 'run_grip', and 'walk_grip' frames, the character's grip is not clearly two-handed. The 'action_mid_2_grip' and 'action_mid_6_grip' frames show a close-up, but only one hand is clearly gripping the haft, and the other hand is not visible or is obscured by the character's body or the axe's strap. The 'front_grip' and 'back_grip' frames show the character holding the axe with one hand on the haft and the other hand on the strap or not visible at all. The 'side_grip' frame shows the character holding the axe with one hand on the haft and the other hand on the strap or not visible at all. The 'run_grip' and 'walk_grip' frames show the character holding the axe with one hand on the haft and the other hand on the strap or not visible at all.",
+      "The 'action_mid_2_grip' and 'action_mid_6_grip' frames show the axe head pointing downward, which is consistent with the 'axe_head' functional feature and 'down' action_direction for the 'use_mode_chop' mode. However, the grip is not two-handed, which is a violation of the specified contract.",
+      "The 'action_mid_grip' and 'action_grip' frames show the character holding the axe with one hand on the haft and the other hand on the strap or not visible at all. The 'action_mid_grip' frame shows the character holding the axe with one hand on the haft and the other hand on the strap or not visible at all. The 'action_grip' frame shows the character holding the axe with one hand on the haft and the other hand on the strap or not visible at all."
+    ],
+    "explanation": "The provided Babylon screenshots do not visually demonstrate the required two-handed grip on the axe haft as specified in the contract. The character is consistently shown holding the axe with only one hand visible on the haft, violating the 'carry_mode' and 'use_mode_chop' grip requirements. The 'action_mid_2_grip', 'action_mid_6_grip', 'action_mid_grip', 'action_grip', 'front_grip', 'back_grip', 'side_grip', 'run_grip', and 'walk_grip' frames all show a one-handed grip or an obscured grip, making it impossible to verify the specified 'grip_lower_haft' and 'grip_upper_haft' contacts. The 'action_mid_2_grip' and 'action_mid_6_grip' frames show the axe head pointing downward, which is consistent with the 'axe_head' functional feature and 'down' action_direction for the 'use_mode_chop' mode, but the grip is not two-handed, which is a violation of the specified contract. The 'action_mid_grip' and 'action_grip' frames show the character holding the axe with one hand on the haft and the other hand on the strap or not visible at all. The 'action_mid_grip' frame shows the character holding the axe with one hand on the haft and the other hand on the strap or not visible at all. The 'action_grip' frame shows the character holding the axe with one hand on the haft and the other hand on the strap or not visible at all. Therefore, the contract is not satisfied, and the verdict is NO-GO.",
+    "frames": [
+      {
+        "id": "front",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "side",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "back",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "walk",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "run",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_1",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_2",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_2_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_3",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_5",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_6",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_6_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_7",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "back_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "front_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "run_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "side_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      },
+      {
+        "id": "walk_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "The character is holding the axe with only one hand visible on the haft. The required two-hand grip (lower and upper haft) is not visually present."
+        ],
+        "regions": []
+      }
+    ]
+  }
+}

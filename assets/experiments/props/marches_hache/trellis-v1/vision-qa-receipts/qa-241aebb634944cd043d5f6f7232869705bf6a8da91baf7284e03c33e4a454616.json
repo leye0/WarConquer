@@ -1,0 +1,392 @@
+{
+  "schema": 2,
+  "signature": "241aebb634944cd043d5f6f7232869705bf6a8da91baf7284e03c33e4a454616",
+  "pass_id": "primary",
+  "vision_model": "google/gemini-2.5-flash",
+  "raw_review": {
+    "go": false,
+    "confidence": 0.8,
+    "issues": [
+      "The axe is not held by the character in any of the 'carry' poses; it is strapped to the character's back. This contradicts the contract's expectation of two-hand grips for 'carry_mode'.",
+      "In 'use' poses, the axe is held, but the primary and secondary hand grips are not consistently on the specified regions of the haft. The axe head is also not consistently oriented for chopping 'down' as per the contract.",
+      "Several 'grip' images do not clearly show both hands and the held object, making it difficult to verify contact."
+    ],
+    "explanation": "The primary issue is that the 'carry' mode, as depicted in the Babylon renders, shows the axe strapped to the character's back, not held by two hands as specified in the contract. This is a fundamental mismatch. For the 'use' mode, while the axe is held, the specific grip regions and the 'down' action direction for the axe head are not consistently met or clearly visible in all frames. The 'grip' specific images often lack the full context to verify all contact points.",
+    "frames": [
+      {
+        "id": "front",
+        "hands_contact": false,
+        "action_feature_correct": true,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe is strapped to the character's back, not held by hands.",
+          "Orientation constraints for a carried axe are not met as it's not being carried."
+        ],
+        "regions": []
+      },
+      {
+        "id": "side",
+        "hands_contact": false,
+        "action_feature_correct": true,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe is strapped to the character's back, not held by hands.",
+          "Orientation constraints for a carried axe are not met as it's not being carried."
+        ],
+        "regions": []
+      },
+      {
+        "id": "back",
+        "hands_contact": false,
+        "action_feature_correct": true,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe is strapped to the character's back, not held by hands.",
+          "Orientation constraints for a carried axe are not met as it's not being carried."
+        ],
+        "regions": []
+      },
+      {
+        "id": "walk",
+        "hands_contact": false,
+        "action_feature_correct": true,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe is strapped to the character's back, not held by hands.",
+          "Orientation constraints for a carried axe are not met as it's not being carried."
+        ],
+        "regions": []
+      },
+      {
+        "id": "run",
+        "hands_contact": false,
+        "action_feature_correct": true,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe is strapped to the character's back, not held by hands.",
+          "Orientation constraints for a carried axe are not met as it's not being carried."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action",
+        "hands_contact": true,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe head is not oriented 'down' for chopping.",
+          "The primary and secondary hand grips are not clearly on the specified regions of the haft."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid",
+        "hands_contact": true,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe head is not oriented 'down' for chopping.",
+          "The primary and secondary hand grips are not clearly on the specified regions of the haft."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_1",
+        "hands_contact": true,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe head is not oriented 'down' for chopping.",
+          "The primary and secondary hand grips are not clearly on the specified regions of the haft."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_2",
+        "hands_contact": true,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe head is not oriented 'down' for chopping.",
+          "The primary and secondary hand grips are not clearly on the specified regions of the haft."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_2_grip",
+        "hands_contact": true,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe head is not oriented 'down' for chopping.",
+          "The primary and secondary hand grips are not clearly on the specified regions of the haft.",
+          "The secondary hand is not clearly visible."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 298,
+            "xmin": 400,
+            "ymax": 400,
+            "xmax": 550
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 300,
+            "xmin": 400,
+            "ymax": 398,
+            "xmax": 500
+          }
+        ]
+      },
+      {
+        "id": "action_mid_3",
+        "hands_contact": true,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe head is not oriented 'down' for chopping.",
+          "The primary and secondary hand grips are not clearly on the specified regions of the haft."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_5",
+        "hands_contact": true,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe head is not oriented 'down' for chopping.",
+          "The primary and secondary hand grips are not clearly on the specified regions of the haft."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_6",
+        "hands_contact": true,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe head is not oriented 'down' for chopping.",
+          "The primary and secondary hand grips are not clearly on the specified regions of the haft."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_6_grip",
+        "hands_contact": true,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe head is not oriented 'down' for chopping.",
+          "The primary and secondary hand grips are not clearly on the specified regions of the haft.",
+          "The secondary hand is not clearly visible."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 400,
+            "xmin": 400,
+            "ymax": 500,
+            "xmax": 550
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 400,
+            "xmin": 400,
+            "ymax": 500,
+            "xmax": 500
+          }
+        ]
+      },
+      {
+        "id": "action_mid_7",
+        "hands_contact": true,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe head is not oriented 'down' for chopping.",
+          "The primary and secondary hand grips are not clearly on the specified regions of the haft."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_grip",
+        "hands_contact": true,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe head is not oriented 'down' for chopping.",
+          "The primary and secondary hand grips are not clearly on the specified regions of the haft.",
+          "The secondary hand is not clearly visible."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 600,
+            "xmin": 400,
+            "ymax": 700,
+            "xmax": 550
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 600,
+            "xmin": 400,
+            "ymax": 700,
+            "xmax": 500
+          }
+        ]
+      },
+      {
+        "id": "action_grip",
+        "hands_contact": true,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe head is not oriented 'down' for chopping.",
+          "The primary and secondary hand grips are not clearly on the specified regions of the haft.",
+          "The secondary hand is not clearly visible."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 600,
+            "xmin": 400,
+            "ymax": 700,
+            "xmax": 550
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 600,
+            "xmin": 400,
+            "ymax": 700,
+            "xmax": 500
+          }
+        ]
+      },
+      {
+        "id": "back_grip",
+        "hands_contact": false,
+        "action_feature_correct": true,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe is strapped to the character's back, not held by hands.",
+          "Orientation constraints for a carried axe are not met as it's not being carried."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 600,
+            "xmin": 400,
+            "ymax": 700,
+            "xmax": 550
+          }
+        ]
+      },
+      {
+        "id": "front_grip",
+        "hands_contact": false,
+        "action_feature_correct": true,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe is strapped to the character's back, not held by hands.",
+          "Orientation constraints for a carried axe are not met as it's not being carried."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 600,
+            "xmin": 400,
+            "ymax": 700,
+            "xmax": 550
+          }
+        ]
+      },
+      {
+        "id": "run_grip",
+        "hands_contact": false,
+        "action_feature_correct": true,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe is strapped to the character's back, not held by hands.",
+          "Orientation constraints for a carried axe are not met as it's not being carried."
+        ],
+        "regions": []
+      },
+      {
+        "id": "side_grip",
+        "hands_contact": false,
+        "action_feature_correct": true,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe is strapped to the character's back, not held by hands.",
+          "Orientation constraints for a carried axe are not met as it's not being carried."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 600,
+            "xmin": 400,
+            "ymax": 700,
+            "xmax": 550
+          }
+        ]
+      },
+      {
+        "id": "walk_grip",
+        "hands_contact": false,
+        "action_feature_correct": true,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.7,
+        "issues": [
+          "The axe is strapped to the character's back, not held by hands.",
+          "Orientation constraints for a carried axe are not met as it's not being carried."
+        ],
+        "regions": []
+      }
+    ]
+  }
+}
