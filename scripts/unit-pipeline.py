@@ -311,6 +311,14 @@ def state(doc, stage):
                                         for k in ("origin", "direction_tip"))
                                     for f in landmarks["features"].values())):
                         paths[grip] = "missing_named_mesh_grips_or_actions"
+                    if paths.get(grip)=="ready":
+                        bbox_audit=plan.get("mesh_region_review",{})
+                        if (bbox_audit.get("schema")!=1 or
+                                bbox_audit.get("status")!="confirmed" or
+                                bbox_audit.get("glb_sha256")!=digest or
+                                bbox_audit.get("interaction_sha256")!=contract_sha or
+                                bbox_audit.get("bbox_convention")!="xyxy_normalized_1000"):
+                            paths[grip]="missing_independent_vision_labeled_regions"
             except (ValueError, OSError, KeyError):
                 paths[grip] = "invalid_mesh_landmarks"
     return {"stage": stage, "description": STAGE_DESCRIPTION[stage],
@@ -400,6 +408,7 @@ def execute(doc, stage):
             if not state({**doc,"equipment":[prop]},"object_grip")["ready"]:
                 raise PipelineError("Generate the semantic grip plan before annotating its GLB")
             py("prop-mesh-landmarks.py", "--plan", prop["grip"])
+            py("audit-prop-vision-regions.py", "--plan", prop["grip"])
     elif stage == "integrate":
         with tempfile.TemporaryDirectory(prefix="wc-character-pages-") as sandbox:
             target = str(Path(sandbox) / "pages")
