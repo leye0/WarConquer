@@ -5,6 +5,11 @@ on:
     branches: [feat/semantic-prop-contact-contract]
     paths:
       - '.github/workflows/feature-held-prop-pose-qa.yml'
+      - 'scripts/character-lab-client.js'
+      - 'scripts/prop-motion-contact.js'
+      - 'scripts/capture-prop-contact.mjs'
+      - 'scripts/run-prop-visual-qa.py'
+      - 'scripts/verify-prop-visual-qa.py'
 
 permissions:
   contents: write
@@ -15,7 +20,6 @@ concurrency:
 
 jobs:
   pose-contact:
-    if: contains(github.event.head_commit.message, '[contact-pilot:marches_hache]')
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:
