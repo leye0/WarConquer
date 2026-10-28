@@ -28,6 +28,9 @@ jobs:
           node scripts/test-prop-motion-contact.mjs
       - name: Pay at most once for real object-character-Mixamo semantics
         run: |
+          # First pilot stopped before submission because the historical axe
+          # had an original brief but no separate description receipt.
+          # The source-brief migration is now covered by offline tests.
           python scripts/unit-pipeline.py run --unit marches_hache \
             --stage object_interaction --allow-paid
       - name: Save both the paid receipt and any confirmed result on this feature branch
