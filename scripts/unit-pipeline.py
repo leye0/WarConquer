@@ -178,9 +178,26 @@ def ensure_adapter(doc):
 def execute(doc, stage):
     # Generic Muse and fal.ai body construction are selected by the unit
     # manifest, not by a GitHub Actions workflow.
-    if doc.get("adapter") == "manifest_v1" and stage in ("turnaround","body"):
-        py("build-unit-3d.py","--unit",doc["id"],"--stage",stage,"--allow-paid")
-        return
+    if doc.get("adapter") == "manifest_v1":
+        if stage in ("turnaround","body"):
+            py("build-unit-3d.py","--unit",doc["id"],"--stage",stage,"--allow-paid")
+            return
+        if stage == "rig":
+            for part in ("validate","rig-submit","rig-collect"):
+                py("build-fal-rig-playable.py","--unit",doc["id"],"--stage",part)
+            return
+        if stage == "animations":
+            if not state(doc,"rig")["ready"]:
+                raise PipelineError("Cannot retarget animations without a rigged unit-specific GLB")
+            with tempfile.TemporaryDirectory(prefix="wc-mixamo-") as tmp:
+                env=os.environ.copy()
+                env["WARCONQUER_STANDARD_IDLE"]="1"
+                env["WARCONQUER_IDLE_VARIANTS"]="1"
+                py("convert-mixamo-fbx.py","download",tmp,env=env)
+                py("convert-mixamo-fbx.py","convert",tmp,env=env)
+                env["MIXAMO_CONVERTED_DIR"]=tmp
+                py("build-fal-rig-playable.py","--unit",doc["id"],"--stage","animate",env=env)
+            return
     if stage != "source":
         ensure_adapter(doc)
     prop = doc["equipment"][0]
@@ -291,7 +308,7 @@ def main(argv=None):
             for stage in stages:
                 if state(doc,stage)["ready"]:continue
                 if stage == "source":continue
-                if doc.get("adapter") == "manifest_v1" and stage in ("turnaround","body"):
+                if doc.get("adapter") == "manifest_v1" and stage in ("turnaround","body","rig","animations"):
                     continue
                 ensure_adapter(doc)
         bootstrap(doc, stages, opts.dry_run)
@@ -303,7 +320,7 @@ def main(argv=None):
                 print("SKIP", stage, "(existing, validated outputs)", flush=True)
                 continue
             if (stage != "source" and doc.get("adapter") != "legacy_marches_hache"
-                and not (doc.get("adapter") == "manifest_v1" and stage in ("turnaround","body"))):
+                and not (doc.get("adapter") == "manifest_v1" and stage in ("turnaround","body","rig","animations"))):
                 if opts.dry_run:
                     print("ADAPTER REQUIRED", stage, "(unit-specific generator not yet implemented)")
                     continue
