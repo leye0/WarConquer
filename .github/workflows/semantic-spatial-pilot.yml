@@ -46,13 +46,16 @@ jobs:
             --pass-id qwen_grid_ticks --model qwen/qwen3-vl-235b-a22b-instruct
       - name: Independently detect labeled 0-1000 rectangles with Studio's Gemini Flash vision
         run: |
+          # Official Gemini image-understanding order is [ymin,xmin,ymax,xmax],
+          # NOT Studio's custom [xmin,ymin,xmax,ymax]. Keep native wire format;
+          # convert to canonical XYXY only after parsing/validation.
           # Studio's labeled contact-sheet protocol: enlarged independent
           # TARGET crops per confirmed semantic ID, each with its OWN 0..1000
           # box_2d frame. Remap to the original GLB view after vision.
           # The initial full-view pass missed thin shaft regions by ~20 pixels.
           python scripts/audit-prop-vision-regions.py \
             --plan assets/experiments/props/marches_hache/trellis-v1/grip-plan.json \
-            --pass-id studio_flash_crops2 --model google/gemini-2.5-flash
+            --pass-id studio_flash_native3 --model google/gemini-2.5-flash
       - name: Preserve the GLB source-matched vision receipts and the canonical plan on the feature branch
         if: always()
         shell: bash

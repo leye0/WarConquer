@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Independent, Studio-style labeled bbox audit of vision-grounded GLB grips.
 
-Same contract as leye0/studio/services/create-scene-assets/src/
-scene-bbox-detector.js and rain-splash-zone-detector.js: one target image,
-exact labels, box_2d [xmin,ymin,xmax,ymax] normalized to 0..1000.
+Builds on leye0/studio/services/create-scene-assets/src/
+scene-bbox-detector.js and rain-splash-zone-detector.js: labeled target crops,
+exact semantic IDs, box_2d normalized to 0..1000. On the wire we use each
+vision MODEL's documented native coordinate order, converting to XYXY after.
 Only the *actual textured GLB view* is sent to the region detector. Geometry
 projects existing GLB contact landmarks back to that same 2D image and tests
 agreement; geometry NEVER assigns semantic roles by length, axes or silhouette.
@@ -32,6 +33,20 @@ ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
 MODEL = "google/gemini-2.5-flash"
 
 
+def native_box_order(model):
+    """Match the producer's learned grounding convention, not a house style.
+
+    Gemini's official image-understanding docs: [ymin,xmin,ymax,xmax].
+    Qwen3-VL's official 2D grounding format: [xmin,ymin,xmax,ymax].
+    Explicit support is required; never silently transpose an unknown model.
+    """
+    if model.startswith("google/gemini-"):
+        return "ymin_xmin_ymax_xmax"
+    if model.startswith("qwen/qwen3-vl-"):
+        return "xmin_ymin_xmax_ymax"
+    raise ValueError("Unverified model-specific native box ordering: "+model)
+
+
 def expected_labels(semantic):
     """No source-image coordinates: only the already confirmed semantic roles."""
     labels = {"handle_butt": "Physical bottom tip of handle, not empty space",
@@ -56,7 +71,7 @@ def parse_response(content):
         return json.loads(raw[start:end+1])
 
 
-def validate_boxes(answer,labels):
+def validate_boxes(answer,labels,order="xmin_ymin_xmax_ymax"):
     if not isinstance(answer,dict) or not isinstance(answer.get("objects"),dict):
         raise ValueError("Vision must return objects keyed by exact role IDs")
     if set(answer["objects"])!=set(labels):
@@ -73,10 +88,14 @@ def validate_boxes(answer,labels):
             any(isinstance(x,bool) or not isinstance(x,(int,float)) or
                 not math.isfinite(x) or x<0 or x>1000 for x in box) or
             box[2]<=box[0] or box[3]<=box[1]):
-            raise ValueError("Invalid box_2d [xmin,ymin,xmax,ymax] for "+label)
+            raise ValueError("Invalid native box_2d for "+label)
         confidence=entry.get("confidence",0.)
         if isinstance(confidence,bool) or not isinstance(confidence,(int,float)) or not 0<=confidence<=1:
             raise ValueError("Invalid confidence for "+label)
+        if order=="ymin_xmin_ymax_xmax":
+            box=[box[1],box[0],box[3],box[2]]
+        elif order!="xmin_ymin_xmax_ymax":
+            raise ValueError("Unrecognized native bbox ordering")
         results[label]={"visible":True,"box_2d":box,"confidence":confidence}
     return results
 
@@ -189,6 +208,7 @@ def audit(plan_path,pass_id,model):
     panel=Image.open(io.BytesIO(rendered)).crop(((selected%2)*width,(selected//2)*width,
         (selected%2+1)*width,(selected//2+1)*width))
     labels=expected_labels(semantic)
+    order=native_box_order(model)
     prior_points=projected_landmarks(plan,meshes,views[selected])
     crops=named_crops(panel,labels,prior_points)
     prompt=("Inspect each of the following INDEPENDENT, enlarged TARGET CROPS "
@@ -197,9 +217,10 @@ def audit(plan_path,pass_id,model):
         "contact-sheet crop protocol. "
         "Independently LOCATE every requested functional region from visible pixels. "
         "Return JSON only: {\"objects\":{\"<exact label>\":{\"visible\":true,"
-        "\"box_2d\":[xmin,ymin,xmax,ymax],\"confidence\":0.9}}}. "
-        "Use each exact label below, no invented labels. box_2d is an integer "
-        "[xmin,ymin,xmax,ymax] normalized to 0..1000 of THAT LABEL'S OWN "
+        "\"box_2d\":["+order.replace("_",", ")+"],\"confidence\":0.9}}}. "
+        "Use each exact label below, no invented labels. box_2d MUST use "
+        "the VISION MODEL'S NATIVE coordinate order ["+order.replace("_",", ")+"], "
+        "each value an integer normalized to 0..1000 of THAT LABEL'S OWN "
         "TARGET CROP IMAGE, NEVER the full GLB view or all-image mosaic, "
         "as in Studio's scene-bbox-detector and rain-splash-zone-detector. "
         "Give a TIGHT rectangle around the named VISIBLE physical part, not "
@@ -245,7 +266,7 @@ def audit(plan_path,pass_id,model):
             answer=parse_response(json.loads(response.read(200000))["choices"][0]["message"]["content"])
         receipt.write_text(json.dumps({"signature":signature,"model":model,
             "answer":answer},ensure_ascii=False,indent=2)+"\n")
-    crop_boxes=validate_boxes(answer,labels)
+    crop_boxes=validate_boxes(answer,labels,order)
     boxes=remap_crop_boxes(crop_boxes,crops,width)
     existing_points,issues=qa_points(plan,meshes,views[selected],boxes)
     for label,entry in boxes.items():
@@ -254,7 +275,10 @@ def audit(plan_path,pass_id,model):
     overlay=plan_path.parent/("vision-regions-"+base+".png")
     overlay.write_bytes(render_overlay(panel,boxes,existing_points))
     report={"schema":1,"model":model,"pass_id":pass_id,"glb_view":selected,
-        "bbox_convention":"xyxy_normalized_1000","receipt":str(receipt.relative_to(ROOT)),
+        "bbox_convention":"xyxy_normalized_1000",
+        "native_bbox_convention":order+"_normalized_1000",
+        "raw_native_boxes":answer["objects"],
+        "receipt":str(receipt.relative_to(ROOT)),
         "overlay":str(overlay.relative_to(ROOT)),"boxes":boxes,
         "boxes_within_labeled_crops_1000":crop_boxes,
         "original_point_positions_1000":existing_points,

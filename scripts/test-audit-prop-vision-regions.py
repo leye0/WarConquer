@@ -26,6 +26,12 @@ parsed=module.parse_response("```json\n"+json.dumps(answer)+"\n```")
 assert parsed==answer
 boxes=module.validate_boxes(parsed,roles)
 assert boxes["functional_edge"]["box_2d"]==[120,200,180,265]
+assert module.native_box_order("google/gemini-2.5-flash")=="ymin_xmin_ymax_xmax"
+assert module.native_box_order("qwen/qwen3-vl-235b-a22b-instruct")=="xmin_ymin_xmax_ymax"
+gemini={"objects":{label:{"visible":True,"box_2d":[200,120,265,180],
+    "confidence":.94} for label in roles}}
+converted=module.validate_boxes(gemini,roles,module.native_box_order("google/gemini-2.5-flash"))
+assert converted["functional_edge"]["box_2d"]==[120,200,180,265]
 image=module.render_overlay(Image.new("RGB",(510,510),"white"),boxes,
     {"functional_edge":[150,230]})
 assert Image.open(io.BytesIO(image)).size==(510,510)
