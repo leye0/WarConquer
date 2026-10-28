@@ -288,7 +288,12 @@ def main(argv=None):
         return 0
     if opts.command == "bootstrap":
         if not opts.dry_run:
-            ensure_adapter(doc)
+            for stage in stages:
+                if state(doc,stage)["ready"]:continue
+                if stage == "source":continue
+                if doc.get("adapter") == "manifest_v1" and stage in ("turnaround","body"):
+                    continue
+                ensure_adapter(doc)
         bootstrap(doc, stages, opts.dry_run)
         return 0
     if opts.command == "run":
