@@ -105,18 +105,19 @@ try {
   await request("Emulation.setDeviceMetricsOverride",{
     width:1280,height:800,deviceScaleFactor:1,mobile:false
   });
-  // Independent second-unit validation comes FIRST. It must pass even if
-  // the Babylon.js CDN is temporarily unavailable in headless CI.
+  // Select the genuinely generated second 3D unit first, not a source-only
+  // placeholder or a duplicate of the Marches GLB.
   await request("Page.navigate",{url:"http://127.0.0.1:4173/character-lab.html?unit=couronne_archer"});
   const initialArcher=await until(s=>s.unitId==="couronne_archer" &&
-    s.unitBuildStatus==="source_only" && s.conceptVisible,
-    "source-only Crown archer from project manifest",45000);
-  assert.equal(await js("document.getElementById('modelSelect').disabled"),true);
+    ["mesh_only","rigged","playable"].includes(s.unitBuildStatus) &&
+    !s.conceptVisible && s.status.startsWith("Prêt"),
+    "independent 3D Crown archer loaded in Babylon",45000);
+  assert.equal(await js("document.getElementById('modelSelect').disabled"),false);
   assert.equal(await js("document.getElementById('unitSelect').options.length"),2);
-  assert((await js("document.getElementById('conceptImage').getAttribute('src')")).includes(
-    "/assets/concepts/couronne/units/archer.png"));
-  console.log("SECOND_UNIT_SOURCE_ONLY_INITIAL_PASS",JSON.stringify(initialArcher));
-  await screenshot("couronne-archer-source-only-initial-live");
+  assert((await js("document.getElementById('modelSelect').value")).includes("/couronne_archer/"),
+    "Another warrior's GLB must never masquerade as Crown archer");
+  console.log("SECOND_UNIT_REAL_GLB_INITIAL_PASS",JSON.stringify(initialArcher));
+  await screenshot("couronne-archer-actual-3d-initial-live");
   // Continue with the full existing real-3D motion suite, preserving the
   // default warrior fixtures and all previous Babylon assertions.
   await request("Page.navigate",{url:"http://127.0.0.1:4173/character-lab.html"});
@@ -282,23 +283,22 @@ try {
   assert.equal(await js("document.getElementById('runButton').getAttribute('aria-pressed')"),"false","mobile run can turn off");
   await until(s=>s.motion.startsWith("Idle_"),"mobile control returns to idle",12000);
   console.log("MOBILE_BUTTONS_PASS");
-  // An independent second unit exists as an original concept. Verify that
-  // switching to it removes the first unit's 3D actor rather than reusing it.
+  // Actual 3D model switching: both GLBs exist but must remain distinct.
   await request("Emulation.setDeviceMetricsOverride",{width:1280,height:800,deviceScaleFactor:1,mobile:false});
-  assert.equal(await js("document.getElementById('unitSelect').options.length"),2,
-    "Unit selector must include playable Marches warrior and Crown archer");
+  assert.equal(await js("document.getElementById('unitSelect').options.length"),2);
   await js("(()=>{const e=document.getElementById('unitSelect');e.value='couronne_archer';e.dispatchEvent(new Event('change',{bubbles:true}));})()");
-  const archer=await until(s=>s.unitId==="couronne_archer"&&
-    s.unitBuildStatus==="source_only"&&s.conceptVisible&&
-    s.status.includes("Unité 2D"),"source-only Crown archer in lab",10000);
-  assert.equal(await js("document.getElementById('modelSelect').disabled"),true,
-    "3D selector must be disabled if the selected unit has no GLB");
+  const archer=await until(s=>s.unitId==="couronne_archer" &&
+    ["mesh_only","rigged","playable"].includes(s.unitBuildStatus) &&
+    s.status.startsWith("Prêt") && !s.conceptVisible,
+    "second real archer GLB is swapped into Babylon",45000);
+  assert.equal(await js("document.getElementById('modelSelect').disabled"),false);
+  assert((await js("document.getElementById('modelSelect').value")).includes("/couronne_archer/"));
+  assert.equal(await js("BABYLON.EngineStore.LastCreatedEngine.scenes[0].transformNodes.filter(n=>n.name==='wc-character-pivot'&&!n.isDisposed()).length"),1,
+    "Only one unit-specific model should be loaded");
   assert.equal(await js("document.getElementById('attackButton').disabled"),true,
-    "No axe attack can be played by an unbuilt archer");
-  assert.equal(await js("BABYLON.EngineStore.LastCreatedEngine.scenes[0].transformNodes.some(n=>n.name==='wc-character-pivot'&&!n.isDisposed())"),false,
-    "Switching units must remove prior warrior model");
-  console.log("SECOND_UNIT_SOURCE_ONLY_PASS",JSON.stringify(archer));
-  await screenshot("couronne-archer-source-only-live");
+    "An archer without bow-draw animation must never attack with an axe clip");
+  console.log("SECOND_UNIT_REAL_3D_SWITCH_PASS",JSON.stringify(archer));
+  await screenshot("couronne-archer-actual-3d-switch-live");
   await js("(()=>{const e=document.getElementById('unitSelect');e.value='marches_hache';e.dispatchEvent(new Event('change',{bubbles:true}));})()");
   await until(s=>s.unitId==="marches_hache"&&s.unitBuildStatus==="playable"&&
     s.status.startsWith("Prêt")&&s.motion.startsWith("Idle_"),
