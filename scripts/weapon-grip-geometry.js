@@ -64,7 +64,15 @@
     const projected=vertices.map(v=>dot(v,y));
     const length=Math.max(...projected)-Math.min(...projected);
     if(length<1e-4)throw Error("Invalid physical prop length");
-    return {grip,shaft:y,blade:x,length,vertexCount:vertices.length,
+    // A passive object hangs with its center of mass below the palm. Surface
+    // vertices provide a cheap center-of-volume proxy; if the mass offset is
+    // tiny or ambiguous, use the explicitly annotated functional axis.
+    // No weapon names or body-specific angles participate in this decision.
+    const massCenter=centroid(vertices);
+    const balance=sub(massCenter,grip);
+    const carryShaft=norm(balance)>.08*length?unit(balance):null;
+    return {grip,shaft:y,blade:x,length,massCenter,carryShaft,
+      vertexCount:vertices.length,
       bladeMethod:"signed-vision-glb-functional-edge"};
   }
 

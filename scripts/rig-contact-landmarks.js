@@ -67,6 +67,7 @@
       across_palm:hand.across,
       opposite_across_palm:mul(hand.across,-1),
       forward:body.forward,backward:mul(body.forward,-1),
+      gravity:[0,-1,0],
       up:body.up,down:mul(body.up,-1),
       outward:side==="right"?body.right:mul(body.right,-1),
       inward:side==="right"?mul(body.right,-1):body.right

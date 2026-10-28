@@ -500,13 +500,16 @@
       hand.computeWorldMatrix(true);
       if(!window.WCRigContact?.contactFrame)
         throw Error("Repères articulaires génériques indisponibles");
+      const gravityCarry=!!frame.carryShaft;
       const contact=window.WCRigContact.contactFrame(joints,{
         hand:side,palm_fraction:spec.palm_from_wrist,
-        shaft_direction:spec.head_direction,working_face:spec.edge_direction
+        shaft_direction:gravityCarry?"gravity":spec.head_direction,
+        working_face:spec.edge_direction
       });
       const shaftWorld=new B.Vector3(...contact.shaft);
       const bladeWorld=new B.Vector3(...contact.blade);
-      const worldRotation=buildGripRotation(frame,shaftWorld,bladeWorld);
+      const worldRotation=buildGripRotation(
+        gravityCarry?{...frame,shaft:frame.carryShaft}:frame,shaftWorld,bladeWorld);
       const parentScale=new B.Vector3(),parentRotation=new B.Quaternion();
       hand.getWorldMatrix().decompose(parentScale,parentRotation);
       const unitScale=(Math.abs(parentScale.x)+Math.abs(parentScale.y)+Math.abs(parentScale.z))/3;
@@ -536,6 +539,7 @@
           ? " · ancienne échelle "+spec.length_relative_character_height.toFixed(2)
           : " · longueur estimée "+estimatedLengthCm.toFixed(0)+" cm"));
       byId("world").dataset.weaponGrip="vision-glb-anatomical-landmarks";
+      byId("world").dataset.weaponCarry=gravityCarry?"mass-below-hand":"annotated-shaft";
       byId("world").dataset.weaponGripScale=(desiredLength/1.9).toFixed(3);
       byId("world").dataset.weaponLengthCm=estimatedLengthCm===null
         ? "" : estimatedLengthCm.toFixed(1);

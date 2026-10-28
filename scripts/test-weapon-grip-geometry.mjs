@@ -115,6 +115,8 @@ for(const move of [p=>p,p=>[p[1],-p[2],p[0]]]){
       "Functional face sign is determined by landmarks, never a guessed PCA axis");
     assert(solved.length>1.6);
     assert.equal(solved.bladeMethod,"signed-vision-glb-functional-edge");
+    assert(solved.carryShaft&&dot(solved.carryShaft,move([0,1,0]))>.8,
+      "A head-heavy prop should let its actual mass hang below the palm");
   }
 }
 assert.throws(()=>frameFromLandmarks({grip_center:[0,0,0]},syntheticAxe()),/Missing intrinsic/);

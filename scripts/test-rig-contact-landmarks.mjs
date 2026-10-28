@@ -18,6 +18,9 @@ close(bodyFrame(base).forward,[0,0,1]);
 close(initial.grip,[.4,1,.05].map((v,i)=>v+.4*(initial.palm.knuckles[i]-base.rightWrist[i])));
 close(initial.shaft,[0,1,0]);
 close(initial.blade,[0,0,1]);
+const hanging=contactFrame(base,{hand:"right",shaft_direction:"gravity",working_face:"outward"});
+close(hanging.shaft,[0,-1,0]);
+close(hanging.blade,[1,0,0]);
 assert.equal(palmFrame(base,"left").grip.length,3);
 
 // A different humanoid's joints are scaled, translated and turned 97 degrees.
@@ -31,5 +34,7 @@ const equipped=contactFrame(second,{hand:"right",palm_fraction:.4,
 close(equipped.grip,turn(initial.grip));
 close(equipped.shaft,[0,1,0]);
 close(equipped.blade,[Math.sin(yaw),0,Math.cos(yaw)]);
+const hangingSecond=contactFrame(second,{hand:"right",shaft_direction:"gravity",working_face:"outward"});
+close(hangingSecond.shaft,[0,-1,0]);
 assert.throws(()=>contactFrame({rightWrist:[1,2,3]}),/Missing/);
 console.log("PASS: one generic prop-contact contract adapts to two differently sized and oriented humanoid skeletons");
