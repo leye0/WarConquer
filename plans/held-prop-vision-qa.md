@@ -38,6 +38,8 @@ Un personnage tient réellement l'objet au bon endroit, avec la ou les mains att
 - Produire plusieurs rendus orthographiques **du GLB généré**, avec repères de vues et transformations connues.
 - Faire localiser par vision **chaque ID du contrat**, en respectant sa région et sa direction fonctionnelle. Une prise ou une surface active absente du GLB est un échec explicite.
 - Ne reprojeter sur une surface 3D qu'un rôle préalablement identifié; rejeter les ambiguïtés de profondeur, les projections trop lointaines et les directions fonctionnelles qui s'effondrent.
+- La correspondance pixels → surface 3D utilise **la caméra et le depth buffer connus** (ou raycasting des triangles), puis un repère local stable : face/coordonnées barycentriques, normale, tangente, direction signée. Le modèle désigne le **rôle et la région**, le moteur calcule la **géométrie**, sans en inventer la fonction. Voir le [contrat de projection 3D](held-object-affordance-contract.md#projection-déterministe--des-régions-reconnues-aux-véritables-repères-3d).
+- Une ouverture de récipient requiert son **plan et sa normale sortante**; un fusil son **axe vers la bouche**; une hache ses **contacts et le côté tranchant**. Les signes « dessus/devant/extérieur » doivent être caractérisés visuellement, jamais choisis par un axe arbitraire.
 - Conserver surimpressions et coordonnées vérifiables. Aucun héritage de repères historiques définis par « extrémité géométrique » ne peut être présenté comme confirmé.
 
 ### 3. Ajuster objet, squelette et clip
