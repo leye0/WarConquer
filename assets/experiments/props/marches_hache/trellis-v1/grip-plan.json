@@ -38,7 +38,7 @@
       0.2
     ],
     "head_direction": "toward_elbow",
-    "edge_direction": "forward",
+    "edge_direction": "outward",
     "length_relative_character_height": 1.1,
     "palm_from_wrist": 0.5,
     "confidence": 0.9,
@@ -53,12 +53,12 @@
   "automatic_paid_retries": 0,
   "visual_qa": {
     "status": "rejected",
-    "signature": "b79b422d991368349610592b4d121103555e3450b85b88edb69bae167c73658c",
-    "confidence": 1.0,
+    "signature": "40beaf6780f551d89c7887ac34922be135b21bcd80c701c5bf75a56307413474",
+    "confidence": 0.9,
     "issues": [
-      "The axe head is facing the wrong direction. It should be pointing away from the character's body when held in this manner."
+      "The axe head is facing the wrong direction. It should be facing forward or slightly down, not backward."
     ],
-    "reason": "The character is holding the axe, but the cutting edge is facing inwards towards the character's body, which is not the physically expected orientation for an axe. The handle grip is correct, and the scale appears plausible.",
+    "reason": "The axe head is incorrectly oriented, pointing backward instead of forward or downward, which is not physically plausible for an axe being held or swung.",
     "vision_model": "google/gemini-2.5-flash-lite",
     "checked_views": [
       "front",
@@ -66,16 +66,6 @@
       "back",
       "action"
     ]
-  },
-  "vision_review": {
-    "target_length_relative_character_height": 1.1,
-    "grip_fraction_from_butt": 0.45,
-    "head_direction": "toward_elbow",
-    "edge_direction": "forward",
-    "change_needed": true,
-    "confidence": 0.9,
-    "visual_diagnosis": "The axe head is disproportionately large and heavy compared to the shaft and the character's physique, making it appear unwieldy and less practical. The current length of the axe shaft also appears too short relative to the character's height, especially for a two-handed weapon. The grip placement in the idle animation (Image 3) seems too far forward, not allowing for a proper two-handed stance. The axe head orientation in the idle state (Image 3) is also not ideal for a ready stance.",
-    "proposed_correction_reason": "Reduce the axe head size to be more proportional to the shaft and character, and increase the shaft length to approximately 1.1 times the character's height for better two-handed ergonomics and visual balance. Adjust the grip to be further down the handle (around 0.45 from the butt) to accommodate a two-handed grip. Orient the axe head slightly forward and angled towards the elbow for a more natural and ready idle stance, and ensure the cutting edge faces forward during attacks."
   },
   "source_provenance": {
     "generation_request": "axe-image-request.json",
@@ -134,5 +124,16 @@
       }
     },
     "explanation": "View 3 clearly shows the axe head and handle. The functional edge is the sharp side of the axe head, and the handle butt is the bottom end of the handle. The grip center is the middle of the handle where a user would hold it."
+  },
+  "automatic_orientation_selection": {
+    "method": "real-3d-vision-candidate-search",
+    "previous_direction": "forward",
+    "selected_direction": "outward",
+    "candidates": [
+      "forward",
+      "backward",
+      "outward",
+      "inward"
+    ]
   }
 }

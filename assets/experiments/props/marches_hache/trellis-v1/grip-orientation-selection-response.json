@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "signature": "7d18b1f61b7efe45584f4183071d9a2026679312bc2b0ee24ded4d821ef36628",
+  "model": "google/gemini-2.5-flash-lite",
+  "raw_selection": {
+    "direction": "outward",
+    "confidence": 1.0,
+    "explanation": "The axe head is oriented outwards, away from the character's body, which is the safest and most practical way to hold an axe while running. The sharp edge is not facing the character, preventing accidental self-injury. The other orientations either have the sharp edge too close to the body or are not physically plausible for a running character holding an axe."
+  }
+}

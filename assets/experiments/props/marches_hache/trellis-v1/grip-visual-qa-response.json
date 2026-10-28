@@ -1,13 +1,13 @@
 {
   "schema": 1,
-  "signature": "b79b422d991368349610592b4d121103555e3450b85b88edb69bae167c73658c",
+  "signature": "40beaf6780f551d89c7887ac34922be135b21bcd80c701c5bf75a56307413474",
   "vision_model": "google/gemini-2.5-flash-lite",
   "raw_review": {
     "go": false,
-    "confidence": 1.0,
+    "confidence": 0.9,
     "issues": [
-      "The axe head is facing the wrong direction. It should be pointing away from the character's body when held in this manner."
+      "The axe head is facing the wrong direction. It should be facing forward or slightly down, not backward."
     ],
-    "explanation": "The character is holding the axe, but the cutting edge is facing inwards towards the character's body, which is not the physically expected orientation for an axe. The handle grip is correct, and the scale appears plausible."
+    "explanation": "The axe head is incorrectly oriented, pointing backward instead of forward or downward, which is not physically plausible for an axe being held or swung."
   }
 }
