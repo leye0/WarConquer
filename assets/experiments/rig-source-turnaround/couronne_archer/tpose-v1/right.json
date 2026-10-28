@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "unit": "couronne_archer",
+  "view": "right",
+  "status": "generated-review-needed",
+  "model": "meta/muse-image",
+  "original_sha256": "fdc2874eda247643e5fa6f33c460593bc42dee96125a52bb473be8576dee72a2",
+  "prompt_sha256": "4d982022ff1d581e1d37317029cb1a698da7f49ba13c3d07acb45a012e957010",
+  "usage": {
+    "prompt_tokens": 262,
+    "completion_tokens": 2120,
+    "total_tokens": 2382,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 2120
+    }
+  },
+  "alpha": "white-background-matte",
+  "placement": {
+    "raw_bbox": [
+      425,
+      134,
+      1263,
+      1547
+    ],
+    "source_edge_contact": false,
+    "foreground_fraction": 0.18935,
+    "normalization_scale": 0.52178,
+    "feet_baseline_px": 899
+  },
+  "qa": {
+    "sha256": "8ad7047b2cc19b8015beee1e7d52eca5fb4c9f3f7a544bb7d2c79858e4c4576e",
+    "bbox": [
+      293,
+      162,
+      730,
+      899
+    ],
+    "margin_px": 125
+  },
+  "paid_request_maximum": 1
+}
