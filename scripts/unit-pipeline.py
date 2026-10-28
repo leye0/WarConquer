@@ -23,11 +23,11 @@ ROOT = Path(__file__).resolve().parents[1]
 UNITS = ROOT / "data" / "units"
 STAGES = (
     "source", "equipment_identify", "turnaround", "body", "rig", "animations",
-    "object_source", "object_mesh", "object_size", "object_grip", "integrate"
+    "object_source", "object_mesh", "object_size", "object_grip", "object_landmarks", "integrate"
 )
 PAID = frozenset({
     "equipment_identify", "turnaround", "body", "rig", "object_source",
-    "object_mesh", "object_size", "object_grip"
+    "object_mesh", "object_size", "object_grip", "object_landmarks"
 })
 DEPENDENCIES = {
     "turnaround": ("Pillow==11.3.0", "numpy==2.2.6", "scipy==1.16.2"),
@@ -36,6 +36,7 @@ DEPENDENCIES = {
     "animations": ("Pillow==11.3.0",),
     "object_source": ("Pillow==11.3.0", "rembg[cpu]==2.0.67"),
     "object_mesh": ("replicate>=1,<2", "Pillow==11.3.0"),
+    "object_landmarks": ("Pillow==11.3.0", "numpy==2.2.6"),
 }
 STAGE_DESCRIPTION = {
     "source": "Fiche 2D originale (entrée fournie)",
@@ -48,6 +49,7 @@ STAGE_DESCRIPTION = {
     "object_mesh": "GLB indépendant TRELLIS",
     "object_size": "Estimation de longueur physique en cm",
     "object_grip": "Prise / orientation sémantique de l'objet",
+    "object_landmarks": "Repères fonctionnels 3D du vrai GLB par vision, réutilisables par tout humanoïde",
     "integrate": "Assemblage et catalogue 3D de l'arène",
 }
 
@@ -172,6 +174,7 @@ def assets_for(doc, stage):
         "object_mesh": [p["glb"] for p in props],
         "object_size": [p["physical_size"] for p in props],
         "object_grip": [p["grip"] for p in props],
+        "object_landmarks": [p["grip"] for p in props],
         "integrate": [
             b["playable_glb"],
             *(p["glb"] for p in props),
@@ -218,6 +221,21 @@ def inspect(rel):
 
 def state(doc, stage):
     paths = {p: inspect(p) for p in assets_for(doc, stage)}
+    if stage == "object_landmarks":
+        for prop in doc["equipment"]:
+            grip = prop["grip"]
+            if paths.get(grip) != "ready":continue
+            try:
+                plan = json.loads(safe_path(grip).read_text())
+                landmarks = plan.get("mesh_landmarks", {})
+                digest = hashlib.sha256(safe_path(prop["glb"]).read_bytes()).hexdigest()
+                if (landmarks.get("schema") != 1 or
+                        landmarks.get("glb_sha256") != digest or
+                        not all(name in landmarks.get("points", {}) for name in
+                                ("handle_butt", "grip_center", "working_head", "functional_edge"))):
+                    paths[grip] = "missing_mesh_landmarks"
+            except (ValueError, OSError, KeyError):
+                paths[grip] = "invalid_mesh_landmarks"
     return {"stage": stage, "description": STAGE_DESCRIPTION[stage],
             "ready": all(x == "ready" for x in paths.values()),
             "paid_if_missing": stage in PAID,
@@ -280,6 +298,12 @@ def execute(doc, stage):
             if state({**doc,"equipment":[prop]},stage)["ready"]:continue
             equipment_tools().prepare_requests(doc, prop)
             py("plan-prop-attachment.py", "--request", prop["grip_request"])
+    elif stage == "object_landmarks":
+        for prop in doc["equipment"]:
+            if state({**doc,"equipment":[prop]},stage)["ready"]:continue
+            if not state({**doc,"equipment":[prop]},"object_grip")["ready"]:
+                raise PipelineError("Generate the semantic grip plan before annotating its GLB")
+            py("prop-mesh-landmarks.py", "--plan", prop["grip"])
     elif stage == "integrate":
         with tempfile.TemporaryDirectory(prefix="wc-character-pages-") as sandbox:
             target = str(Path(sandbox) / "pages")

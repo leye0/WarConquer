@@ -7,6 +7,10 @@ on:
       - 'docs/character-lab.md'
       - 'scripts/test-character-lab-motion.mjs'
       - 'scripts/character-lab-client.js'
+      - 'scripts/rig-contact-landmarks.js'
+      - 'scripts/weapon-grip-geometry.js'
+      - 'scripts/prop-mesh-landmarks.py'
+      - 'scripts/test-prop-mesh-landmarks.py'
       - 'perception-lab.html'
       - 'scripts/perception-lab-client.js'
       - 'scripts/perception-gait.js'
@@ -30,6 +34,8 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+      - name: Install offline 3D landmark test libraries
+        run: python -m pip install 'Pillow==11.3.0' 'numpy==2.2.6'
       - name: Check JavaScript grammar
         run: |
           node --check scripts/character-lab-client.js
@@ -38,6 +44,9 @@ jobs:
           node scripts/audit-motion-library.mjs
           node --check scripts/weapon-grip-geometry.js
           node scripts/test-weapon-grip-geometry.mjs
+          node --check scripts/rig-contact-landmarks.js
+          node scripts/test-rig-contact-landmarks.mjs
+          python scripts/test-prop-mesh-landmarks.py
           node scripts/test-grip-plan-selection.mjs
           node --check scripts/serve-character-lab.mjs
       - name: Install pinned Babylon bundles locally for reliable WebGL QA

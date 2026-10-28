@@ -16,6 +16,10 @@ assert.equal(resolve({object_kind:"bow"},existing).ready,false,
 assert(resolve({object_kind:"bow"},existing).missing.includes("arrow_release"));
 assert(resolve({object_kind:"shield"},existing).missing.includes("compatible_animation"));
 assert.equal(resolve({object_kind:"sword"},existing).motion,null);
+assert(resolve({object_kind:"sword",mesh_contact_ready:true},["Sword_Slash_Mixamo"]).ready,
+  "Any annotated mesh can equip its own object-specific Mixamo action clip");
+assert(!resolve({object_kind:"sword",mesh_contact_ready:true},["Attack_Mixamo_WithAxe"]).ready,
+  "An axe animation cannot silently replace a sword animation");
 assert.equal(resolve({object_kind:"other"},existing).ready,false);
 assert.equal(normalizeKind("__unknown__"),"other");
 assert(Object.keys(profiles).length>=10);

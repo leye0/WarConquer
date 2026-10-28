@@ -347,20 +347,79 @@
     return points;
   }
 
+  // Locate vision-annotated GLB vertices in Babylon's *imported* buffers. We
+  // intentionally do NOT apply glTF coordinate-system guesses, axis flips,
+  // hand-specific offsets, or model-specific Euler rotations. Babylon owns
+  // that transform, so source local points are lifted through its matrix.
+  function importedPropLandmarks(meshes,plan) {
+    const landmarks=plan?.mesh_landmarks;
+    if(landmarks?.schema!==1 ||
+       landmarks.glb_sha256!==plan?.input_hashes?.prop_glb_sha256)
+      throw Error("Repères 3D de l'objet absents ou périmés : lancer object_landmarks");
+    const records=landmarks.points;
+    const mapped={};
+    const candidates=[];
+    for(const mesh of meshes){
+      const positions=mesh.getVerticesData?.(BABYLON.VertexBuffer.PositionKind);
+      if(!positions?.length)continue;
+      mesh.computeWorldMatrix(true);
+      candidates.push({mesh,positions});
+    }
+    if(!candidates.length)throw Error("Maillage de l'objet introuvable");
+    for(const name of ["handle_butt","grip_center","working_head","functional_edge"]){
+      const reference=records?.[name]?.local;
+      if(!Array.isArray(reference)||reference.length!==3 ||
+         reference.some(v=>!Number.isFinite(v)))throw Error("Repère 3D invalide : "+name);
+      let best=null;
+      for(const candidate of candidates){
+        const p=candidate.positions;
+        for(let i=0;i<p.length;i+=3){
+          const distance=(p[i]-reference[0])**2+(p[i+1]-reference[1])**2+
+            (p[i+2]-reference[2])**2;
+          if(!best||distance<best.distance)best={candidate,i,distance};
+        }
+      }
+      const bounds=best.candidate.mesh.getBoundingInfo().boundingBox;
+      const span=bounds.maximum.subtract(bounds.minimum).length();
+      if(Math.sqrt(best.distance)>span*.025)
+        throw Error("Repère "+name+" non retrouvé dans les sommets du GLB");
+      const {positions,mesh}=best.candidate;
+      const point=BABYLON.Vector3.TransformCoordinates(
+        new BABYLON.Vector3(positions[best.i],positions[best.i+1],positions[best.i+2]),
+        mesh.getWorldMatrix());
+      mapped[name]=point.asArray();
+    }
+    return mapped;
+  }
+
   function normalizedNodeName(node) {
     return (node?.name||"").toLowerCase().replace(/[^a-z0-9]/g,"");
   }
 
   function findGripAnatomy(imported, side) {
     const nodes=[...(imported.transformNodes||[]),...(imported.meshes||[])];
+    const find=name=>nodes.find(node=>normalizedNodeName(node).endsWith(name));
     const stem=side==="left"?"lefthand":"righthand";
-    const hand=nodes.find(node=>normalizedNodeName(node).endsWith(stem));
+    const hand=find(stem);
     if(!hand)return null;
-    const forearm=nodes.find(node=>normalizedNodeName(node).endsWith(side+"forearm")||
-      normalizedNodeName(node).endsWith(side+"lowerarm"))||hand.parent;
-    const middle=nodes.find(node=>normalizedNodeName(node).includes(stem+"middle1"))||
-      nodes.find(node=>normalizedNodeName(node).includes(stem+"index1"));
-    return {hand,forearm,middle};
+    const forearm=find(side+"forearm")||find(side+"lowerarm")||hand.parent;
+    const joints={};
+    for(const handSide of ["left","right"]){
+      const prefix=handSide+"hand";
+      const related={
+        Wrist:find(prefix),Elbow:find(handSide+"forearm")||find(handSide+"lowerarm"),
+        Index:find(prefix+"index1"),Middle:find(prefix+"middle1"),
+        Pinky:find(prefix+"pinky1"),Foot:find(handSide+"foot"),
+        Toe:find(handSide+"toebase")
+      };
+      for(const [part,node] of Object.entries(related)){
+        if(!node)continue;
+        node.computeWorldMatrix(true);
+        const p=node.getAbsolutePosition();
+        joints[handSide+part]=[p.x,p.y,p.z];
+      }
+    }
+    return {hand,forearm,joints};
   }
 
   function buildGripRotation(prop, wantedShaft, wantedBlade) {
@@ -403,9 +462,9 @@
       const spec=vision?.specifications;
       const gripFraction=vision?.derived_image_geometry?.grip_fraction_from_butt;
       const side=spec?.dominant_hand==="left"?"left":"right";
-      if(![2,3].includes(vision.schema)||!["shaft","frame"].includes(spec?.grip_geometry)||
+      if(![2,3].includes(vision.schema)||!["shaft","frame","flat_handle","body"].includes(spec?.grip_geometry)||
         spec.hold_mode==="unsupported")throw Error("Plan de prise géométrique non résolu");
-      if(!Number.isFinite(gripFraction)||gripFraction<=.03||gripFraction>=.75||
+      if(!Number.isFinite(gripFraction)||gripFraction<=.02||gripFraction>=.96||
         !Number.isFinite(spec.length_relative_character_height)||
         spec.length_relative_character_height<.13||spec.length_relative_character_height>1.85||
         !Number.isFinite(spec.palm_from_wrist)||spec.palm_from_wrist<0||spec.palm_from_wrist>1)
@@ -427,7 +486,7 @@
         throw Error("Chemin de GLB non autorisé");
       const anatomy=findGripAnatomy(imported,side);
       if(!anatomy)throw Error("Main "+side+" introuvable dans le rig");
-      if(!window.WCWeaponGrip?.fitGrip)throw Error("Analyseur géométrique manquant");
+      if(!window.WCWeaponGrip?.frameFromLandmarks)throw Error("Analyseur géométrique manquant");
       prop=await B.SceneLoader.ImportMeshAsync(null,"",assetUrl(propPath),state.scene);
       if(token!==state.pendingLoad) {
         for(const node of [...prop.meshes,...prop.transformNodes])
@@ -435,39 +494,18 @@
         return;
       }
       const points=importedPropPoints(prop.meshes||[]);
-      const frame=window.WCWeaponGrip.fitGrip(points,gripFraction,
-        spec.grip_geometry);
-      const {hand,forearm,middle}=anatomy;
+      const meshPoints=importedPropLandmarks(prop.meshes||[],vision);
+      const frame=window.WCWeaponGrip.frameFromLandmarks(meshPoints,points);
+      const {hand,joints}=anatomy;
       hand.computeWorldMatrix(true);
-      const handPosition=hand.getAbsolutePosition();
-      const elbowPosition=forearm?.getAbsolutePosition?.()||handPosition.add(new B.Vector3(0,.3,0));
-      const toElbow=elbowPosition.subtract(handPosition);
-      const pivotForward=B.Vector3.TransformNormal(B.Axis.Z,
-        state.character.getWorldMatrix()).normalize();
-      const pivotRight=B.Vector3.TransformNormal(B.Axis.X,
-        state.character.getWorldMatrix()).normalize();
-      const up=B.Axis.Y;
-      const headDirections={
-        toward_elbow:toElbow, toward_fingers:toElbow.negate(),
-        forward:pivotForward,backward:pivotForward.negate(),
-        up,down:up.negate()
-      };
-      const strikeDirections={
-        forward:pivotForward,backward:pivotForward.negate(),
-        outward:side==="right"?pivotRight:pivotRight.negate(),
-        inward:side==="right"?pivotRight.negate():pivotRight
-      };
-      const shaftWorld=headDirections[spec.head_direction]?.clone();
-      if(!shaftWorld||shaftWorld.length()<.001)
-        throw Error("Orientation de manche vision sans repère anatomique");
-      shaftWorld.normalize();
-      let bladeWorld=strikeDirections[spec.edge_direction]?.clone();
-      if(!bladeWorld)throw Error("Orientation du tranchant vision absente");
-      bladeWorld.subtractInPlace(shaftWorld.scale(B.Vector3.Dot(bladeWorld,shaftWorld)));
-      if(bladeWorld.length()<.01) {
-        // Reject near-collinear directions instead of inventing a new design.
-        throw Error("Plan vision incompatible : tranchant parallèle au manche");
-      }
+      if(!window.WCRigContact?.contactFrame)
+        throw Error("Repères articulaires génériques indisponibles");
+      const contact=window.WCRigContact.contactFrame(joints,{
+        hand:side,palm_fraction:spec.palm_from_wrist,
+        shaft_direction:spec.head_direction,working_face:spec.edge_direction
+      });
+      const shaftWorld=new B.Vector3(...contact.shaft);
+      const bladeWorld=new B.Vector3(...contact.blade);
       const worldRotation=buildGripRotation(frame,shaftWorld,bladeWorld);
       const parentScale=new B.Vector3(),parentRotation=new B.Quaternion();
       hand.getWorldMatrix().decompose(parentScale,parentRotation);
@@ -481,14 +519,8 @@
         ? 1.9*spec.length_relative_character_height : estimatedLengthCm/100;
       anchor=new B.TransformNode("wc-auto-grip-"+side+"-hand",state.scene);
       anchor.parent=hand;
-      let palmWorld=handPosition;
-      if(middle) {
-        const knuckle=middle.getAbsolutePosition();
-        if(B.Vector3.Distance(handPosition,knuckle)<.25)
-          palmWorld=B.Vector3.Lerp(handPosition,knuckle,spec.palm_from_wrist);
-      }
       anchor.position.copyFrom(B.Vector3.TransformCoordinates(
-        palmWorld,B.Matrix.Invert(hand.getWorldMatrix())));
+        new B.Vector3(...contact.grip),B.Matrix.Invert(hand.getWorldMatrix())));
       anchor.rotationQuaternion=B.Quaternion.Inverse(parentRotation).multiply(worldRotation);
       anchor.scaling.setAll(desiredLength/(frame.length*unitScale));
       const offset=new B.TransformNode("wc-weapon-local-grip-origin",state.scene);
@@ -498,12 +530,12 @@
       for(const node of roots)node.parent=offset;
       state.weaponImport=prop;
       state.weaponAnchor=anchor;
-      text("weaponMetric","Prise auto · Gemini Vision + GLB · main "+side+
+      text("weaponMetric","Prise anatomique auto · vision sur GLB · main "+side+
         (spec.hold_mode==="two_hands"?" (seconde main non pilotée)":"")+
         (estimatedLengthCm===null
           ? " · ancienne échelle "+spec.length_relative_character_height.toFixed(2)
           : " · longueur estimée "+estimatedLengthCm.toFixed(0)+" cm"));
-      byId("world").dataset.weaponGrip="vision-plan-geometry";
+      byId("world").dataset.weaponGrip="vision-glb-anatomical-landmarks";
       byId("world").dataset.weaponGripScale=(desiredLength/1.9).toFixed(3);
       byId("world").dataset.weaponLengthCm=estimatedLengthCm===null
         ? "" : estimatedLengthCm.toFixed(1);
@@ -514,7 +546,8 @@
         ? frame.headWidthRatio.toFixed(3):"";
       // Enforce genuine equipment-specific motions once the prop is fitted.
       // A bow must never inherit a generic axe animation by default.
-      const policy=window.WCEquipmentActions?.resolve(spec,state.animGroups);
+      const policy=window.WCEquipmentActions?.resolve(
+        {...spec,mesh_contact_ready:true},state.animGroups);
       if(policy){
         state.attack=policy.ready
           ? state.animGroups.find(group=>group.name===policy.motion)||null : null;

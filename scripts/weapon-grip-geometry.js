@@ -43,6 +43,31 @@
     return rotation;
   }
 
+  // Functional directions must come from annotated 3D vertices. PCA can find
+  // the long axis but cannot tell the SHARP edge from the blunt poll of an axe.
+  // This contract is intrinsic to an object, independent of the holder's rig.
+  function frameFromLandmarks(points, vertices) {
+    const names=["handle_butt","grip_center","working_head","functional_edge"];
+    if(!points || !names.every(name=>Array.isArray(points[name])&&
+        points[name].length===3&&points[name].every(Number.isFinite)))
+      throw Error("Missing intrinsic GLB contact landmarks");
+    const grip=points.grip_center;
+    const shaft=sub(points.working_head,grip);
+    const blade=sub(points.functional_edge,points.working_head);
+    const y=unit(shaft);
+    const x=y&&unit(sub(blade,mul(y,dot(blade,y))));
+    if(!x || norm(blade)<1e-6)throw Error("Ambiguous functional edge on the real GLB");
+    if(dot(sub(points.working_head,grip),sub(grip,points.handle_butt))<=0)
+      throw Error("Inverted handle/head landmarks");
+    if(!Array.isArray(vertices)||vertices.length<30)
+      throw Error("Cannot measure full model length");
+    const projected=vertices.map(v=>dot(v,y));
+    const length=Math.max(...projected)-Math.min(...projected);
+    if(length<1e-4)throw Error("Invalid physical prop length");
+    return {grip,shaft:y,blade:x,length,vertexCount:vertices.length,
+      bladeMethod:"signed-vision-glb-functional-edge"};
+  }
+
   // Fit a contact frame from the actual geometry of a curved/flat rigid object.
   // Unlike a shaft, its grip may be midway between TWO functional ends.
   // This is a geometry class, not a bow/weapon-specific mounting script.
@@ -212,5 +237,5 @@
     return {grip,shaft:signed,blade,length:trueLength,headWidthRatio:spreadRatio,
       gripFractionFromButt:gripFraction,vertexCount:points.length,bladeMethod};
   }
-  return {fitGrip,rotationBetweenFrames,cross,dot,unit,sub,mul,add,norm};
+  return {fitGrip,frameFromLandmarks,rotationBetweenFrames,cross,dot,unit,sub,mul,add,norm};
 });

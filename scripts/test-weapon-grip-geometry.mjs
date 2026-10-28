@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 const require=createRequire(import.meta.url);
-const {fitGrip,rotationBetweenFrames,dot,sub,norm}=require("./weapon-grip-geometry.js");
+const {fitGrip,frameFromLandmarks,rotationBetweenFrames,dot,sub,norm}=require("./weapon-grip-geometry.js");
 
 // A grip frame must actually point in the requested direction after fitting.
 // The old matrix product reversed these operations, causing 180° flips when
@@ -100,3 +100,22 @@ for(const transform of [p=>p,p=>[p[1],-p[2],p[0]]]){
   assert(Math.abs(dot(grip.shaft,transform([0,1,0])))>.85);
 }
 console.log("PASS generic curved frame one-hand grip");
+
+// Signed *functional* edge points are vision-provided and GLB-derived. The
+// broadest part of an asymmetric head is not necessarily the cutting edge.
+// Both models here have the same PCA, but opposite annotated sharp sides.
+for(const move of [p=>p,p=>[p[1],-p[2],p[0]]]){
+  const vertices=syntheticAxe(move);
+  for(const edgeSign of [-1,1]){
+    const landmarks={handle_butt:move([0,-1,0]),grip_center:move([0,-.48,0]),
+      working_head:move([0,.82,0]),functional_edge:move([edgeSign*.38,.82,0])};
+    const solved=frameFromLandmarks(landmarks,vertices);
+    assert(dot(solved.shaft,move([0,1,0]))>.999);
+    assert(dot(solved.blade,move([edgeSign,0,0]))>.999,
+      "Functional face sign is determined by landmarks, never a guessed PCA axis");
+    assert(solved.length>1.6);
+    assert.equal(solved.bladeMethod,"signed-vision-glb-functional-edge");
+  }
+}
+assert.throws(()=>frameFromLandmarks({grip_center:[0,0,0]},syntheticAxe()),/Missing intrinsic/);
+console.log("PASS: signed contact frames preserve the real sharp edge on rotated GLBs");

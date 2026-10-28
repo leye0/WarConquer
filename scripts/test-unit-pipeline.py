@@ -41,7 +41,13 @@ with patch.object(pipeline,"state",return_value={"ready":False,"files":{"missing
 assert set(pipeline.PAID).issubset(pipeline.STAGES)
 for stage in pipeline.STAGES:
     st=pipeline.state(m,stage)
-    assert st["ready"],(stage,st)
+    if stage=="object_landmarks":
+        # Existing prop models become reusable only after real GLB vision
+        # annotation; never pretend their legacy PCA plan is equivalent.
+        if not st["ready"]:
+            assert list(st["files"].values())==["missing_mesh_landmarks"]
+    else:
+        assert st["ready"],(stage,st)
 assert pipeline.inspect(m["equipment"][0]["physical_size"])=="ready"
 assert len(pipeline.assets_for(m,"turnaround"))==4
 assert any(x.endswith("warconquer-textured-playable.glb")

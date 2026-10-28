@@ -131,7 +131,7 @@ def validate(raw: dict) -> dict:
             raise ValueError("Bad landmark " + field)
     if not isinstance(raw["explanation"], str) or not 8 <= len(raw["explanation"]) <= 800:
         raise ValueError("Missing concise semantic justification")
-    if raw["grip_geometry"] not in ("shaft", "frame") or raw["hold_mode"] == "unsupported":
+    if raw["grip_geometry"] == "unsupported" or raw["hold_mode"] == "unsupported":
         return {"grip_fraction_from_butt": None, "image_deviation": None,
                 "supported_by_current_geometry_fitter": False}
     start, end, grip = (raw[key] for key in ("handle_butt", "handle_near_head", "grip_point"))
@@ -145,6 +145,9 @@ def validate(raw: dict) -> dict:
         raise ValueError("Vision grip not located on the shaft")
     if raw["grip_geometry"] == "frame" and (not .25 <= fraction <= .75 or deviation > .35):
         raise ValueError("Vision grip not located near the frame's central handhold")
+    if raw["grip_geometry"] in ("flat_handle", "body") and (
+            not .03 <= fraction <= .95 or deviation > .5):
+        raise ValueError("Vision grip not located near an identifiable holding region")
     return {"grip_fraction_from_butt": round(fraction, 5),
             "image_deviation": round(deviation, 5),
             "supported_by_current_geometry_fitter": True}

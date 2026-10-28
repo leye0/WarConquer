@@ -19,6 +19,8 @@ on:
       - 'scripts/test-grip-plan-selection.mjs'
       - 'scripts/character-lab-client.js'
       - 'scripts/weapon-grip-geometry.js'
+      - 'scripts/rig-contact-landmarks.js'
+      - 'scripts/test-rig-contact-landmarks.mjs'
       - 'scripts/equipment-animation-policy.js'
       - 'scripts/serve-character-lab.mjs'
       - 'scripts/build-character-lab-pages.mjs'
@@ -62,6 +64,8 @@ jobs:
           node --check scripts/perception-lab-client.js
           node scripts/test-perception-brain.mjs
           node --check scripts/weapon-grip-geometry.js
+          node --check scripts/rig-contact-landmarks.js
+          node scripts/test-rig-contact-landmarks.mjs
           node --check scripts/equipment-animation-policy.js
           node scripts/test-equipment-animation-policy.mjs
           node scripts/test-grip-plan-selection.mjs
@@ -88,6 +92,7 @@ jobs:
             assert(existsSync(join(dir, "scripts/perception-combat.js")));
             assert(existsSync(join(dir, "scripts/perception-lab-client.js")));
             assert(existsSync(join(dir, "scripts/weapon-grip-geometry.js")));
+            assert(existsSync(join(dir, "scripts/rig-contact-landmarks.js")));
             assert(existsSync(join(dir, "scripts/equipment-animation-policy.js")));
             const data = JSON.parse(readFileSync(join(dir, "api/character-lab.json")));
             const props=data.characters.flatMap(c=>c.props||[]);

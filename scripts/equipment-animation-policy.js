@@ -60,7 +60,10 @@
       .filter(x=>typeof x==="string");
     const found=names.find(name=>profile.patterns.some(pattern=>new RegExp(pattern,"i").test(name)))||null;
     const missing=[];
-    if(!profile.geometryReady)missing.push("geometry_adapter");
+    // The old category table knew which meshes had dedicated adapters. A
+    // vision-annotated intrinsic 3D contact frame makes that restriction
+    // obsolete: the SAME solver can mount a sword, shield, tool or staff.
+    if(!profile.geometryReady && !spec?.mesh_contact_ready)missing.push("geometry_adapter");
     if(!found && profile.action)missing.push("compatible_animation");
     if(profile.requiresEvent && !events.includes(profile.requiresEvent))
       missing.push(profile.requiresEvent);

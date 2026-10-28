@@ -10,6 +10,8 @@ on:
       - 'scripts/build-prop-trellis.py'
       - 'scripts/build-unit-3d.py'
       - 'scripts/plan-prop-attachment.py'
+      - 'scripts/prop-mesh-landmarks.py'
+      - 'scripts/test-prop-mesh-landmarks.py'
       - 'scripts/test-unit-equipment.py'
       - 'scripts/test-unit-pipeline.py'
       - 'scripts/serve-character-lab.mjs'
@@ -40,6 +42,7 @@ on:
           - object_mesh
           - object_size
           - object_grip
+          - object_landmarks
           - integrate
       allow_paid:
         description: 'Explicitly allow missing paid-generation steps'
@@ -72,12 +75,13 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install offline image-test dependency
-        run: python -m pip install 'Pillow==11.3.0'
+        run: python -m pip install 'Pillow==11.3.0' 'numpy==2.2.6'
       - name: Check the project's own unit manifest and pipeline code
         run: |
           python -m py_compile scripts/unit-pipeline.py scripts/test-unit-pipeline.py
           python scripts/test-unit-pipeline.py
           python scripts/test-unit-equipment.py
+          python scripts/test-prop-mesh-landmarks.py
           python scripts/unit-pipeline.py list
           python scripts/unit-pipeline.py status --unit couronne_archer
           python scripts/unit-pipeline.py run --unit couronne_archer --stage source
@@ -99,8 +103,19 @@ jobs:
           args=(run --unit "$UNIT_ID" --stage "$PIPELINE_STAGE")
           if [[ "$ALLOW_PAID" == "true" ]]; then args+=(--allow-paid); fi
           python scripts/unit-pipeline.py "${args[@]}"
+      - name: Execute explicitly requested GLB vision annotation on main
+        if: github.event_name == 'push' && contains(github.event.head_commit.message, '[object_landmarks:')
+        shell: bash
+        env:
+          ANNOTATE_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          set -euo pipefail
+          unit=$(python -c 'import os,re; m=re.search(r"\[object_landmarks:([a-z][a-z0-9_]*)\]",os.environ["ANNOTATE_COMMIT_MESSAGE"]); print(m.group(1) if m else "")')
+          test -n "$unit"
+          python scripts/unit-pipeline.py bootstrap --unit "$unit" --stage object_landmarks
+          python scripts/unit-pipeline.py run --unit "$unit" --stage object_landmarks --allow-paid
       - name: Preserve local outputs and paid checkpoints, even after errors
-        if: always() && github.event_name == 'workflow_dispatch'
+        if: always() && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[object_landmarks:'))
         shell: bash
         run: |
           set -euo pipefail
@@ -117,7 +132,7 @@ jobs:
           fi
       - name: Retain intermediate artifacts from the selected unit
         uses: actions/upload-artifact@v4
-        if: always() && github.event_name == 'workflow_dispatch'
+        if: always() && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[object_landmarks:'))
         with:
           name: project-unit-${{ env.UNIT_ID }}
           path: |

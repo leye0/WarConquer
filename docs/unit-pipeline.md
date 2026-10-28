@@ -41,6 +41,7 @@ Les résultats déjà présents sont réutilisés. Le pipeline vérifie l'en-tê
 | object_mesh | GLB indépendant de chaque équipement | TRELLIS, appel payant si manquant |
 | object_size | Estimation de la longueur en cm | Gemini 2.5 Flash-Lite, appel payant si manquant |
 | object_grip | Main, prise et orientation | Vision Flash-Lite, appel payant si manquant |
+| object_landmarks | Sommets de prise, tête et **vrai tranchant** du GLB | Quatre vues du GLB + vision Flash-Lite, repères 3D enregistrés dans le plan canonique |
 | integrate | Bundle 3D local et catalogue | Gratuit, hors ligne |
 
 ~~~bash
@@ -49,6 +50,7 @@ python scripts/unit-pipeline.py run --unit couronne_archer --stage equipment_ide
 python scripts/unit-pipeline.py run --unit marches_hache --stage object_size --dry-run
 python scripts/unit-pipeline.py bootstrap --unit marches_hache --stage object_size
 python scripts/unit-pipeline.py run --unit marches_hache --stage object_size --allow-paid
+python scripts/unit-pipeline.py run --unit marches_hache --stage object_landmarks --allow-paid
 ~~~
 
 Les étapes potentiellement payantes sont bloquées par défaut lorsqu'un résultat manque. L'option --allow-paid doit être fournie explicitement. Les résultats et reçus sont conservés pour éviter les soumissions répétées, y compris les résultats dont l'issue est incertaine. Une requête incertaine bloque la reprise automatique plutôt que de doubler le coût. Le pipeline réutilise les artéfacts existants quand ils sont présents et valides.
@@ -65,13 +67,19 @@ Les anciens workflows spécialisés sont conservés comme archive et compatibili
 
 Créer une fiche JSON minimale de l'unité avec le chemin de son image originale. Lancer `python scripts/unit-pipeline.py run --unit <id> --dry-run` pour voir les étapes, ou `--allow-paid` pour autoriser celles qui manquent. L'identification automatique écrit une description de chaque équipement, qui sert ensuite de référence à sa génération Muse, à son GLB TRELLIS et à son analyse physique/prise. Il n'existe plus de blocage lié à une liste de personnages ou de noms d'armes dans l'orchestrateur.
 
-**Limite technique explicitée :** le solveur de montage sait traiter les géométries `shaft` (manche) et `frame` (objet courbe, arc). Pour une géométrie réellement ambiguë, il refuse de fabriquer une orientation. L'attache de l'arc à une seule main ne dépend ni de la simulation de la corde ni de l'IK de la seconde main. Un véritable tir avec flèche reste une capacité d'animation distincte, jamais prétendue opérationnelle sans son clip.
+**Limite technique explicitée :** le solveur peut utiliser des repères 3D sur un manche (`shaft`), un cadre courbe (`frame`), une poignée aplatie (`flat_handle`) ou une prise sur le corps d'un objet (`body`). Pour une géométrie réellement ambiguë, il refuse de fabriquer une orientation. L'attache de l'arc à une seule main ne dépend ni de la simulation de la corde ni de l'IK de la seconde main. Un véritable tir avec flèche reste une capacité d'animation distincte, jamais prétendue opérationnelle sans son clip.
+
+**Contrat de contact indépendant de l'unité.** `object_landmarks` rend quatre projections du **vrai GLB** de l'objet, demande au petit modèle vision d'y localiser la prise, le bout du manche, la partie active et son tranchant, puis retrouve des positions sur les sommets 3D originaux. Ces positions signées sont écrites dans l'unique `grip-plan.json`, lié au SHA-256 du GLB. Dans le Character Lab, `rig-contact-landmarks.js` trouve paume, index, majeur, auriculaire, poignet, coude, pieds et orteils dans le squelette courant. Le solveur `weapon-grip-geometry.js` oriente le repère de l'objet vers ce repère anatomique, quelle que soit l'unité. Une orientation PCA seule ne peut plus décider de quel côté se trouve le tranchant. Un GLB sans repères validés est refusé : le moteur n'invente plus de rotation de secours.
+
+**Animations indépendantes.** Le contrat de prise reste valable même si le bon geste manque. `equipment-animation-policy.js` associe les catégories d'actions (hache, épée, arc, outil, etc.) à leurs animations Mixamo compatibles et interdit de réutiliser une animation d'attaque incompatible. Tir de corde, seconde main et événements de projectile appartiennent à la couche d'action, et non à l'orientation de la prise.
 
 Cette migration conserve les gros GLB et PNG historiques à leur emplacement : pas de génération 3D refacturée et pas de liens de l'arène cassés. Les prises secondaires par IK et la bibliothèque exhaustive d'animations d'objets restent des fonctions indépendantes du montage rigide générique.
 
 ## Validation
 
 - scripts/test-unit-pipeline.py : sélection, contrôles de fichiers, absence de dépenses implicites.
+- scripts/test-prop-mesh-landmarks.py : rendu des vrais GLB et projection signée vision → sommets.
+- scripts/test-rig-contact-landmarks.mjs : transfert d'une prise entre deux squelettes non identiques.
 - scripts/unit-pipeline.py : assemblage et vérification du catalogue Character Lab.
 - scripts/build-character-lab-pages.mjs : construction réutilisable du site statique.
 - docs/character-production-pipeline.md : architecture cible multi-objets.
