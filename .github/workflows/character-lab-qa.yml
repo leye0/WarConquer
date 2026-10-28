@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - 'docs/character-lab.md'
+      - 'scripts/test-character-lab-motion.mjs'
+      - 'scripts/character-lab-client.js'
+      - 'scripts/serve-character-lab.mjs'
+      - 'data/units/**'
   workflow_dispatch:
 
 permissions:
@@ -46,6 +50,13 @@ jobs:
             assert(response?.ok, "server never became ready");
             const catalog = await response.json();
             assert(catalog.characters.length>0, "no rigged character found");
+            const archer=catalog.characters.find(c=>c.id==="couronne_archer");
+            assert(archer, "Second unit not found");
+            assert.equal(archer.buildStatus,"source_only");
+            assert.equal(archer.models.length,0,"Do not substitute another unit's 3D mesh");
+            assert(archer.original.endsWith("/couronne/units/archer.png"));
+            const archerSource=await fetch(base+archer.original);
+            assert(archerSource.ok,"The original archer concept is unavailable");
             const character = catalog.characters.find(c=>c.id==="marches_hache");
             assert(character, "Marches axeman missing");
             assert(character.models.some(m=>m.kind==="animation"), "animated GLB missing");
