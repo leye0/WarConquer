@@ -33,6 +33,24 @@ jobs:
           node --check scripts/weapon-grip-geometry.js
           node scripts/test-weapon-grip-geometry.mjs
           node --check scripts/serve-character-lab.mjs
+      - name: Install pinned Babylon bundles locally for reliable WebGL QA
+        run: |
+          npm install --no-save --no-audit --no-fund babylonjs@7.48.3 babylonjs-loaders@7.48.3
+          mkdir -p assets/browser-qa
+          cp node_modules/babylonjs/babylon.js assets/browser-qa/babylon.js
+          cp node_modules/babylonjs-loaders/babylonjs.loaders.min.js assets/browser-qa/babylonjs.loaders.min.js
+          python - <<'PY'
+          from pathlib import Path
+          file=Path("character-lab.html")
+          html=file.read_text()
+          assert 'https://cdn.babylonjs.com/babylon.js' in html
+          assert 'https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js' in html
+          html=html.replace('https://cdn.babylonjs.com/babylon.js',
+                            '/assets/browser-qa/babylon.js')
+          html=html.replace('https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js',
+                            '/assets/browser-qa/babylonjs.loaders.min.js')
+          file.write_text(html)
+          PY
       - name: Start the repository-backed localhost game server
         run: |
           node scripts/serve-character-lab.mjs > "$RUNNER_TEMP/character-lab-server.log" 2>&1 &
@@ -52,8 +70,11 @@ jobs:
             assert(catalog.characters.length>0, "no rigged character found");
             const archer=catalog.characters.find(c=>c.id==="couronne_archer");
             assert(archer, "Second unit not found");
-            assert.equal(archer.buildStatus,"source_only");
-            assert.equal(archer.models.length,0,"No wrong 3D model substitution");
+            assert(["mesh_only","rigged","playable"].includes(archer.buildStatus),
+              "Archer should now have a truly separate generated 3D mesh");
+            assert(archer.models.length>0,"Independent archer GLB missing");
+            assert(archer.models.every(m=>m.url.includes("/couronne_archer/")),
+              "Cross-unit 3D model detected");
             assert(archer.original.endsWith("/couronne/units/archer.png"));
             const archerSource=await fetch(base+archer.original);
             assert(archerSource.ok,"The original archer concept is unavailable");
