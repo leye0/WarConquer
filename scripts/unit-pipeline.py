@@ -176,7 +176,10 @@ def ensure_adapter(doc):
         raise PipelineError("The current generator adapter only supports the Marches axe")
 
 def execute(doc, stage):
-    ensure_adapter(doc)
+    # Reading an original concept works for *every* unit. The old generator
+    # adapter remains intentionally limited to the first Marches warrior.
+    if stage != "source":
+        ensure_adapter(doc)
     prop = doc["equipment"][0]
     if stage == "source":
         if not state(doc, "source")["ready"]:
@@ -286,12 +289,17 @@ def main(argv=None):
         bootstrap(doc, stages, opts.dry_run)
         return 0
     if opts.command == "run":
-        ensure_adapter(doc)
         for stage in stages:
             current = state(doc, stage)
             if stage != "integrate" and current["ready"]:
                 print("SKIP", stage, "(existing, validated outputs)", flush=True)
                 continue
+            if stage != "source" and doc.get("adapter") != "legacy_marches_hache":
+                if opts.dry_run:
+                    print("ADAPTER REQUIRED", stage, "(unit-specific generator not yet implemented)")
+                    continue
+                raise PipelineError("Missing parameterized 3D adapter for " + doc["id"] +
+                                    " at stage " + stage + "; refusing to build the wrong unit")
             if stage in PAID and not opts.allow_paid:
                 if opts.dry_run:
                     print("WOULD REQUIRE --allow-paid:", stage)
