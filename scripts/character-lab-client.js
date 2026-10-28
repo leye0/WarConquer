@@ -540,7 +540,7 @@
           contact.blade,away,desiredLength,bodyCapsules);
       }
       const shaftWorld=new B.Vector3(...(carryFit?.shaft||contact.shaft));
-      const bladeWorld=new B.Vector3(...contact.blade);
+      let bladeWorld=new B.Vector3(...contact.blade);
       const worldRotation=buildGripRotation(
         gravityCarry?{...frame,shaft:frame.carryShaft}:frame,shaftWorld,bladeWorld);
       // The hand's imported transform may include nonuniform scale or mirrored
@@ -568,11 +568,22 @@
       if(bodyCapsules.length&&outwardWorld){
         const v=window.WCWeaponGrip;
         const margin=bodyCapsules[0].radius*.8;
-        const candidates=v.gravityCarryCandidates(contact.blade,outwardWorld);
+        // Once the imported mesh has been calibrated, prefer carrying with
+        // the functional face forward (ready for use) whenever that is safe.
+        // The object's annotated safe face is an anatomical fallback, not a
+        // hard-coded orientation for a named weapon.
+        const faceOptions=[...new Set(["forward",spec.edge_direction])].map(name=>({
+          name,contact:window.WCRigContact.contactFrame(joints,{
+            hand:side,palm_fraction:spec.palm_from_wrist,
+            shaft_direction:"gravity",working_face:name
+          })
+        }));
         let best=null;
-        for(const transpose of [false,true])for(const candidate of candidates){
+        for(const option of faceOptions)
+        for(const transpose of [false,true])
+        for(const candidate of v.gravityCarryCandidates(option.contact.blade,outwardWorld)){
           const q=buildGripRotation(gripFrame,
-            new B.Vector3(...candidate.shaft),bladeWorld,transpose);
+            new B.Vector3(...candidate.shaft),new B.Vector3(...option.contact.blade),transpose);
           anchor.rotationQuaternion=q;
           anchor.computeWorldMatrix(true);
           offset.computeWorldMatrix(true);
@@ -583,13 +594,15 @@
           const balance=v.sub(mass,landmarks.grip_center);
           const gripError=v.norm(v.sub(contact.grip,landmarks.grip_center));
           const edge=v.unit(v.sub(landmarks.functional_edge,landmarks.working_head));
-          const face=v.dot(edge,contact.blade);
+          const face=v.dot(edge,option.contact.blade);
           const deficit=Math.max(0,margin-actual);
           const wrongGravity=Math.max(0,balance[1]+desiredLength*.08);
           const wrongFace=Math.max(0,.65-face);
           const score=deficit*deficit*100+wrongGravity**2*300+
-            wrongFace**2*40+gripError**2*150+candidate.tilt*.03;
+            wrongFace**2*40+gripError**2*150+candidate.tilt*.03+
+            (option.name==="forward"?0:.3);
           if(!best||score<best.score)best={...candidate,transpose,actual,score,
+            faceDirection:option.name,blade:option.contact.blade,
             balanceY:balance[1],gripError,face};
         }
         if(best){
@@ -605,6 +618,7 @@
           actualGripError=best.gripError;
           actualWorkingFace=best.face;
           carryFit={...carryFit,shaft:best.shaft,tilt:best.tilt};
+          bladeWorld=new B.Vector3(...best.blade);
           const q=buildGripRotation(gripFrame,new B.Vector3(...best.shaft),
             bladeWorld,best.transpose);
           anchor.rotationQuaternion=q;
@@ -622,7 +636,7 @@
         const next=findGripAnatomy(imported,side);
         const nextContact=window.WCRigContact.contactFrame(next.joints,{
           hand:side,palm_fraction:spec.palm_from_wrist,
-          shaft_direction:"gravity",working_face:spec.edge_direction
+          shaft_direction:"gravity",working_face:selectedFit?.faceDirection||spec.edge_direction
         });
         const mounted=importedPropPoints(prop.meshes||[]);
         const marks=importedPropLandmarks(prop.meshes||[],vision);
@@ -660,7 +674,7 @@
             const nextContact=window.WCRigContact.contactFrame(nextJoints,{
               hand:side,palm_fraction:spec.palm_from_wrist,
               shaft_direction:"gravity",
-              working_face:spec.edge_direction
+              working_face:selectedFit.faceDirection
             });
             anchor.position.copyFrom(new B.Vector3(...nextContact.grip));
             if(!state.attacking){
