@@ -993,16 +993,26 @@
               sec.joints,useMode.secondary_hand,spec.palm_from_wrist);
             const secondarySource=meshPoints.namedGrips[useMode.secondary_grip];
             if(!secondarySource)throw Error("Seconde prise absente du vrai maillage");
+            const observedWrist=sec.hand.getAbsolutePosition().asArray();
+            // A Mixamo strike frequently spreads the palms farther apart
+            // than the labelled grips on the real object. The hand animation
+            // is a desired direction, not a second fixed object anchor.
+            // Project it to the EXACT source-grip sphere intersected with
+            // the real secondary arm's reachable volume before solving roll.
+            const constrained=limb.reachableSecondaryGripTarget({
+              sourcePrimary:primarySource,sourceSecondary,
+              scale,primaryPalm:handFrame.grip,
+              secondaryPalm:secondaryHand.grip,
+              shoulder:sec.upperarm.getAbsolutePosition().asArray(),
+              elbow:sec.forearm.getAbsolutePosition().asArray(),
+              wrist:observedWrist,
+              palmOffset:v.sub(secondaryHand.grip,observedWrist)
+            });
             solved=limb.solveTwoGrips({sourcePrimary:primarySource,
               sourceSecondary:secondarySource,featureOrigin:feature.origin,
               featureTip:feature.direction_tip,primaryPalm:handFrame.grip,
-              secondaryPalm:secondaryHand.grip,actionForward,scale,
-              secondaryArm:{shoulder:sec.upperarm.getAbsolutePosition().asArray(),
-                elbow:sec.forearm.getAbsolutePosition().asArray(),
-                wrist:sec.hand.getAbsolutePosition().asArray()}});
-            if(solved.status==="ik_unreachable")
-              throw Error("Animation Mixamo : la seconde main n'atteint pas la prise");
-            targetShaft=v.sub(secondaryHand.grip,handFrame.grip);
+              secondaryPalm:constrained.target,actionForward,scale});
+            targetShaft=v.sub(constrained.target,handFrame.grip);
             secondaryTarget=secondarySource;
           }else{
             targetShaft=window.WCRigContact.resolveDirection(
