@@ -77,13 +77,13 @@
     "points": {
       "handle_butt": {
         "local": [
-          0.3384636,
-          -0.3916808,
-          0.0331001
+          0.3821079,
+          -0.4621591,
+          -0.054764
         ],
         "mesh": 0,
         "primitive": 0,
-        "error_px": 0.7,
+        "error_px": 2.2,
         "method": "vision-nearest-surface"
       },
       "grip_center": {
@@ -110,13 +110,13 @@
       },
       "functional_edge": {
         "local": [
-          -0.3051306,
-          0.2297242,
-          -0.0176757
+          -0.3285111,
+          0.0454748,
+          6.4e-06
         ],
         "mesh": 0,
         "primitive": 0,
-        "error_px": 2.4,
+        "error_px": 4.8,
         "method": "vision-nearest-surface"
       }
     },
@@ -161,13 +161,13 @@
         },
         "direction_tip": {
           "local": [
-            -0.3051306,
-            0.2297242,
-            -0.0176757
+            -0.3285111,
+            0.0454748,
+            6.4e-06
           ],
           "mesh": 0,
           "primitive": 0,
-          "error_px": 2.4,
+          "error_px": 4.8,
           "method": "vision-nearest-surface"
         }
       }
@@ -175,7 +175,7 @@
   },
   "mesh_region_review": {
     "schema": 1,
-    "status": "rejected",
+    "status": "confirmed",
     "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
     "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
     "model": "google/gemini-2.5-flash",

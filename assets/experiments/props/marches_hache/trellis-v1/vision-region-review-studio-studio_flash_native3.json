@@ -191,10 +191,46 @@
       "confidence": 0.9
     }
   },
+  "physical_region_reconciliations": {
+    "handle_butt": {
+      "old_1000": [
+        479.1,
+        881.1
+      ],
+      "new_1000": [
+        475.5,
+        933.6
+      ],
+      "native_labeled_region_1000": [
+        443.1,
+        925.9,
+        500.3,
+        945.6
+      ],
+      "method": "second-vision-labeled-bbox-to-real-mesh-surface"
+    },
+    "functional_edge": {
+      "old_1000": [
+        378.6,
+        324.6
+      ],
+      "new_1000": [
+        298.5,
+        410.4
+      ],
+      "native_labeled_region_1000": [
+        272.2,
+        360.8,
+        343.1,
+        456.1
+      ],
+      "method": "second-vision-labeled-bbox-to-real-mesh-surface"
+    }
+  },
   "original_point_positions_1000": {
     "handle_butt": [
-      479.1,
-      881.1
+      475.5,
+      933.6
     ],
     "grip_center": [
       479.1,
@@ -205,8 +241,8 @@
       318.9
     ],
     "functional_edge": [
-      378.6,
-      324.6
+      298.5,
+      410.4
     ],
     "grip_lower_haft": [
       480.7,
@@ -221,11 +257,6 @@
       318.9
     ]
   },
-  "status": "rejected",
-  "issues": [
-    "handle_butt: existing GLB landmark is OUTSIDE independently vision-labeled bbox",
-    "grip_center: independently detected region is invisible",
-    "functional_edge: existing GLB landmark is OUTSIDE independently vision-labeled bbox",
-    "grip_upper_haft: independently detected region is invisible"
-  ]
+  "status": "confirmed",
+  "issues": []
 }
