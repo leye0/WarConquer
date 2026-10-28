@@ -122,6 +122,15 @@
       "files": {
         "assets/experiments/props/marches_hache/trellis-v1/grip-plan.json": "ready"
       }
+    },
+    "object_landmarks": {
+      "stage": "object_landmarks",
+      "description": "Repères fonctionnels 3D du vrai GLB par vision, réutilisables par tout humanoïde",
+      "ready": false,
+      "paid_if_missing": true,
+      "files": {
+        "assets/experiments/props/marches_hache/trellis-v1/grip-plan.json": "missing_mesh_landmarks"
+      }
     }
   },
   "catalog": {
@@ -133,7 +142,7 @@
     "assets/concepts/marches/objects/hache_arme.png": "061c18599da536c363ffa8bb10f648405d31c240f027c3867a46541d2b0d79bc",
     "assets/concepts/marches/units/hache.png": "40596135f14365c2a77258cd34fe8285c2968fc791816023fbe37cdb197982c7",
     "assets/experiments/props/marches_hache/trellis-v1/axe.glb": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
-    "assets/experiments/props/marches_hache/trellis-v1/grip-plan.json": "6b3b202f4c9af78779b12f183a894ef60551b3b95f26410ad47cc673b56ae162",
+    "assets/experiments/props/marches_hache/trellis-v1/grip-plan.json": "8c10fb86983c6a817486a046c8520d1e621075dab1cb4e08adbd663a7a7397ac",
     "assets/experiments/props/marches_hache/trellis-v1/physical-size.json": "0db1438ac039fb34a70edf1519b9623616fd2eeaa7442f633d01699ee0df750f",
     "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-textured.glb": "6f297890dc42f25640049b63a4c55ca12494bee62f37a590eb57573e68c8afb2",
     "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/fal-rigged.glb": "a5b0475c35327cfb0ba5fc94deb9c720c2a9b4c90f59430be1bf7e6064efc975",

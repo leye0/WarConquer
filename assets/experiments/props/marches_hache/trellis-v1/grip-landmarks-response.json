@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+  "model": "google/gemini-2.5-flash-lite",
+  "raw_landmarks": {
+    "view": 3,
+    "handle_butt": [
+      0.5,
+      0.95
+    ],
+    "grip_center": [
+      0.5,
+      0.65
+    ],
+    "working_head": [
+      0.75,
+      0.35
+    ],
+    "functional_edge": [
+      0.85,
+      0.35
+    ],
+    "confidence": 0.9,
+    "explanation": "View 3 clearly shows the axe head and handle. The functional edge is the sharp side of the axe head, and the handle butt is the bottom end of the handle. The grip center is the middle of the handle where a user would hold it."
+  }
+}
