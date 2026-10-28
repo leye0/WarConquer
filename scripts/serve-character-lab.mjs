@@ -132,6 +132,9 @@ export function inventory() {
       if (models.length) characters.push({
         id, pose, name: info?.title || LABELS[id] || id.replaceAll("_", " "),
         original, views: refs, models, props: propPlans(id),
+        buildStatus:models.some(m=>m.kind==="playable"||m.kind==="animation")?"playable"
+          :(models.some(m=>m.kind==="rig")?"rigged":"mesh_only"),
+        pipeline:info?{manifest:"data/units/"+id+".json",unitId:id}:null,
         metrics: { joints: report?.glb_geometry?.joint_count ?? report?.glb?.joint_count ?? report?.joint_count ?? null,
                    faces: mesh?.glb_geometry?.faces ?? mesh?.geometry?.faces ?? 25000 },
       });
