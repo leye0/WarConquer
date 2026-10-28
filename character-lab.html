@@ -43,6 +43,11 @@
     .scene-middle{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
     .overlay{pointer-events:none;max-width:76%;border:1px solid #d6be8a4d;background:#10171bdf;box-shadow:0 12px 40px #0007;border-radius:11px;padding:19px 25px;text-align:center;color:#ecd9b6;font-size:13px;line-height:1.6;backdrop-filter:blur(10px)}
     .overlay[hidden]{display:none}
+    .concept-preview{position:absolute;inset:59px 10% 72px;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;pointer-events:none}
+    .concept-preview[hidden]{display:none}
+    .concept-preview img{height:min(100%,400px);max-width:100%;min-height:0;object-fit:contain;border-radius:10px;filter:drop-shadow(0 12px 22px #0009)}
+    .concept-preview p{margin:0;padding:6px 10px;background:#17222fe5;color:#ffdfa9;border:1px solid #ad8f5e88;border-radius:7px;font-size:11px;text-align:center}
+    .playbox[data-unit-state="source-only"] .touch-controls{opacity:.2;pointer-events:none}
     .overlay-icon{display:block;font:34px Georgia,serif;margin-bottom:7px;color:#e2ae65}
     .hud-bottom{pointer-events:none;position:absolute;bottom:14px;left:16px;right:16px;display:flex;align-items:end;justify-content:space-between;gap:12px}
     .hud-tag{font:11px ui-monospace,Menlo,monospace;color:#cfdbc9;background:#0f191acf;border:1px solid #a1b39935;border-radius:7px;padding:9px 11px;letter-spacing:.02em}
@@ -96,7 +101,7 @@
     .footer b{color:#aa9373;font-weight:600}
     .desktop-only{display:inline}
     @media(max-width:1050px){.workspace{grid-template-columns:minmax(0,1fr) 295px}.side{padding:18px 15px}.viewport-column{padding:15px 12px}}
-    @media(max-width:790px){.topbar{padding:12px 17px}.brand h1{font-size:16px}.top-right .pill{display:none}.workspace{display:block}.viewport-column{padding:12px}.playbox{min-height:350px;height:55vh}.side{max-height:none;border-left:none;border-top:1px solid #ffffff15;display:grid;grid-template-columns:1fr 1fr;gap:0 24px}.side > .section-rule{grid-column:1/-1}.side > .side-heading{grid-column:1/-1}.source-list{grid-template-columns:repeat(5,minmax(0,1fr))}.side .side-heading:nth-of-type(1),.unit-title,.unit-caption,.field-label,#modelSelect,.file-label,.buttons,.stats,.walk-notice{grid-column:1/-1}}
+    @media(max-width:790px){.topbar{padding:12px 17px}.brand h1{font-size:16px}.top-right .pill{display:none}.workspace{display:block}.viewport-column{padding:12px}.playbox{min-height:350px;height:55vh}.side{max-height:none;border-left:none;border-top:1px solid #ffffff15;display:grid;grid-template-columns:1fr 1fr;gap:0 24px}.side > .section-rule{grid-column:1/-1}.side > .side-heading{grid-column:1/-1}.source-list{grid-template-columns:repeat(5,minmax(0,1fr))}.side .side-heading:nth-of-type(1),.unit-title,.unit-caption,.field-label,#unitSelect,#unitBuildStatus,#modelSelect,.file-label,.buttons,.stats,.walk-notice{grid-column:1/-1}}
     @media(max-width:520px){.brand .sub{font-size:9px}.top-status{display:none}.playbox{min-height:370px;height:52vh}.viewport-column{gap:10px}.side{display:block}.source-list{grid-template-columns:repeat(5,minmax(0,1fr))}.hud-tag{max-width:200px;font-size:10px}.footer{display:block;text-align:center}.footer span+span{display:block;margin-top:6px}.desktop-only{display:none}.touch-action{min-height:40px}.touch-pad{grid-template-columns:repeat(3,38px);grid-template-rows:repeat(2,38px)}}
     @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
   </style>
@@ -122,6 +127,10 @@
         <div class="stage-header">
           <div class="scene-label"><span class="diamond"></span> Les Marches · camp d'essai</div>
           <div class="scene-coords"><div id="cameraMode">ISO · SUIVI</div><div id="positionMetric">X 0.0 · Z 0.0</div></div>
+        </div>
+        <div class="concept-preview" id="conceptPreview" hidden>
+          <img id="conceptImage" alt="Illustration originale de l'unité sélectionnée">
+          <p>Illustration 2D originale · Modèle 3D en préparation</p>
         </div>
         <div class="scene-middle"><div id="loadingOverlay" class="overlay"><span class="overlay-icon">◇</span><span id="loadingMessage">Initialisation de la scène 3D…</span></div></div>
         <div class="hud-bottom">
@@ -154,6 +163,9 @@
       <div class="side-heading">02 / Unité sélectionnée</div>
       <h2 class="unit-title" id="unitName">Guerrier à la hache · Marches</h2>
       <p class="unit-caption">Contrôlez directement le personnage reconstruit à partir des quatre références. La scène utilise le GLB du dépôt, pas une image simulée. La version fal.ai texturée et riggée est sélectionnée par défaut : marche, course, quatre variantes de repos, attaque Mixamo et lancement de boule de feu. Les commandes tactiles sont accessibles sur téléphone, avec un cadrage adapté. Après une attaque ou un sort, le guerrier retrouve progressivement sa pose précédente. Le maillage brut et l'ancien personnage restent disponibles pour comparaison. La prise des objets reste expérimentale : un nouveau plan tient compte de la description originale de l'arme mais ne sera activé qu'après une validation visuelle indépendante de sa taille.</p>
+      <label for="unitSelect" class="field-label">Choisir une unité</label>
+      <select id="unitSelect" aria-label="Choisir une unité à construire ou à tester"><option>Chargement des unités…</option></select>
+      <p id="unitBuildStatus" class="unit-caption" role="status" style="margin:7px 0 16px">Vérification du pipeline…</p>
       <label for="modelSelect" class="field-label">Version du personnage à tester</label>
       <select id="modelSelect"><option>Chargement des modèles…</option></select>
       <label for="idleSelect" class="field-label" style="margin-top:14px">Animation à tester au repos</label>
