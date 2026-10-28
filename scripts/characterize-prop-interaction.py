@@ -47,10 +47,14 @@ MODE = {"type": "object", "additionalProperties": False, "properties": {
     "secondary_hand": {"type": "string", "enum": ["none", "left", "right"]},
     "secondary_grip": {"type": "string"},
     "functional_feature": {"type": "string"},
+    "action_direction": {"type": "string", "enum": ["none", "forward", "backward",
+        "up", "down", "outward", "inward", "gravity", "toward_elbow",
+        "toward_fingers", "palm_normal", "back_of_hand", "across_palm",
+        "opposite_across_palm"]},
     "mixamo_role": {"type": "string"},
     "action_intent": {"type": "string"}, "evidence": {"type": "string"}},
     "required": ["id", "phase", "hands", "primary_hand", "primary_grip",
-                 "secondary_hand", "secondary_grip", "functional_feature",
+                 "secondary_hand", "secondary_grip", "functional_feature", "action_direction",
                  "mixamo_role", "action_intent", "evidence"]}
 SCHEMA = {"type": "object", "additionalProperties": False, "properties": {
     "object_kind": {"type": "string"},
@@ -84,7 +88,13 @@ PROMPT = (
     "mode MUST identify two genuinely distinct regions. Different phases may "
     "have different hand counts, e.g. carrying a bow vs drawing it, carrying "
     "a firearm vs aiming/reloading. Pick the intended primary hand from the "
-    "character evidence, not a fallback to right. Use a candidate Mixamo role "
+    "character evidence, never a default side. Select an ACTION_DIRECTION "
+    "from the permitted "
+    "anatomical/world directions for each USE mode. For passive carrying "
+    "action_direction must be 'none'. The direction is where the active "
+    "object feature should point relative to the actor/target, and must "
+    "come from the action concept, not from which mesh extremity is longest. "
+    "Use a candidate Mixamo role "
     "from the provided included clips for USE; use 'none' for unscripted carry. "
     "Do NOT claim that the Mixamo pose is verified; later joint/IK tests do that. "
     "Use the provided standardized Mixamo hand/wrist/forearm joint names for "
@@ -214,7 +224,7 @@ def validate(answer, clips, expected_kind=None):
                 mode["primary_hand"] not in ("left", "right") or
                 not all(isinstance(mode[k], str) for k in
                         ("primary_grip", "secondary_hand", "secondary_grip",
-                         "functional_feature", "mixamo_role")) or
+                         "functional_feature", "mixamo_role", "action_direction")) or
                 mode["primary_grip"] not in grips):
             raise ValueError("Invalid hands or grip in mode")
         seen.add(mode["id"]); phases.add(mode["phase"])
@@ -230,9 +240,12 @@ def validate(answer, clips, expected_kind=None):
               mode["secondary_grip"] == mode["primary_grip"]):
             raise ValueError("Two-hand mode requires distinct grips and hands")
         if mode["phase"] == "use":
-            if mode["mixamo_role"] not in roles or mode["functional_feature"] not in features:
+            if (mode["mixamo_role"] not in roles or mode["functional_feature"] not in features or
+                    mode["action_direction"] not in MODE["properties"]["action_direction"]["enum"] or
+                    mode["action_direction"] == "none"):
                 raise ValueError("Use mode lacks actual candidate Mixamo role or functional feature")
-        elif mode["mixamo_role"] not in ("none", "idle", "walk", "run") or (
+        elif (mode["action_direction"] != "none" or
+              mode["mixamo_role"] not in ("none", "idle", "walk", "run")) or (
                 mode["functional_feature"] and mode["functional_feature"] not in features):
             raise ValueError("Unsupported carry action semantics")
     if phases != {"carry", "use"}:
