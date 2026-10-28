@@ -24,7 +24,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 ROOT = Path(__file__).resolve().parents[1]
 ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
@@ -136,9 +136,27 @@ def glb_geometry(path: Path):
     doc = json.loads(chunks[0x4E4F534A]); binary = chunks[0x004E4942]
     accessors, views = doc["accessors"], doc["bufferViews"]
     dtype = {5121: np.uint8, 5123: np.uint16, 5125: np.uint32, 5126: np.float32}
+    texture_cache={}
+    def material_texture(primitive):
+        index=primitive.get("material")
+        if index is None:return None
+        material=doc.get("materials",[])[index]
+        color=material.get("pbrMetallicRoughness",{}).get("baseColorTexture")
+        if not isinstance(color,dict):return None
+        texture_idx=color["index"]
+        image_idx=doc["textures"][texture_idx]["source"]
+        if image_idx not in texture_cache:
+            image=doc["images"][image_idx]
+            if "bufferView" not in image:
+                raise ValueError("GLB texture must be embedded for source-grounded render QA")
+            view=views[image["bufferView"]]
+            start=view.get("byteOffset",0)
+            data=binary[start:start+view["byteLength"]]
+            texture_cache[image_idx]=np.array(Image.open(io.BytesIO(data)).convert("RGB"))
+        return texture_cache[image_idx]
     def accessor(index):
         a = accessors[index]; view = views[a["bufferView"]]
-        components = {"SCALAR": 1, "VEC3": 3}[a["type"]]
+        components = {"SCALAR": 1, "VEC2": 2, "VEC3": 3}[a["type"]]
         dt = np.dtype(dtype[a["componentType"]]).newbyteorder("<")
         item_size = dt.itemsize * components
         stride = view.get("byteStride", item_size)
@@ -170,13 +188,17 @@ def glb_geometry(path: Path):
                 if "POSITION" not in primitive["attributes"] or primitive.get("mode", 4) != 4:
                     continue
                 local = accessor(primitive["attributes"]["POSITION"]).astype(float)
+                uv=(accessor(primitive["attributes"]["TEXCOORD_0"]).astype(float)
+                    if "TEXCOORD_0" in primitive["attributes"] else None)
+                texture=material_texture(primitive)
                 world = (np.column_stack([local, np.ones(len(local))]) @ matrix.T)[:, :3]
                 indices = accessor(primitive["indices"]).reshape(-1) if "indices" in primitive else np.arange(len(local))
                 if len(indices) % 3:
                     raise ValueError("Non-triangle primitive")
                 meshes.append({"local": local, "world": world,
                     "faces": indices.reshape(-1, 3), "node": n.get("name", ""),
-                    "mesh": n["mesh"], "primitive": primitive_index})
+                    "mesh": n["mesh"], "primitive": primitive_index,
+                    "uv":uv,"texture":texture})
         for child in n.get("children", []):visit(child, matrix)
     for root in roots:visit(root, np.eye(4))
     if not meshes or sum(len(m["local"]) for m in meshes) < 40:
@@ -205,9 +227,11 @@ def make_views(meshes):
         info = {"right": right, "up": up, "camera": camera,
                 "center": center, "scale": scale, "view": i}
         views.append(info)
-        panel = Image.new("RGB", (VIEW_SIZE, VIEW_SIZE), (250, 250, 249))
-        draw = ImageDraw.Draw(panel)
-        faces = []
+        # CPU-rasterize the ACTUAL GLB baseColorTexture using its UVs and a
+        # depth buffer. Flat brown silhouettes erase exactly the material
+        # evidence that vision needs to distinguish wood, metal and sharp edge.
+        pixels=np.full((VIEW_SIZE,VIEW_SIZE,3),(250,250,249),dtype=np.uint8)
+        zbuffer=np.full((VIEW_SIZE,VIEW_SIZE),-np.inf,dtype=float)
         for mesh in meshes:
             coords = mesh["world"]-center
             x = VIEW_SIZE/2 + coords@right*scale
@@ -218,10 +242,42 @@ def make_views(meshes):
                 normal = np.cross(triangle[1]-triangle[0],triangle[2]-triangle[0])
                 n = np.linalg.norm(normal)
                 if n < 1e-9:continue
-                shade = 130 + round(60*abs(float(np.dot(normal/n,camera))))
-                faces.append((float(depth[f].mean()), [(float(x[j]),float(y[j])) for j in f], shade))
-        for _, triangle, shade in sorted(faces):
-            draw.polygon(triangle, fill=(shade, round(shade*.87), round(shade*.69)))
+                vertices=np.array([(x[j],y[j]) for j in f],dtype=float)
+                x0,y0=vertices[0];x1,y1=vertices[1];x2,y2=vertices[2]
+                denom=(y1-y2)*(x0-x2)+(x2-x1)*(y0-y2)
+                if abs(denom)<1e-8:continue
+                left=max(0,int(math.floor(min(x0,x1,x2))))
+                top=max(0,int(math.floor(min(y0,y1,y2))))
+                right_px=min(VIEW_SIZE-1,int(math.ceil(max(x0,x1,x2))))
+                bottom_px=min(VIEW_SIZE-1,int(math.ceil(max(y0,y1,y2))))
+                if left>right_px or top>bottom_px:continue
+                xx,yy=np.meshgrid(np.arange(left,right_px+1)+.5,
+                                  np.arange(top,bottom_px+1)+.5)
+                a=((y1-y2)*(xx-x2)+(x2-x1)*(yy-y2))/denom
+                b=((y2-y0)*(xx-x2)+(x0-x2)*(yy-y2))/denom
+                c=1-a-b
+                mask=(a>=-1e-5)&(b>=-1e-5)&(c>=-1e-5)
+                if not mask.any():continue
+                surface_depth=a*depth[f[0]]+b*depth[f[1]]+c*depth[f[2]]
+                region_z=zbuffer[top:bottom_px+1,left:right_px+1]
+                front=mask&(surface_depth>region_z)
+                if not front.any():continue
+                brightness=.70+.30*abs(float(np.dot(normal/n,camera)))
+                if mesh.get("texture") is not None and mesh.get("uv") is not None:
+                    uv=mesh["uv"]
+                    u=a*uv[f[0],0]+b*uv[f[1],0]+c*uv[f[2],0]
+                    v=a*uv[f[0],1]+b*uv[f[1],1]+c*uv[f[2],1]
+                    texture=mesh["texture"]
+                    tx=(np.mod(u,1)*(texture.shape[1]-1)).astype(int)
+                    ty=(np.mod(1-v,1)*(texture.shape[0]-1)).astype(int)
+                    color=texture[ty,tx]
+                else:
+                    color=np.full((*xx.shape,3),(178,151,124),dtype=np.uint8)
+                region_pixels=pixels[top:bottom_px+1,left:right_px+1]
+                region_pixels[front]=np.clip(color[front]*brightness,0,255).astype(np.uint8)
+                region_z[front]=surface_depth[front]
+        panel=Image.fromarray(pixels,"RGB")
+        draw=ImageDraw.Draw(panel)
         draw.rectangle((0, 0, VIEW_SIZE-1, VIEW_SIZE-1), outline=(70, 78, 84), width=2)
         draw.rectangle((10, 10, 127, 38), fill=(34, 43, 50))
         draw.text((18, 17), f"VIEW {i}", fill="white")
@@ -233,6 +289,29 @@ def make_views(meshes):
 def image_part(data: bytes):
     return {"type": "image_url", "image_url": {"url":
         "data:image/png;base64,"+base64.b64encode(data).decode("ascii")}}
+
+
+def source_reference_bytes(path):
+    """The exact source-object PNG submitted as IMAGE 2 to OpenRouter."""
+    original=Image.open(path).convert("RGBA")
+    if original.getbbox():original=original.crop(original.getbbox())
+    original.thumbnail((720,720))
+    original=ImageOps.contain(original,(720,720))
+    # A deterministic light matte avoids relying on OpenRouter's unknown
+    # presentation of transparent image pixels (sometimes black in previews).
+    matte=Image.new("RGB",original.size,(250,250,249))
+    matte.paste(original,mask=original.getchannel("A"))
+    buffer=io.BytesIO();matte.save(buffer,format="PNG")
+    return buffer.getvalue()
+
+
+def save_model_inputs(plan_path, source_image, rendered_glb, pass_id):
+    """User-auditable bit-for-bit visual evidence of what the model receives."""
+    glb_path=plan_path.with_name("vision-input-glb-"+pass_id+".png")
+    source_path=plan_path.with_name("vision-input-source-"+pass_id+".png")
+    glb_path.write_bytes(rendered_glb)
+    source_path.write_bytes(source_reference_bytes(source_image))
+    print("VISION_INPUT_IMAGES",glb_path.relative_to(ROOT),source_path.relative_to(ROOT))
 
 
 def vision_point(point, label):
@@ -425,10 +504,13 @@ def run(plan_path: Path, check=False, pass_id="primary", model=MODEL):
         return
     meshes = glb_geometry(glb)
     render, views = make_views(meshes)
+    save_model_inputs(plan_path,image,render,pass_id)
     receipt_dir=plan_path.parent/"vision-landmark-receipts"
     signature=hashlib.sha256(json.dumps({"glb":digest,
         "interaction":interaction_hash,"pass_id":pass_id,"model":model,
-        "schema":named_schema(semantic),"prompt":PROMPT},
+        "schema":named_schema(semantic),"prompt":PROMPT,
+        "actual_glb_image_sha256":hashlib.sha256(render).hexdigest(),
+        "source_reference_image_sha256":hashlib.sha256(source_reference_bytes(image)).hexdigest()},
         sort_keys=True).encode()).hexdigest()
     receipt=receipt_dir/("landmarks-"+signature+".json")
     if receipt.exists():
@@ -442,17 +524,11 @@ def run(plan_path: Path, check=False, pass_id="primary", model=MODEL):
     else:
         key = os.environ.get("OPENROUTER_API_KEY", "").strip()
         if not key:raise RuntimeError("Missing OPENROUTER_API_KEY (run the pipeline Actions)")
-        from PIL import ImageOps
-        original = Image.open(image).convert("RGBA")
-        if original.getbbox():original = original.crop(original.getbbox())
-        original.thumbnail((720, 720))
-        original = ImageOps.contain(original, (720, 720))
-        original_bytes = io.BytesIO(); original.save(original_bytes, format="PNG")
         parts = [
             {"type": "text", "text": "IMAGE 1: generated 3D GLB, four labeled views"},
             image_part(render),
             {"type": "text", "text": "IMAGE 2: reference concept for functional edge only"},
-            image_part(original_bytes.getvalue()),
+            image_part(source_reference_bytes(image)),
         ]
         if semantic is not None:
             parts.append({"type": "text", "text":
@@ -511,5 +587,16 @@ if __name__ == "__main__":
     parser.add_argument("--pass-id",default="primary",
         help="Distinct source-matched OpenRouter spatial analysis; no one-call limit")
     parser.add_argument("--model",default=MODEL)
+    parser.add_argument("--render-preview",action="store_true",
+        help="Save exactly the two texture/source images supplied to vision, without API calls")
     args = parser.parse_args()
-    run((ROOT/args.plan).resolve(), args.check,args.pass_id,args.model)
+    target=(ROOT/args.plan).resolve()
+    if args.render_preview:
+        if not target.is_file() or not target.is_relative_to(ROOT):
+            raise ValueError("Invalid canonical plan for preview")
+        plan=json.loads(target.read_text())
+        mesh=glb_geometry(ROOT/plan["inputs"]["object_glb"])
+        render,_=make_views(mesh)
+        save_model_inputs(target,ROOT/plan["inputs"]["object_image"],render,args.pass_id)
+    else:
+        run(target,args.check,args.pass_id,args.model)

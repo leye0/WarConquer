@@ -56,6 +56,7 @@ jobs:
           name: grounded-axe-glb-region-overlays
           path: |
             assets/experiments/props/marches_hache/trellis-v1/vision-landmarks-*.png
+            assets/experiments/props/marches_hache/trellis-v1/vision-input-*.png
             assets/experiments/props/marches_hache/trellis-v1/vision-landmark-receipts/*.json
             assets/experiments/props/marches_hache/trellis-v1/grip-plan.json
           if-no-files-found: ignore

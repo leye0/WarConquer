@@ -2,8 +2,10 @@
 """Offline geometry/vision-projection regression, with no model or API calls."""
 import importlib.util
 import copy
+import io
 from pathlib import Path
 import numpy as np
+from PIL import Image
 
 script = Path(__file__).with_name("prop-mesh-landmarks.py")
 spec = importlib.util.spec_from_file_location("wc_prop_mesh_landmarks", script)
@@ -15,8 +17,14 @@ def test_real_glb_projection():
     source = module.ROOT / "assets/experiments/props/marches_hache/trellis-v1/axe.glb"
     parts = module.glb_geometry(source)
     assert parts and sum(len(m["local"]) for m in parts)>100
+    assert any(m.get("texture") is not None and m.get("uv") is not None for m in parts), (
+        "The real GLB has an embedded material; vision MUST see its actual texture")
     preview, views = module.make_views(parts)
     assert preview[:8] == b"\x89PNG\r\n\x1a\n"
+    pixels=np.asarray(Image.open(io.BytesIO(preview)).convert("RGB"))
+    colors=pixels[520:1000,520:1000].reshape(-1,3)
+    distinct=np.unique(colors[~np.all(colors==[250,250,249],axis=1)],axis=0)
+    assert len(distinct)>50, "Texture-based material identities disappeared from GLB views"
     assert len(views)==4
     assert len({tuple(np.round(v["camera"], 3)) for v in views})==4
     # An inaccurate vision answer must be rejected. Geometry may never
