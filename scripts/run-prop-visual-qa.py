@@ -44,25 +44,43 @@ def run(selected,output,allow_paid,passes=("primary","independent")):
         screenshots=output/(unit+"_"+prop)
         print("Rendering actual browser contact:",unit,prop,flush=True)
         try:
-            subprocess.run(["node","scripts/capture-prop-contact.mjs",unit,prop,str(screenshots)],
-                cwd=ROOT,check=True,timeout=180)
+            capture=subprocess.run(["node","scripts/capture-prop-contact.mjs",
+                unit,prop,str(screenshots)],cwd=ROOT,check=False,timeout=180)
+            verdict_path=screenshots/"contact-numeric-verdict.json"
+            if not verdict_path.exists():
+                raise RuntimeError("Actual Mixamo frame capture did not complete")
+            numeric=json.loads(verdict_path.read_text())
+            expected={"front","side","back","walk","run"}
+            contract=qa.interaction(json.loads(plan.read_text()))
+            if any(m["phase"]=="use" for m in
+                    contract["characterization"]["modes"]):
+                expected.update({"action","action_mid","action_mid_1",
+                    "action_mid_2","action_mid_3","action_mid_5",
+                    "action_mid_6","action_mid_7"})
+            available={p.stem for p in screenshots.glob("*.png")}
+            if expected-available:
+                raise RuntimeError("Real Mixamo screenshot views missing: "+
+                    ", ".join(sorted(expected-available)))
             decisions=[]
             for pass_id in passes:
                 passed=qa.review(plan,screenshots,pass_id)
                 decision=json.loads(plan.read_text())["visual_qa"]
                 decisions.append({"pass_id":pass_id,"go":passed,**decision})
-            if not all(d["go"] for d in decisions):
+            numeric_ok=capture.returncode==0 and numeric.get("status")=="approved"
+            if not numeric_ok or not all(d["go"] for d in decisions):
                 result=json.loads(plan.read_text())
                 result["visual_qa"]={"status":"rejected",
-                    "reason":"Independent vision passes disagree or report a contact/feature failure",
-                    "reviews":decisions,"checked_views":[p.name for p in screenshots.glob("*.png")]}
+                    "reason":"Independent vision or real anatomical numeric constraints rejected",
+                    "numeric_issues":numeric.get("issues",[]),"reviews":decisions,
+                    "checked_views":[p.name for p in screenshots.glob("*.png")]}
                 plan.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n")
                 failures.append(unit+"/"+prop+" (real pose or semantic vision disagreement)")
             else:
                 result=json.loads(plan.read_text())
                 result["visual_qa"]["reviews"]=decisions
                 plan.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n")
-        except (subprocess.CalledProcessError,subprocess.TimeoutExpired,ValueError) as error:
+        except (subprocess.CalledProcessError,subprocess.TimeoutExpired,ValueError,
+                RuntimeError) as error:
             failures.append(unit+"/"+prop+": "+str(error))
     if failures:raise RuntimeError("Visual NO-GO or blocked: "+", ".join(failures))
     print("PASS: all ready object contacts received a live vision GO")

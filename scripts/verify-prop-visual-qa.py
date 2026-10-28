@@ -20,16 +20,23 @@ from urllib.request import Request, urlopen
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-MODEL = "google/gemini-2.5-flash-lite"
+MODEL = "google/gemini-2.5-flash"
 ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
+REGION_SCHEMA = {"type":"object","additionalProperties":False,"properties":{
+    "label":{"type":"string","enum":["held_object","primary_hand",
+        "secondary_hand","functional_feature"]},
+    "ymin":{"type":"integer"},"xmin":{"type":"integer"},
+    "ymax":{"type":"integer"},"xmax":{"type":"integer"}
+},"required":["label","ymin","xmin","ymax","xmax"]}
 FRAME_SCHEMA = {"type":"object","additionalProperties":False,"properties":{
     "id":{"type":"string"},"hands_contact":{"type":"boolean"},
     "action_feature_correct":{"type":"boolean"},
     "orientation_constraints_met":{"type":"boolean"},
     "collision_free":{"type":"boolean"},"confidence":{"type":"number"},
-    "issues":{"type":"array","items":{"type":"string"}}
+    "issues":{"type":"array","items":{"type":"string"}},
+    "regions":{"type":"array","items":REGION_SCHEMA}
 },"required":["id","hands_contact","action_feature_correct",
-    "orientation_constraints_met","collision_free","confidence","issues"]}
+    "orientation_constraints_met","collision_free","confidence","issues","regions"]}
 SCHEMA = {"type":"object","additionalProperties":False,"properties":{
     "go":{"type":"boolean"},"confidence":{"type":"number"},
     "issues":{"type":"array","items":{"type":"string"}},
@@ -53,6 +60,15 @@ PROMPT = (
     "functional part facing the correct way, declared orientation constraints, "
     "and collisions. Never claim to see a hidden contact; when the screenshot "
     "cannot resolve it, say NO-GO and request an additional camera view. "
+    "Every image whose name ends in _grip is a closer TRUE camera rendering "
+    "cropped to the original WebGL canvas. For EVERY such image, perform "
+    "NATIVE labelled bounding-box detection of held_object, primary_hand "
+    "and secondary_hand, and functional_feature if visible. Encode regions "
+    "as integer ymin,xmin,ymax,xmax in normalized [0,1000] image pixels; "
+    "return regions=[] for genuinely invisible parts, NEVER hallucinate "
+    "their boxes. NO-GO unless both hands and held_object are resolvable "
+    "and their actual contacts can be independently inspected. Two 3D "
+    "points numerically touching does not prove a believable visual hold. "
     "Do not infer real physical state (liquid, loaded, sealed) from image alone; "
     "use only the supplied game state. Do not judge UI, terrain or visual style. "
     "Return one frame verdict for EVERY labeled screenshot and an aggregate GO "
@@ -132,7 +148,25 @@ def check_response(answer, names):
                 not isinstance(frame["issues"],list) or
                 any(not isinstance(x,str) for x in frame["issues"])):
             raise ValueError("Invalid per-frame vision confidence/issues")
-        all_pass=all_pass and all(frame[k] for k in
+        regions=frame["regions"]
+        if not isinstance(regions,list):
+            raise ValueError("No native visual detector regions")
+        names_found=set()
+        for region in regions:
+            if not isinstance(region,dict) or set(region)!=set(REGION_SCHEMA["properties"]):
+                raise ValueError("Malformed labelled native detector region")
+            if region["label"] not in REGION_SCHEMA["properties"]["label"]["enum"]:
+                raise ValueError("Unknown detected semantic part")
+            ymin,xmin,ymax,xmax=(region[k] for k in ("ymin","xmin","ymax","xmax"))
+            if any(type(c) is not int or c<0 or c>1000 for c in
+                   (ymin,xmin,ymax,xmax)) or ymin>=ymax or xmin>=xmax:
+                raise ValueError("Native detection box does not occupy real image pixels")
+            if region["label"] in names_found:
+                raise ValueError("Ambiguous duplicate native detector label")
+            names_found.add(region["label"])
+        closeup_visible=not frame["id"].endswith("_grip") or {
+            "held_object","primary_hand","secondary_hand"}.issubset(names_found)
+        all_pass=all_pass and closeup_visible and all(frame[k] for k in
             ("hands_contact","action_feature_correct",
              "orientation_constraints_met","collision_free")) and (
                 frame["confidence"]>=.75 and not frame["issues"])
@@ -153,7 +187,8 @@ def review(plan_path: Path, shots_dir: Path, pass_id="primary", model=MODEL):
     shots=[shots_dir/(label+".png") for label in
            ("front","side","back","walk","run","action","action_mid")]
     shots.extend(sorted(shots_dir.glob("action_mid_*.png")))
-    shots=[p for p in shots if p.is_file()]
+    shots.extend(sorted(shots_dir.glob("*_grip.png")))
+    shots=[p for p in dict.fromkeys(shots) if p.is_file()]
     if len(shots)<3:raise ValueError("Need three real browser view screenshots")
     fingerprint=signature(plan,contract,shots,model,pass_id)
     existing=plan.get("visual_qa",{})
@@ -192,7 +227,7 @@ def review(plan_path: Path, shots_dir: Path, pass_id="primary", model=MODEL):
         for path in shots:
             parts.extend([{"type":"text","text":"Actual Babylon screenshot: "+path.stem},
                           image_part(path)])
-        payload={"model":model,"temperature":0,"max_tokens":2500,
+        payload={"model":model,"temperature":0,"max_tokens":8500,
             "provider":{"require_parameters":True},
             "response_format":{"type":"json_schema","json_schema":{
                 "name":"real_3d_prop_attachment_go","strict":True,"schema":SCHEMA}},
