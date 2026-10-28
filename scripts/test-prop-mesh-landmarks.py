@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Offline geometry/vision-projection regression, with no model or API calls."""
 import importlib.util
+import copy
 from pathlib import Path
 import numpy as np
 
@@ -66,8 +67,40 @@ def test_lift_keeps_signed_functional_edge():
     result_other=module.lift_landmarks(meshes,views,mirrored)
     assert result_other["functional_edge"]["local"][2] > 0
 
+    # The prior vision model labels every strategic grip and its action
+    # direction. The 3D model must locate THOSE IDs in its actual GLB views.
+    semantic={"grips":[{"id":"lower_handle"},{"id":"upper_handle"}],
+        "features":[{"id":"cutting_edge"}]}
+    annotated={**answer,"grips":[
+        {"id":"lower_handle","view":view,"point":coords(grip)},
+        {"id":"upper_handle","view":view,"point":coords(np.array([.25,.035,.025]))}],
+        "features":[{"id":"cutting_edge","view":view,
+            "origin":coords(head),"direction_tip":coords(edge)}]}
+    expected=module.named_schema(semantic)
+    assert set(expected["properties"]) == set(annotated)
+    lifted=module.lift_named_landmarks(meshes,views,annotated,semantic)
+    assert set(lifted["grips"])=={"lower_handle","upper_handle"}
+    assert set(lifted["features"])=={"cutting_edge"}
+    assert lifted["grips"]["lower_handle"]["method"]=="vision-nearest-surface"
+    assert np.allclose(lifted["features"]["cutting_edge"]["direction_tip"]["local"],edge)
+    assert not np.allclose(lifted["grips"]["upper_handle"]["local"],
+                            lifted["grips"]["lower_handle"]["local"])
+
+    def refuses(changed,expected_fragment):
+        try:module.lift_named_landmarks(meshes,views,changed,semantic)
+        except ValueError as error:assert expected_fragment in str(error),error
+        else:raise AssertionError("Invented missing/uncertain 3D role landmarks")
+    bad=copy.deepcopy(annotated);bad["grips"].pop()
+    refuses(bad,"omit")
+    bad=copy.deepcopy(annotated);bad["grips"][1]["id"]="imaginary_handle"
+    refuses(bad,"invent")
+    bad=copy.deepcopy(annotated);bad["features"][0]["direction_tip"]=coords(head)
+    refuses(bad,"collapses")
+    bad=copy.deepcopy(annotated);bad["grips"][1]["point"]=[.98,.98]
+    refuses(bad,"re-annotate")
+
 
 if __name__=="__main__":
     test_real_glb_projection()
     test_lift_keeps_signed_functional_edge()
-    print("PASS: real GLB orthographic views and signed 3D vision landmarks")
+    print("PASS: signed real-GLB landmarks and every vision-confirmed hand/action role")
