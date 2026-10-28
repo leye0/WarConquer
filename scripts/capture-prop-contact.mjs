@@ -95,8 +95,11 @@ try{
     if(state.weapon.startsWith("Prise refusée"))throw Error(state.weapon);
   }
   if(!ready)throw Error("Rig not ready with generic prop contact: "+last);
-  const carry=await js("document.getElementById('world').dataset.weaponCarry||'unknown'");
-  writeFileSync(join(output,"contact-state.json"),JSON.stringify({unit,prop,carry})+"\n");
+  const diagnostics=await js(`(()=>{const d=document.getElementById('world').dataset;
+    return {carry:d.weaponCarry||'unknown',tilt:Number(d.weaponCarryTilt||0),
+      clearance:Number(d.weaponCarryClearance||0)}})()`);
+  writeFileSync(join(output,"contact-state.json"),JSON.stringify({unit,prop,...diagnostics})+"\n");
+  console.log("CONTACT_STATE",JSON.stringify({unit,prop,...diagnostics}));
   await camera(Math.PI/2);await capture("front");
   await camera(0);await capture("side");
   await camera(-Math.PI/2);await capture("back");
