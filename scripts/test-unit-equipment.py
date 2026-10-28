@@ -53,6 +53,8 @@ with tempfile.TemporaryDirectory(prefix="wc-equipment-offline-") as location:
             "source_image":obj,"source_request":"data/units/example/bow-image-request.json",
             "glb":"assets/experiments/props/example/bow/mesh.glb",
             "trellis_request":"data/units/example/bow-trellis-request.json",
+            "interaction_request":"assets/experiments/props/example/bow/interaction-request.json",
+            "interaction":"assets/experiments/props/example/bow/interaction-contract.json",
             "physical_size_request":"assets/experiments/props/example/bow/physical-size-request.json",
             "physical_size":"assets/experiments/props/example/bow/physical-size.json",
             "grip_request":"assets/experiments/props/example/bow/grip-request.json",
@@ -64,7 +66,13 @@ with tempfile.TemporaryDirectory(prefix="wc-equipment-offline-") as location:
         physical=json.loads((root/prop["physical_size_request"]).read_text())
         assert physical["generation_request"]==prop["source_request"]
         semantic=json.loads((root/prop["grip_request"]).read_text())
+        assert semantic["schema"]==2
         assert semantic["object_glb"]==prop["glb"]
+        assert semantic["interaction_contract"]==prop["interaction"]
+        interaction=json.loads((root/prop["interaction_request"]).read_text())
+        assert interaction["object_image"]==obj
+        assert interaction["motion_library"]=="data/motion-library.json"
+        assert interaction["maximum_paid_requests"]==1
 
 # Frame grip near the center is valid regardless of object_kind (geometry,
 # not a handcrafted transform for a named weapon).
@@ -77,4 +85,17 @@ spec = {"object_kind":"bow", "grip_geometry":"frame", "hold_mode":"one_hand",
 fit=grip.validate(spec)
 assert fit["supported_by_current_geometry_fitter"] is True
 assert abs(fit["grip_fraction_from_butt"]-.5)<.01
+contract={"characterization":{"object_kind":"bow","grips":[
+    {"id":"bow_handhold","point":[.5,.5]}],"modes":[
+    {"id":"carrying","phase":"carry","hands":1,
+     "primary_hand":"left","primary_grip":"bow_handhold"},
+    {"id":"drawing","phase":"use","hands":2,
+     "primary_hand":"left","primary_grip":"bow_handhold"}]}}
+grip.check_grip_consistency(spec,contract)
+for change in ({"hold_mode":"two_hands"},{"dominant_hand":"right"},
+               {"grip_point":[.9,.9]},{"object_kind":"axe"}):
+    mutated={**spec,**change}
+    try:grip.check_grip_consistency(mutated,contract)
+    except ValueError:pass
+    else:raise AssertionError("Fitter overrode the prior visual contract: "+repr(change))
 print("PASS: generic equipment image provenance, request derivation, TRELLIS and bow frame")
