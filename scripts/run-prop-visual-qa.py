@@ -6,6 +6,7 @@ import argparse
 import importlib.util
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -39,6 +40,10 @@ def run(selected,output,allow_paid):
     qa_spec=importlib.util.spec_from_file_location("wc_visual_qa",ROOT/"scripts/verify-prop-visual-qa.py")
     qa=importlib.util.module_from_spec(qa_spec)
     qa_spec.loader.exec_module(qa)
+    select_spec=importlib.util.spec_from_file_location("wc_vision_pose_selection",
+        ROOT/"scripts/select-prop-contact-orientation.py")
+    selector=importlib.util.module_from_spec(select_spec)
+    select_spec.loader.exec_module(selector)
     failures=[]
     for unit,prop,relative in ready:
         plan=pipeline.safe_path(relative)
@@ -54,7 +59,40 @@ def run(selected,output,allow_paid):
             subprocess.run(["node","scripts/capture-prop-contact.mjs",unit,prop,str(screenshots)],
                 cwd=ROOT,check=True,timeout=180)
             if not qa.review(plan,screenshots):
-                failures.append(unit+"/"+prop)
+                # Instead of a weapon-specific angle fix, render the SAME GLB
+                # with every valid anatomical working-face direction. Vision
+                # sees the candidates together and picks the physically valid
+                # one; the regular GO gate then checks it independently.
+                original=plan.read_text()
+                source=json.loads(original)
+                previous=source["specifications"]["edge_direction"]
+                alternatives=output/(unit+"_"+prop+"_alternatives")
+                try:
+                    for direction in selector.CHOICES:
+                        target=alternatives/direction
+                        if direction==previous:
+                            shutil.copytree(screenshots,target,dirs_exist_ok=True)
+                            continue
+                        candidate=json.loads(original)
+                        candidate["specifications"]["edge_direction"]=direction
+                        plan.write_text(json.dumps(candidate,ensure_ascii=False,indent=2)+"\n")
+                        subprocess.run(["node","scripts/capture-prop-contact.mjs",unit,prop,str(target)],
+                            cwd=ROOT,check=True,timeout=180)
+                finally:
+                    plan.write_text(original)
+                direction=selector.choose(plan,alternatives,previous)
+                updated=json.loads(original)
+                updated["specifications"]["edge_direction"]=direction
+                updated.pop("vision_review",None)
+                updated["visual_qa"]={"status":"candidate",
+                    "reason":"Real-browser alternatives ranked by low-cost vision"}
+                updated["automatic_orientation_selection"]={
+                    "method":"real-3d-vision-candidate-search",
+                    "previous_direction":previous,"selected_direction":direction,
+                    "candidates":list(selector.CHOICES)}
+                plan.write_text(json.dumps(updated,ensure_ascii=False,indent=2)+"\n")
+                if not qa.review(plan,alternatives/direction):
+                    failures.append(unit+"/"+prop+" (no GO after visual candidate selection)")
         except (subprocess.CalledProcessError,subprocess.TimeoutExpired,ValueError) as error:
             failures.append(unit+"/"+prop+": "+str(error))
     if failures:raise RuntimeError("Visual NO-GO or blocked: "+", ".join(failures))

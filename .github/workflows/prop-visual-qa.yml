@@ -7,6 +7,7 @@ on:
       - 'assets/experiments/props/**/grip-plan.json'
       - 'scripts/capture-prop-contact.mjs'
       - 'scripts/verify-prop-visual-qa.py'
+      - 'scripts/select-prop-contact-orientation.py'
       - 'scripts/run-prop-visual-qa.py'
       - 'scripts/rig-contact-landmarks.js'
       - 'scripts/weapon-grip-geometry.js'
@@ -43,6 +44,7 @@ jobs:
         run: |
           python -m pip install 'Pillow==11.3.0'
           python scripts/test-verify-prop-visual-qa.py
+          python -m py_compile scripts/verify-prop-visual-qa.py scripts/select-prop-contact-orientation.py scripts/run-prop-visual-qa.py
           node --check scripts/capture-prop-contact.mjs
       - name: Install local Babylon runtime and run the real Character Lab
         run: |

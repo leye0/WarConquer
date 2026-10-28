@@ -15,3 +15,10 @@ try:qa.check_response({"go":True,"confidence":1,"issues":[],"explanation":""})
 except ValueError:pass
 else:raise AssertionError("Empty reasoning accepted as visual GO")
 print("PASS: vision GO is gated on high confidence, actual physical hold and zero objections")
+
+selection_spec=importlib.util.spec_from_file_location("selection",Path(__file__).with_name("select-prop-contact-orientation.py"))
+selection=importlib.util.module_from_spec(selection_spec)
+selection_spec.loader.exec_module(selection)
+assert set(selection.CHOICES)=={"forward","backward","inward","outward"}
+assert not any("axe" in candidate or "bow" in candidate for candidate in selection.CHOICES)
+print("PASS: alternative orientations come from anatomy, not a named weapon")
