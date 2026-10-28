@@ -43,13 +43,18 @@ PROMPT = (
     "You are a technical prop rigger for an isometric 3D game. IMAGE 1 is an isolated "
     "weapon or object; IMAGE 2 is the intended character. Analyze BOTH images and "
     "produce a GENERAL REUSABLE ATTACHMENT SPECIFICATION for an animated character. "
-    "Object landmarks must use normalized [x,y] coords of IMAGE 1. For elongated shaft "
+    "Object landmarks must use normalized [x,y] coords of IMAGE 1. For visually identified shaft "
     "objects, handle_butt is the end of the handle away from the working head, and "
     "handle_near_head is the handle-head intersection. For a curved FRAME such as a "
-    "bow, these two landmarks are the two endpoints of the object's long axis, "
-    "and grip_point is the central handhold along the frame. The grip_point "
+    "bow, these two landmarks are visually identified ends of the frame, "
+    "and grip_point is its visually confirmed handhold. The grip_point "
     "is the center of the character's palm gripping that handle (not the blade). "
-    "Decide whether one or two hands are anatomically natural, which hand is primary, "
+    "For legacy requests, decide whether one or two hands are anatomically natural and "
+    "which hand is primary. When a semantic interaction contract is supplied, its "
+    "vision-confirmed grip regions, action-facing features, primary hands and "
+    "carry/use modalities are AUTHORITATIVE: do not reassess or override them. "
+    "The single hold_mode in this fitting schema describes the CARRY mount; it "
+    "must not erase the distinct USE modality or secondary-hand requirements. "
     "how the head extends relative to the hand in a neutral standing pose, which "
     "direction the cutting/working edge or functional front face of a frame faces relative to the walking character "
     "(forward, backward, inward toward torso, or outward from torso). Estimate the "
@@ -59,9 +64,9 @@ PROMPT = (
     "instead of inventing points. DO NOT infer raw GLB axis or Euler coordinates: "
     "the 3D pipeline computes actual axes from imported vertices. A bow can be "
     "attached rigidly to ONE hand; drawing the string is a separate animation and "
-    "is NOT required here. For shaft grip, "
-    "ensure grip_point is located ON the straight line segment from handle_butt to "
-    "handle_near_head and in the lower 15-60% of that segment; do not pick "
+    "is NOT required here. Do not impose any default grip fraction along the "
+    "handle: the vision-labelled grasp region controls its location. For shaft "
+    "grips ensure grip_point is near the identified handle segment; do not pick "
     "a point on the original character image."
 )
 
@@ -82,11 +87,15 @@ def read_request(path: str) -> tuple[dict, Path, Path, Path, Path]:
     expected = {"schema", "experiment", "object_image", "character_image",
                 "object_glb", "output_path", "vision_model",
                 "maximum_paid_requests", "automatic_paid_retries"}
-    if set(cfg) != expected or cfg["schema"] != 1:
+    if not ((cfg.get("schema") == 1 and set(cfg) == expected) or
+            (cfg.get("schema") == 2 and set(cfg) == expected | {"interaction_contract"})):
         raise ValueError("Unexpected grip-plan request schema")
     if cfg["maximum_paid_requests"] != 1 or cfg["automatic_paid_retries"] != 0:
         raise ValueError("This experiment permits one vision request and zero retries")
-    for key in ("object_image", "character_image", "object_glb", "output_path"):
+    keys = ("object_image", "character_image", "object_glb", "output_path")
+    if cfg["schema"] == 2:
+        keys += ("interaction_contract",)
+    for key in keys:
         if not isinstance(cfg[key], str) or cfg[key].startswith("/"):
             raise ValueError("All paths must be repository-relative")
     if not isinstance(cfg["experiment"], str) or not cfg["experiment"]:
@@ -104,6 +113,49 @@ def read_request(path: str) -> tuple[dict, Path, Path, Path, Path]:
     if not output.is_relative_to(ROOT) or output.suffix != ".json":
         raise ValueError("Output must be a JSON inside this repository")
     return cfg, obj, char, glb, output
+
+
+def confirmed_interaction(cfg: dict, obj: Path, char: Path) -> dict | None:
+    """Reject unconfirmed or source-stale semantics; never repair them by geometry."""
+    if cfg["schema"] == 1:
+        return None  # Historical plans remain readable but are not confirmed.
+    path = local(cfg["interaction_contract"])
+    contract = json.loads(path.read_text())
+    expected_hashes = {"object_image": sha(obj), "character_image": sha(char)}
+    if (contract.get("schema") != 1 or
+            contract.get("semantic_status") != "confirmed" or
+            contract.get("mixamo_pose_status") != "pending_real_joint_validation" or
+            any(contract.get("source_hashes", {}).get(k) != v
+                for k, v in expected_hashes.items()) or
+            not isinstance(contract.get("characterization"), dict)):
+        raise ValueError("Unconfirmed or source-stale object/character/Mixamo interaction")
+    semantics = contract["characterization"]
+    if not isinstance(semantics.get("object_kind"), str) or not semantics.get("modes"):
+        raise ValueError("Source-confirmed interaction has no phase-specific grips")
+    return contract
+
+
+def check_grip_consistency(spec: dict, interaction: dict | None) -> None:
+    if interaction is None:
+        return
+    semantic = interaction["characterization"]
+    carries = [m for m in semantic["modes"] if m["phase"] == "carry"]
+    if not carries:
+        raise ValueError("Missing authoritative carrying modality")
+    if spec["object_kind"] != semantic["object_kind"]:
+        raise ValueError("Fitted object contradicts vision-confirmed identity")
+    if spec["grip_geometry"] == "unsupported" or spec["hold_mode"] == "unsupported":
+        raise ValueError("Cannot fit an uncharacterized object or unsupported grip")
+    if not any(spec["dominant_hand"] == m["primary_hand"] and
+               spec["hold_mode"] == ("one_hand" if m["hands"] == 1 else "two_hands")
+               for m in carries):
+        raise ValueError("Fitted mount contradicts vision-confirmed carrying hands")
+    labelled = {g["id"]: g["point"] for g in semantic["grips"]}
+    if not any(math.dist(spec["grip_point"], labelled[m["primary_grip"]]) <= .18
+               for m in carries):
+        raise ValueError("Fitted contact differs from the vision-labelled primary grip")
+    # Different use modes may require a second grip, which remains in the
+    # attached semantic contract; this legacy spec does not encode it.
 
 
 def validate(raw: dict) -> dict:
@@ -141,10 +193,10 @@ def validate(raw: dict) -> dict:
         raise ValueError("Shaft image endpoints too close")
     fraction = ((grip[0]-start[0])*axis[0]+(grip[1]-start[1])*axis[1])/sq
     deviation = abs((grip[0]-start[0])*axis[1]-(grip[1]-start[1])*axis[0])/math.sqrt(sq)
-    if raw["grip_geometry"] == "shaft" and (not .04 <= fraction <= .64 or deviation > .20):
+    if raw["grip_geometry"] == "shaft" and (not 0 <= fraction <= 1 or deviation > .20):
         raise ValueError("Vision grip not located on the shaft")
-    if raw["grip_geometry"] == "frame" and (not .25 <= fraction <= .75 or deviation > .35):
-        raise ValueError("Vision grip not located near the frame's central handhold")
+    if raw["grip_geometry"] == "frame" and (not 0 <= fraction <= 1 or deviation > .35):
+        raise ValueError("Vision grip not located near the labelled frame handhold")
     if raw["grip_geometry"] in ("flat_handle", "body") and (
             not .03 <= fraction <= .95 or deviation > .5):
         raise ValueError("Vision grip not located near an identifiable holding region")
@@ -162,13 +214,20 @@ def image_part(path: Path) -> dict:
 
 def run(request_path: str, check: bool) -> None:
     cfg, obj, char, glb, output = read_request(request_path)
+    interaction = confirmed_interaction(cfg, obj, char)
     provenance = {"object_image_sha256": sha(obj), "character_image_sha256": sha(char),
                   "prop_glb_sha256": sha(glb)}
+    interaction_provenance = ({"path": cfg["interaction_contract"],
+                               "sha256": sha(local(cfg["interaction_contract"]))}
+                              if interaction is not None else None)
     if output.exists():
         saved = json.loads(output.read_text())
         if saved.get("input_hashes") != provenance or saved.get("vision_model") != cfg["vision_model"]:
             raise ValueError("Inputs changed; use a new versioned experiment instead of overwriting")
         validate(saved["specifications"])
+        if interaction is not None and saved.get("interaction_provenance") != interaction_provenance:
+            raise ValueError("Existing grip plan predates or contradicts the authoritative interaction")
+        check_grip_consistency(saved["specifications"], interaction)
         print("Vision attachment specifications already pinned: no paid call")
         return
     if check:
@@ -179,7 +238,10 @@ def run(request_path: str, check: bool) -> None:
     checkpoint = output.with_name("grip-plan-response.json")
     if checkpoint.exists():
         record = json.loads(checkpoint.read_text())
-        if record.get("input_hashes") != provenance or record.get("vision_model") != cfg["vision_model"]:
+        if (record.get("input_hashes") != provenance or
+                record.get("vision_model") != cfg["vision_model"] or
+                (interaction is not None and
+                 record.get("interaction_provenance") != interaction_provenance)):
             raise ValueError("Cached paid response belongs to different inputs")
         spec = record["raw_specifications"]
         print("Reusing the exact paid model response; zero extra cost")
@@ -187,6 +249,16 @@ def run(request_path: str, check: bool) -> None:
         key = os.environ.get("OPENROUTER_API_KEY", "").strip()
         if not key:
             raise RuntimeError("OPENROUTER_API_KEY Actions secret not configured")
+        parts = [
+            {"type": "text", "text": "IMAGE 1: isolated prop source."},
+            image_part(obj),
+            {"type": "text", "text": "IMAGE 2: character concept; assess realistic relative scale and grip."},
+            image_part(char),
+        ]
+        if interaction is not None:
+            parts.append({"type": "text", "text": "AUTHORITATIVE VISION-CONFIRMED INTERACTION; "
+                "fit its CARRY mount; preserve every USE modality for later animation joint QA: " +
+                json.dumps(interaction["characterization"], ensure_ascii=False)})
         payload = {
             "model": cfg["vision_model"], "temperature": 0, "max_tokens": 850,
             "provider": {"require_parameters": True},
@@ -196,12 +268,7 @@ def run(request_path: str, check: bool) -> None:
             },
             "messages": [
                 {"role": "system", "content": PROMPT},
-                {"role": "user", "content": [
-                    {"type": "text", "text": "IMAGE 1: isolated prop source."},
-                    image_part(obj),
-                    {"type": "text", "text": "IMAGE 2: character concept; assess realistic relative scale and grip."},
-                    image_part(char),
-                ]},
+                {"role": "user", "content": parts},
             ],
         }
         req = Request(ENDPOINT, data=json.dumps(payload).encode(), method="POST",
@@ -218,11 +285,13 @@ def run(request_path: str, check: bool) -> None:
         checkpoint.write_text(json.dumps({
             "schema": 1, "experiment": cfg["experiment"],
             "vision_model": cfg["vision_model"], "input_hashes": provenance,
+            "interaction_provenance": interaction_provenance,
             "raw_specifications": spec, "paid_vision_requests": 1
         }, ensure_ascii=False, indent=2) + "\n")
         print("Pinned raw paid model response before validation")
     try:
         fit = validate(spec)
+        check_grip_consistency(spec, interaction)
     except Exception:
         print("Vision plan rejected; cached raw response retained for zero-cost review:", json.dumps(spec, ensure_ascii=False))
         raise
@@ -231,6 +300,7 @@ def run(request_path: str, check: bool) -> None:
         "schema": 2, "experiment": cfg["experiment"], "vision_model": cfg["vision_model"],
         "inputs": {key: cfg[key] for key in ("object_image", "character_image", "object_glb")},
         "input_hashes": provenance, "specifications": spec, "derived_image_geometry": fit,
+        "interaction_provenance": interaction_provenance,
         "paid_vision_requests": 1, "automatic_paid_retries": 0
     }, ensure_ascii=False, indent=2) + "\n")
     print("Saved validated generic image-driven attachment specification:",output.relative_to(ROOT))
@@ -244,9 +314,14 @@ def apply_review(request_path: str, review_path: str) -> None:
     Prior revisions belong to git history. No new paid inference is submitted.
     """
     cfg, obj, char, glb, output = read_request(request_path)
+    interaction = confirmed_interaction(cfg, obj, char)
     if not output.is_file() or output.name != "grip-plan.json":
         raise ValueError("A canonical grip-plan.json must exist before review")
     current = json.loads(output.read_text(encoding="utf8"))
+    if interaction is not None and current.get("interaction_provenance") != {
+            "path": cfg["interaction_contract"],
+            "sha256": sha(local(cfg["interaction_contract"]))}:
+        raise ValueError("Cannot review a grip plan without current semantic contract")
     provenance = {"object_image_sha256": sha(obj),
                   "character_image_sha256": sha(char),
                   "prop_glb_sha256": sha(glb)}
@@ -268,13 +343,14 @@ def apply_review(request_path: str, review_path: str) -> None:
             specs.get("edge_direction") != notes.get("edge_direction")):
         raise ValueError("Visual review does not match current canonical sources")
     fitting = validate(specs)
+    check_grip_consistency(specs, interaction)
     if not fitting["supported_by_current_geometry_fitter"]:
         raise ValueError("Visual review cannot be fitted to the current GLB")
     reviewed_fraction = notes.get("grip_fraction_from_butt")
     if (not isinstance(reviewed_fraction, (int, float)) or
             isinstance(reviewed_fraction, bool) or
             not math.isfinite(reviewed_fraction) or
-            not .04 <= reviewed_fraction <= .64 or
+            not 0 <= reviewed_fraction <= 1 or
             abs(reviewed_fraction - fitting["grip_fraction_from_butt"]) > .15):
         raise ValueError("Reviewed grip location conflicts with the source image")
     fitting["grip_fraction_from_butt"] = round(reviewed_fraction, 5)
