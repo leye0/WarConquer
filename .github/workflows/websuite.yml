@@ -1,6 +1,12 @@
 name: WebSuite · Visual browser automation
 
 on:
+  pull_request:
+    paths:
+      - 'character-lab.html'
+      - 'scripts/character-lab-client.js'
+      - 'scripts/prop-motion-contact.js'
+      - '.github/workflows/websuite.yml'
   push:
     branches: [main]
     paths:
@@ -68,6 +74,10 @@ jobs:
               node scripts/websuite.mjs --scenario examples/perception-lab-scenario.json renders-perception
             fi
             echo "Rendered changed HTML files and Perception Lab interactions." >> "$GITHUB_STEP_SUMMARY"
+          elif [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            node scripts/websuite.mjs character-lab.html render.png
+            printf '%s\n' 'character-lab.html' > render-source.txt
+            echo 'Rendered Character Lab on the pull request.' >> "$GITHUB_STEP_SUMMARY"
           elif [[ -n "$SCENARIO_PATH" ]]; then
             node scripts/websuite.mjs --scenario "$SCENARIO_PATH" renders
             echo "Interactive scenario: $SCENARIO_PATH" >> "$GITHUB_STEP_SUMMARY"
