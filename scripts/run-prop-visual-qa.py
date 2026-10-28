@@ -59,6 +59,10 @@ def run(selected,output,allow_paid):
             subprocess.run(["node","scripts/capture-prop-contact.mjs",unit,prop,str(screenshots)],
                 cwd=ROOT,check=True,timeout=180)
             if not qa.review(plan,screenshots):
+                old_doc=json.loads(plan.read_text())
+                if old_doc.get("automatic_orientation_selection"):
+                    failures.append(unit+"/"+prop+" (visual NO-GO despite one full candidate search)")
+                    continue
                 # Instead of a weapon-specific angle fix, render the SAME GLB
                 # with every valid anatomical working-face direction. Vision
                 # sees the candidates together and picks the physically valid

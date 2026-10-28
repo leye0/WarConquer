@@ -30,13 +30,14 @@ PROMPT = (
     "You are the final visual QA judge of a generic 3D game prop attachment. "
     "IMAGE 1 is the ORIGINAL isolated prop concept. The remaining images are "
     "REAL browser screenshots of the same 3D object held by an animated "
-    "humanoid, viewed from front, side, back and optionally during its action. "
+    "humanoid in a NEUTRAL IDLE stance, viewed from front, side and back. "
     "Give GO only if the character truly GRIPS the object at its handle/holding "
     "region, not at the sharp head; the functional/cutting face points the "
     "physically expected direction for that type of object; the scale is "
     "plausible; and the object is neither floating nor piercing the hand. "
-    "A wrong-facing cutting edge is an automatic NO-GO, even if the head "
-    "points downward correctly. Focus on the 3D scene, not UI or terrain. "
+    "A wrong-facing cutting edge in the IDLE stance is an automatic NO-GO, "
+    "even if the head points downward correctly. Focus on the actual 3D "
+    "holding pose, not UI, terrain, or a transient backswing in an animation. "
     "Do not require bow-string simulation or optional secondary-hand IK. "
     "If unsure, return NO-GO with actionable reasons. For a GO, issues MUST "
     "be an empty list. Return JSON only."
@@ -55,7 +56,8 @@ def signature(plan):
     dependencies=("scripts/character-lab-client.js",
                   "scripts/weapon-grip-geometry.js",
                   "scripts/rig-contact-landmarks.js")
-    input_data={"points":plan["mesh_landmarks"]["points"],
+    input_data={"qa_prompt_sha256":hashlib.sha256(PROMPT.encode()).hexdigest(),
+                "points":plan["mesh_landmarks"]["points"],
                 "specifications":plan["specifications"],
                 "glb":plan["input_hashes"]["prop_glb_sha256"],
                 "solver":{p:hashlib.sha256((ROOT/p).read_bytes()).hexdigest()
@@ -87,7 +89,10 @@ def review(plan_path: Path, shots_dir: Path):
     if existing.get("signature")==fingerprint:
         print("VISUAL_GO_CACHED" if existing.get("status")=="approved" else "VISUAL_NO_GO_CACHED")
         return existing.get("status")=="approved"
-    shots=[shots_dir/(label+".png") for label in ("front","side","back","action")]
+    # Action clips have dynamic backswing phases; one arbitrary captured frame
+    # cannot certify a NEUTRAL attachment orientation. Real Mixamo action
+    # compatibility is tested separately in the browser smoke suite.
+    shots=[shots_dir/(label+".png") for label in ("front","side","back")]
     shots=[p for p in shots if p.is_file()]
     if len(shots)<3:raise ValueError("Need three real browser view screenshots")
     receipt=plan_path.with_name("grip-visual-qa-response.json")
