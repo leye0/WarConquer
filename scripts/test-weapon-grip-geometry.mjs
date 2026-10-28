@@ -3,7 +3,32 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 const require=createRequire(import.meta.url);
-const {fitGrip,dot,sub,norm}=require("./weapon-grip-geometry.js");
+const {fitGrip,rotationBetweenFrames,dot,sub,norm}=require("./weapon-grip-geometry.js");
+
+// A grip frame must actually point in the requested direction after fitting.
+// The old matrix product reversed these operations, causing 180° flips when
+// source and target axes differed from the identity frame.
+const normalize=v=>v.map(n=>n/norm(v));
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const basis=(shaft,blade)=>{
+  const y=normalize(shaft),x=normalize(sub(blade,y.map(n=>n*dot(y,blade))));
+  return [x,y,normalize(cross(x,y))];
+};
+const transformRow=(v,m)=>[0,1,2].map(j=>v.reduce((sum,n,i)=>sum+n*m[3*i+j],0));
+for(const [name,source,target] of [
+  ["quarter-turn",[[0,0,1],[1,0,0]],[[0,1,0],[0,0,1]]],
+  ["half-turn",[[0,-1,0],[1,0,0]],[[0,1,0],[-1,0,0]]],
+  ["arbitrary-orientations",[[2,3,-1],[-2,1,2]],[[-1,2,3],[2,4,-1]]],
+]) {
+  const m=rotationBetweenFrames(...source,...target);
+  const a=basis(...source),b=basis(...target);
+  for(let i=0;i<3;i++)assert(norm(sub(transformRow(a[i],m),b[i]))<1e-9,
+    name+": final rotation must map each geometric source axis to its requested direction");
+  const determinant=dot(transformRow(a[0],m),cross(transformRow(a[1],m),transformRow(a[2],m)));
+  assert(Math.abs(determinant-1)<1e-9,name+": no mirrored or inverted frame");
+}
+assert.throws(()=>rotationBetweenFrames([0,1,0],[0,2,0],[0,1,0],[1,0,0]),/ambiguous/);
+console.log("PASS generic source-to-hand rotation including 180-degree orientation");
 
 function syntheticAxe(transform=p=>p) {
   const vertices=[];
