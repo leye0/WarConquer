@@ -60,6 +60,9 @@ with tempfile.TemporaryDirectory(prefix="wc-equipment-offline-") as location:
             "grip_request":"assets/experiments/props/example/bow/grip-request.json",
             "grip":"assets/experiments/props/example/bow/grip-plan.json"}
         equipment.prepare_requests(seed,prop)
+        # Existing human-authored brief is valid source evidence for legacy
+        # objects even when no separate vision description was persisted.
+        equipment.prepare_requests(seed,{k:v for k,v in prop.items() if k!="description"})
         _, img, dest = trellis.load(prop["trellis_request"])
         assert img == root / obj and dest == root / prop["glb"]
         assert json.loads(brief.read_text())==request, "Existing human-authored brief is preserved"
