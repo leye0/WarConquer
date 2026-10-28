@@ -17,7 +17,19 @@ const HOST = "127.0.0.1";
 const MESH_ROOT = join(REPO, "assets/experiments/rig-ready-3d");
 const REFS_ROOT = join(REPO, "assets/experiments/rig-source-turnaround");
 const PROPS_ROOT = join(REPO, "assets/experiments/props");
-const SOURCE_CONCEPTS = { marches_hache: "/assets/concepts/marches/units/hache.png" };
+const UNIT_MANIFESTS_ROOT = join(REPO, "data/units");
+function unitManifests(){
+  const units=[];
+  if(!existsSync(UNIT_MANIFESTS_ROOT))return units;
+  for(const name of readdirSync(UNIT_MANIFESTS_ROOT).filter(n=>/^[a-z][a-z0-9_]*\\.json$/.test(n))){
+    const doc=parseJson(join(UNIT_MANIFESTS_ROOT,name));
+    if(doc?.schema===1 && doc.id===name.slice(0,-5) &&
+       typeof doc.source?.character_image==="string" &&
+       /^assets\\/concepts\\/[a-z0-9_/-]+\\.png$/.test(doc.source.character_image) &&
+       existsSync(join(REPO,doc.source.character_image)))units.push(doc);
+  }
+  return units;
+}
 const LABELS = { marches_hache: "Guerrier à la hache · Marches" };
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -112,14 +124,28 @@ export function inventory() {
         const file = join(source, view + ".png");
         if (existsSync(file)) refs[view] = publicPath(file);
       }
-      const original = SOURCE_CONCEPTS[id] || null;
+      const info=unitManifests().find(m=>m.id===id);
+      const original=info?"/"+info.source.character_image:null;
       if (models.length) characters.push({
-        id, pose, name: LABELS[id] || id.replaceAll("_", " "),
+        id, pose, name: info?.title || LABELS[id] || id.replaceAll("_", " "),
         original, views: refs, models, props: propPlans(id),
         metrics: { joints: report?.glb_geometry?.joint_count ?? report?.glb?.joint_count ?? report?.joint_count ?? null,
                    faces: mesh?.glb_geometry?.faces ?? mesh?.geometry?.faces ?? 25000 },
       });
     }
+  }
+  // Each manifest appears in the unit selector, including units not yet
+  // generated. A source-only unit must never inherit another unit's GLB.
+  for(const doc of unitManifests()) {
+    if(characters.some(c=>c.id===doc.id))continue;
+    characters.push({
+      id:doc.id,pose:"à construire",name:doc.title,
+      original:"/"+doc.source.character_image,
+      views:{},models:[],props:[],metrics:{joints:null,faces:null},
+      buildStatus:"source_only",
+      pipeline:{manifest:"data/units/"+doc.id+".json",
+        unitId:doc.id,stage:"source",message:"Illustration prête · modèle 3D non produit"}
+    });
   }
   return { schema: 1, characters, generatedAt: new Date().toISOString(),
     note: "The sandbox moves the 3D character with WASD. Walk cycles require a separately rigged walking clip." };
