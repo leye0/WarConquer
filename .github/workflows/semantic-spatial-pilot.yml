@@ -49,6 +49,10 @@ jobs:
           # Official Gemini image-understanding order is [ymin,xmin,ymax,xmax],
           # NOT Studio's custom [xmin,ymin,xmax,ymax]. Keep native wire format;
           # convert to canonical XYXY only after parsing/validation.
+          # Reuse the immutable native pass receipt. Its verified metal-edge
+          # and handle-butt boxes now ground REAL corrected mesh vertices;
+          # visually indistinguishable bare-shaft grasp locations belong to
+          # the articulated Mixamo/IK phase, not pixel-level box detection.
           # Studio's labeled contact-sheet protocol: enlarged independent
           # TARGET crops per confirmed semantic ID, each with its OWN 0..1000
           # box_2d frame. Remap to the original GLB view after vision.

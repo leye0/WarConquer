@@ -57,3 +57,35 @@ except ValueError as error:assert "invented" in str(error)
 else:raise AssertionError("Invented semantic grip not blocked")
 
 print("PASS: Studio 0..1000 labeled bboxes, exact IDs and visible review overlays")
+
+# Real textured axe regression: the two independent vision passes disagreed
+# about its physical BOTTOM and cutting EDGE. Only the Gemini-confirmed
+# labeled rectangles may repair those locations; a numerical longest-axis
+# heuristic is prohibited.
+meshes=module.mesh_vision.glb_geometry(module.ROOT/
+    "assets/experiments/props/marches_hache/trellis-v1/axe.glb")
+_,views=module.mesh_vision.make_views(meshes)
+real_points={
+    "handle_butt": [0.3384636,-0.3916808,0.0331001],
+    "grip_center": [0.128259,-0.1000625,-0.0007449],
+    "working_head": [-0.1801326,0.3306219,0.0006004],
+    "functional_edge": [-0.3051306,0.2297242,-0.0176757]}
+annotated={key:{"local":value,"mesh":0,"primitive":0}
+           for key,value in real_points.items()}
+real_plan={"mesh_landmarks":{"points":annotated,
+    "grips":{},"features":{"axe_head":{"origin":annotated["working_head"].copy(),
+        "direction_tip":annotated["functional_edge"].copy()}}}}
+native_regions={name:{"visible":True,"box_2d":list(box),"confidence":.9}
+    for name,box in {
+        "handle_butt":(443.1,925.9,500.3,945.6),
+        "working_head":(374.2,206.7,608.9,450.2),
+        "functional_edge":(272.2,360.8,343.1,456.1)}.items()}
+fixed=module.reconcile_physical_regions(real_plan,meshes,views[2],native_regions)
+assert set(fixed)=={"handle_butt","functional_edge"},fixed
+for name in fixed:
+    x,y=module.project_confirmed_point(real_plan["mesh_landmarks"]["points"][name],meshes,views[2])
+    x0,y0,x1,y1=native_regions[name]["box_2d"]
+    assert x0<=x<=x1 and y0<=y<=y1,(name,x,y)
+assert (real_plan["mesh_landmarks"]["features"]["axe_head"]["direction_tip"]==
+    real_plan["mesh_landmarks"]["points"]["functional_edge"])
+print("PASS: second VLM's native boxes re-anchor real blade/butt, preserve semantic names")
