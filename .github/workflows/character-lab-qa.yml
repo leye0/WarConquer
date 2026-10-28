@@ -53,7 +53,7 @@ jobs:
             const archer=catalog.characters.find(c=>c.id==="couronne_archer");
             assert(archer, "Second unit not found");
             assert.equal(archer.buildStatus,"source_only");
-            assert.equal(archer.models.length,0,"Do not substitute another unit's 3D mesh");
+            assert.equal(archer.models.length,0,"No wrong 3D model substitution");
             assert(archer.original.endsWith("/couronne/units/archer.png"));
             const archerSource=await fetch(base+archer.original);
             assert(archerSource.ok,"The original archer concept is unavailable");
