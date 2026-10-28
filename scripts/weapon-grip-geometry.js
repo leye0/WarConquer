@@ -24,6 +24,25 @@
     return values[Math.floor((values.length-1)*.9)];
   };
 
+  // Babylon transforms points as ROW vectors. Frame axes are rows, so the
+  // source-to-target rotation is transpose(source) * target, not the reverse.
+  // Keep this calculation engine-independent so its direction is unit tested.
+  function rotationBetweenFrames(sourceShaft, sourceBlade, targetShaft, targetBlade) {
+    const frame=(shaft,blade)=>{
+      const y=unit(shaft);
+      const x=y&&unit(sub(blade,mul(y,dot(y,blade))));
+      const z=x&&unit(cross(x,y));
+      if(!x||!z)throw Error("Cannot orient an ambiguous grip frame");
+      return [x,y,z];
+    };
+    const source=frame(sourceShaft,sourceBlade);
+    const target=frame(targetShaft,targetBlade);
+    const rotation=[];
+    for(let i=0;i<3;i++)for(let j=0;j<3;j++)
+      rotation.push(source.reduce((sum,axis,k)=>sum+axis[i]*target[k][j],0));
+    return rotation;
+  }
+
   // Fit a contact frame from the actual geometry of a curved/flat rigid object.
   // Unlike a shaft, its grip may be midway between TWO functional ends.
   // This is a geometry class, not a bow/weapon-specific mounting script.
@@ -193,5 +212,5 @@
     return {grip,shaft:signed,blade,length:trueLength,headWidthRatio:spreadRatio,
       gripFractionFromButt:gripFraction,vertexCount:points.length,bladeMethod};
   }
-  return {fitGrip,cross,dot,unit,sub,mul,add,norm};
+  return {fitGrip,rotationBetweenFrames,cross,dot,unit,sub,mul,add,norm};
 });
