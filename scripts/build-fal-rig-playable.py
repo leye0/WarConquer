@@ -242,8 +242,10 @@ def animate():
     if ACTIVE_UNIT != "marches_hache":
         doc["animations"]=[a for a in doc.get("animations",[])
                            if not a.get("name","").startswith("Attack_")]
-        clips=[c for c in clips if not (c.get("name","").startswith("Attack_")
-                                       if isinstance(c,dict) else str(c).startswith("Attack"))]
+        for animation in doc["animations"]:
+            animation["name"]=animation["name"].replace("_Mixamo_WithAxe","_Mixamo")
+            animation.setdefault("extras",{})["weapon_profile"]="unarmed_until_bow_is_equipped"
+        clips=[c for c in clips if c.get("name")!="Attack"]
     expected=8 if ACTIVE_UNIT=="marches_hache" else 5
     if len(clips)!=expected or len(doc.get("animations",[]))!=expected:
         raise RuntimeError("Selected unit's genuine Mixamo clip count mismatch")
