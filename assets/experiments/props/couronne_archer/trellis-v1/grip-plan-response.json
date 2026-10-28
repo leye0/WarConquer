@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "experiment": "couronne_archer-bow-grip",
+  "vision_model": "google/gemini-2.5-flash-lite",
+  "input_hashes": {
+    "object_image_sha256": "b23fba8a7337753176d4477a07c9d2d5a69cf0b4b53fbe359baaea34b8c15dde",
+    "character_image_sha256": "fdc2874eda247643e5fa6f33c460593bc42dee96125a52bb473be8576dee72a2",
+    "prop_glb_sha256": "57ff9fbd20b6a56334e0907225fc8e4517d6a80ed7ab0075e9dd9f15a1c2b964"
+  },
+  "raw_specifications": {
+    "object_kind": "bow",
+    "grip_geometry": "frame",
+    "hold_mode": "one_hand",
+    "dominant_hand": "left",
+    "handle_butt": [
+      0.57,
+      0.83
+    ],
+    "handle_near_head": [
+      0.57,
+      0.17
+    ],
+    "grip_point": [
+      0.57,
+      0.5
+    ],
+    "head_center": [
+      0.57,
+      0.5
+    ],
+    "action_edge": [
+      0.57,
+      0.5
+    ],
+    "head_direction": "toward_fingers",
+    "edge_direction": "forward",
+    "length_relative_character_height": 1.1,
+    "palm_from_wrist": 0.5,
+    "confidence": 0.9,
+    "explanation": "The object is a bow. The grip geometry is a frame. It is held with one hand. The dominant hand is the left hand. The handle_butt is at the bottom end of the bow's grip area, and handle_near_head is at the top end. The grip_point is the center of the grip area. The head_center is the center of the bow. The action_edge is the center of the bow. The head_direction is toward the fingers, as the bow extends away from the hand. The edge_direction is forward, as the bow is held in front of the character. The length of the bow is slightly longer than the character's height. The palm_from_wrist is estimated at 0.5, indicating the grip is around the middle of the hand."
+  },
+  "paid_vision_requests": 1
+}

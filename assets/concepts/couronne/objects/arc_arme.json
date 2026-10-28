@@ -1,0 +1,57 @@
+{
+  "prompt": "Original medieval fantasy RTS concept, hand-painted 2D with credible material details and readable silhouette. Match the supplied style references: brushwork, proportions, lighting, detail density, camera and faction palette. The reference is the ORIGINAL character carrying the SAME object: reproduce the object faithfully, but never reproduce the character. Exactly one complete centered subject, slightly elevated three-quarter view, ample empty margin around all extremities. Transparent background, no ground, scenery, base, interface, typography, logos or watermark. Never draw a checkerboard. If native transparency is impossible use a plain white background for extraction.\nSubject: Reconstruct exactly ONE separate removable equipment object from the supplied original character image. Preserve the original object's design, colors, materials, proportions, distinctive details and construction. Draw only the object, unobstructed in a three-quarter view, with its gripping area and functional ends clearly visible. No human, hands, duplicate items, surroundings, shadow or text. Original design description: A recurve bow made of dark wood with ornate golden filigree on the limbs. The string is taut, and an arrow is nocked. The bow has a slight curve and is held horizontally by the archer.\nCRITICAL FRAMING: show the ENTIRE isolated subject, 15 percent empty margin on all four sides, about 65 percent of square canvas occupied. Preserve the exact SUBJECT SHAPE specified above. Use the original unit reference to reconstruct the SAME visible object: preserve its exact identity, silhouette, colors and material details. Never reproduce the surrounding character. No atmospheric haze. Background must be uniform white if alpha unavailable.",
+  "output": "assets/concepts/couronne/objects/arc_arme.png",
+  "references": [
+    "assets/concepts/couronne/units/archer.png"
+  ],
+  "reference_role": "identity",
+  "replaced_previous": false,
+  "status": "generated-awaiting-visual-review",
+  "model": "meta/muse-image",
+  "reference_sha256": {
+    "assets/concepts/couronne/units/archer.png": "fdc2874eda247643e5fa6f33c460593bc42dee96125a52bb473be8576dee72a2"
+  },
+  "background_removed": true,
+  "framing_adjustment": {
+    "scale": 0.74271,
+    "margin": 0.15,
+    "original_bbox": [
+      629,
+      12,
+      1527,
+      1520
+    ],
+    "final_bbox": [
+      466,
+      240,
+      1132,
+      1360
+    ],
+    "source_edge_contact": false
+  },
+  "size": [
+    1600,
+    1600
+  ],
+  "transparent_fraction": 0.948638671875,
+  "sha256": "b23fba8a7337753176d4477a07c9d2d5a69cf0b4b53fbe359baaea34b8c15dde",
+  "usage": {
+    "prompt_tokens": 439,
+    "completion_tokens": 2811,
+    "total_tokens": 3250,
+    "cost": 0.01,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.01,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0.01
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 2811
+    }
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "schema": 1,
+  "unit": "couronne_archer",
+  "name": "Archer · Couronne",
+  "source_image": "assets/concepts/couronne/units/archer.png",
+  "views": {
+    "front": "assets/experiments/rig-source-turnaround/couronne_archer/tpose-v1/front.png",
+    "back": "assets/experiments/rig-source-turnaround/couronne_archer/tpose-v1/back.png",
+    "left": "assets/experiments/rig-source-turnaround/couronne_archer/tpose-v1/left.png",
+    "right": "assets/experiments/rig-source-turnaround/couronne_archer/tpose-v1/right.png"
+  },
+  "body": {
+    "glb": "assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/fal-textured.glb",
+    "rigged_glb": "assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/motion/fal-mixamo-v1/fal-rigged.glb",
+    "playable_glb": "assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/motion/fal-mixamo-v1/warconquer-textured-playable.glb",
+    "animations": "data/motion-library.json"
+  },
+  "equipment": [
+    {
+      "id": "bow",
+      "kind": "bow",
+      "source_image": "assets/concepts/couronne/objects/arc_arme.png",
+      "source_request": "data/units/couronne_archer/bow-image-request.json",
+      "glb": "assets/experiments/props/couronne_archer/trellis-v1/bow.glb",
+      "trellis_request": "data/units/couronne_archer/trellis-bow-request.json",
+      "physical_size_request": "assets/experiments/props/couronne_archer/trellis-v1/physical-size-request.json",
+      "physical_size": "assets/experiments/props/couronne_archer/trellis-v1/physical-size.json",
+      "grip_request": "assets/experiments/props/couronne_archer/trellis-v1/grip-request.json",
+      "grip": "assets/experiments/props/couronne_archer/trellis-v1/grip-plan.json",
+      "description": "A recurve bow made of dark wood with ornate golden filigree on the limbs. The string is taut, and an arrow is nocked. The bow has a slight curve and is held horizontally by the archer."
+    }
+  ],
+  "stages": {
+    "source": {
+      "stage": "source",
+      "description": "Fiche 2D originale (entrée fournie)",
+      "ready": true,
+      "paid_if_missing": false,
+      "files": {
+        "assets/concepts/couronne/units/archer.png": "ready"
+      }
+    },
+    "equipment_identify": {
+      "stage": "equipment_identify",
+      "description": "Identification et description des équipements sur la fiche",
+      "ready": true,
+      "paid_if_missing": true,
+      "files": {
+        "data/units/couronne_archer/equipment-analysis.json": "ready"
+      }
+    },
+    "turnaround": {
+      "stage": "turnaround",
+      "description": "4 vues cohérentes du personnage",
+      "ready": true,
+      "paid_if_missing": true,
+      "files": {
+        "assets/experiments/rig-source-turnaround/couronne_archer/tpose-v1/front.png": "ready",
+        "assets/experiments/rig-source-turnaround/couronne_archer/tpose-v1/back.png": "ready",
+        "assets/experiments/rig-source-turnaround/couronne_archer/tpose-v1/left.png": "ready",
+        "assets/experiments/rig-source-turnaround/couronne_archer/tpose-v1/right.png": "ready"
+      }
+    },
+    "body": {
+      "stage": "body",
+      "description": "Personnage fal.ai texturé",
+      "ready": true,
+      "paid_if_missing": true,
+      "files": {
+        "assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/fal-textured.glb": "ready"
+      }
+    },
+    "rig": {
+      "stage": "rig",
+      "description": "Squelette Uthana",
+      "ready": true,
+      "paid_if_missing": true,
+      "files": {
+        "assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/motion/fal-mixamo-v1/fal-rigged.glb": "ready"
+      }
+    },
+    "animations": {
+      "stage": "animations",
+      "description": "Mouvements Mixamo transférés",
+      "ready": true,
+      "paid_if_missing": false,
+      "files": {
+        "assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/motion/fal-mixamo-v1/warconquer-textured-playable.glb": "ready"
+      }
+    },
+    "object_source": {
+      "stage": "object_source",
+      "description": "Illustration isolée de chaque objet",
+      "ready": true,
+      "paid_if_missing": true,
+      "files": {
+        "assets/concepts/couronne/objects/arc_arme.png": "ready"
+      }
+    },
+    "object_mesh": {
+      "stage": "object_mesh",
+      "description": "GLB indépendant TRELLIS",
+      "ready": true,
+      "paid_if_missing": true,
+      "files": {
+        "assets/experiments/props/couronne_archer/trellis-v1/bow.glb": "ready"
+      }
+    },
+    "object_size": {
+      "stage": "object_size",
+      "description": "Estimation de longueur physique en cm",
+      "ready": true,
+      "paid_if_missing": true,
+      "files": {
+        "assets/experiments/props/couronne_archer/trellis-v1/physical-size.json": "ready"
+      }
+    },
+    "object_grip": {
+      "stage": "object_grip",
+      "description": "Prise / orientation sémantique de l'objet",
+      "ready": true,
+      "paid_if_missing": true,
+      "files": {
+        "assets/experiments/props/couronne_archer/trellis-v1/grip-plan.json": "ready"
+      }
+    }
+  },
+  "catalog": {
+    "buildStatus": "playable",
+    "modelCount": 3,
+    "equipmentCount": 1
+  },
+  "artifacts_sha256": {
+    "assets/concepts/couronne/objects/arc_arme.png": "b23fba8a7337753176d4477a07c9d2d5a69cf0b4b53fbe359baaea34b8c15dde",
+    "assets/concepts/couronne/units/archer.png": "fdc2874eda247643e5fa6f33c460593bc42dee96125a52bb473be8576dee72a2",
+    "assets/experiments/props/couronne_archer/trellis-v1/bow.glb": "57ff9fbd20b6a56334e0907225fc8e4517d6a80ed7ab0075e9dd9f15a1c2b964",
+    "assets/experiments/props/couronne_archer/trellis-v1/grip-plan.json": "6b86561afb4e6bb1e001eeb90d07b361e5043cf55ade2d307b5e306082bbfc05",
+    "assets/experiments/props/couronne_archer/trellis-v1/physical-size.json": "0557fb8599e68a0141e7fd77100b5936ab4bcdb0fa73a1888d39cd575a4380b7",
+    "assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/fal-textured.glb": "3d625b108daf5780a338bc8e6b83352edcc5c79d233284fa1f1493317bc42701",
+    "assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/motion/fal-mixamo-v1/fal-rigged.glb": "acbb3362557a6eae799c7bd2c4b255d6626e87f774dc129e010b93b4c03d3952",
+    "assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/motion/fal-mixamo-v1/warconquer-textured-playable.glb": "74c30fb36e05b18b6cdf94e299bd551e681b89773b5458af8a7be7a33839e6fa",
+    "assets/experiments/rig-source-turnaround/couronne_archer/tpose-v1/back.png": "a664b108da19c7a27d43473a6617d17f61326526e60746dd9127712c6b54801e",
+    "assets/experiments/rig-source-turnaround/couronne_archer/tpose-v1/front.png": "0d13db9e6958d3f157c412925a0fa3d24c88ecf8874cd855828f22e00bd8b3d0",
+    "assets/experiments/rig-source-turnaround/couronne_archer/tpose-v1/left.png": "9161fa77e7f1a655edbc7347a792b949e51b664023b66b2252edf0a761218789",
+    "assets/experiments/rig-source-turnaround/couronne_archer/tpose-v1/right.png": "8ad7047b2cc19b8015beee1e7d52eca5fb4c9f3f7a544bb7d2c79858e4c4576e",
+    "data/units/couronne_archer/equipment-analysis.json": "305b4a4f8aea69803f43ed309c44204a39f03196f02cfda1e69f041f340b2b28"
+  }
+}

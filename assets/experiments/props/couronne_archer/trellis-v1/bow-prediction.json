@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "source_sha256": "b23fba8a7337753176d4477a07c9d2d5a69cf0b4b53fbe359baaea34b8c15dde",
+  "model": "firtoz/trellis",
+  "version": "e8f6c45206993f297372f5436b90350817bd9b4a0d52d2a76df50c1c8afa2b3c",
+  "prediction_id": "e2604ax2yxrn80d1g1d9ney8qw",
+  "status": "starting",
+  "paid_predictions_submitted": 1,
+  "automatic_paid_retries": 0
+}

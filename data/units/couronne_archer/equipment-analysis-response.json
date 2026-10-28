@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "unit": "couronne_archer",
+  "source_sha256": "fdc2874eda247643e5fa6f33c460593bc42dee96125a52bb473be8576dee72a2",
+  "model": "google/gemini-2.5-flash-lite",
+  "items": [
+    {
+      "id": "bow",
+      "kind": "bow",
+      "description": "A recurve bow made of dark wood with ornate golden filigree on the limbs. The string is taut, and an arrow is nocked. The bow has a slight curve and is held horizontally by the archer.",
+      "confidence": 1.0
+    }
+  ],
+  "paid_calls": 1
+}

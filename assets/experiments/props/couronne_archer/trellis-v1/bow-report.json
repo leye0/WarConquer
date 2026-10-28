@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "status": "mesh-ready",
+  "model": "firtoz/trellis",
+  "version": "e8f6c45206993f297372f5436b90350817bd9b4a0d52d2a76df50c1c8afa2b3c",
+  "prediction_id": "e2604ax2yxrn80d1g1d9ney8qw",
+  "source_sha256": "b23fba8a7337753176d4477a07c9d2d5a69cf0b4b53fbe359baaea34b8c15dde",
+  "glb_sha256": "57ff9fbd20b6a56334e0907225fc8e4517d6a80ed7ab0075e9dd9f15a1c2b964",
+  "glb_bytes": 1373240
+}

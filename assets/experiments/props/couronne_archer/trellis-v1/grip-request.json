@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "experiment": "couronne_archer-bow-grip",
+  "object_image": "assets/concepts/couronne/objects/arc_arme.png",
+  "character_image": "assets/concepts/couronne/units/archer.png",
+  "object_glb": "assets/experiments/props/couronne_archer/trellis-v1/bow.glb",
+  "output_path": "assets/experiments/props/couronne_archer/trellis-v1/grip-plan.json",
+  "vision_model": "google/gemini-2.5-flash-lite",
+  "maximum_paid_requests": 1,
+  "automatic_paid_retries": 0
+}

@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "vision_model": "google/gemini-2.5-flash-lite",
+  "input_hashes": {
+    "object_image": "b23fba8a7337753176d4477a07c9d2d5a69cf0b4b53fbe359baaea34b8c15dde",
+    "character_image": "fdc2874eda247643e5fa6f33c460593bc42dee96125a52bb473be8576dee72a2",
+    "generation_request": "3841ce54e8e6f6eed3cd56a9fbe8b35fecd3a9f973760bdeadef36581806f9a1"
+  },
+  "estimated_length_cm": 150,
+  "confidence": 0.8,
+  "reason": "The bow appears to be a standard recurve bow, which typically ranges from 140-170 cm in length. The archer in the image is of average build, and the bow's proportions seem consistent with this length range.",
+  "units": "cm",
+  "source": "original_design",
+  "usage": {
+    "prompt_tokens": 835,
+    "completion_tokens": 84,
+    "total_tokens": 919,
+    "cost": 0.0001171,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.0001171,
+      "upstream_inference_prompt_cost": 8.35e-05,
+      "upstream_inference_completions_cost": 3.36e-05
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  },
+  "observed_cost_usd": 0.0001171
+}

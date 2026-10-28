@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "source_image": "assets/concepts/couronne/objects/arc_arme.png",
+  "output_path": "assets/experiments/props/couronne_archer/trellis-v1/bow.glb",
+  "replicate_model": "firtoz/trellis",
+  "maximum_paid_predictions": 1,
+  "automatic_paid_retries": 0
+}

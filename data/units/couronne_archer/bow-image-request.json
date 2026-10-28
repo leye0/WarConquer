@@ -1,0 +1,8 @@
+{
+  "prompt": "Reconstruct exactly ONE separate removable equipment object from the supplied original character image. Preserve the original object's design, colors, materials, proportions, distinctive details and construction. Draw only the object, unobstructed in a three-quarter view, with its gripping area and functional ends clearly visible. No human, hands, duplicate items, surroundings, shadow or text. Original design description: A recurve bow made of dark wood with ornate golden filigree on the limbs. The string is taut, and an arrow is nocked. The bow has a slight curve and is held horizontally by the archer.",
+  "output": "assets/concepts/couronne/objects/arc_arme.png",
+  "references": [
+    "assets/concepts/couronne/units/archer.png"
+  ],
+  "reference_role": "identity"
+}
