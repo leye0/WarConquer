@@ -20,6 +20,35 @@ Un personnage tient réellement l'objet au bon endroit, avec la ou les mains att
 6. **Aucun point inventé pour sauver un résultat.** Si une région ne peut être localisée, un point tombe hors de l'objet ou une pose est anatomiquement impossible, on marque la cause `needs_review` / `unresolved`. On ne déplace pas silencieusement une annotation et on n'invente pas une rotation propre à cette arme.
 7. **QA par rendus fixes reproductibles.** Pour les vérifications visuelles, utiliser des captures de poses déterministes, prises sous plusieurs angles et analysées par un modèle de vision. **La vidéo n'est pas une condition de validation.** La stabilité au cours du temps se contrôle par un échantillonnage de poses.
 
+## Stratégie : exploiter intensivement la vision OpenRouter
+
+**Objectif : maximiser la qualité et les preuves visuelles, pas minimiser le nombre d'appels.** Les modèles vision sont suffisamment peu coûteux pour intervenir **à plusieurs reprises**, avec des missions ciblées et des résultats contrôlables. Une requête par objet ne suffit pas à établir à la fois sa fonction, sa position 3D et sa compatibilité avec un personnage animé.
+
+| Moment du flow | Rôle concret du modèle vision | Preuve attendue |
+|---|---|---|
+| **Concept original + personnage** | Identifier les fonctions, les modes et les prises visibles; signaler les états non observables | Parties nommées, boîtes/polygones, mains et incertitudes |
+| **Contrôle indépendant du concept** | Relire les **surimpressions réelles** et relever prise hors objet, faux tranchant, confusion des mains | Verdict par ID + localisation des désaccords |
+| **GLB réel sous plusieurs angles** | Retrouver **les mêmes IDs** dans les rendus avec caméras connues; identifier dessus, arrière, côtés, sortie, tranchant, contacts | Régions par vue, axes/sens étiquetés, ambiguïtés |
+| **Contrôle de projection 3D** | Vérifier visuellement les points/axes reprojetés sur **chaque rendu**, corriger seulement les régions dont la preuve est insuffisante | Surimpressions de points et directions + verdict |
+| **Choix des modes et clips** | Comparer le concept et les **poses réelles Mixamo**, pas seulement leur nom | Prises/mains attendues, possibilités et incompatibilités visibles |
+| **QA des captures d'animation** | Examiner systématiquement **plusieurs poses fixes par mode**, de plusieurs angles, avec et sans annotations | Verdict structuré par pose, main, face active, direction, collision |
+| **Après correction** | Revoir **les mêmes poses et repères** avant/après, demander des vues supplémentaires si le problème persiste | Diff des erreurs et nouvelle preuve visuelle |
+| **Régressions** | Rejouer les contrôles visuels seulement quand un contrat, GLB, rig, clip ou solveur change | Comparaison à des captures de référence conservées |
+
+**Répartition des responsabilités :** vision = *sens, régions, plausibilité visible*; géométrie = *déprojection, surfaces, distances, IK, limites*; état du jeu = *contenu et contraintes physiques*. Un jugement vision positif **ne remplace jamais** la vérification 3D, et inversement.
+
+**Politique d'utilisation des appels :**
+
+- Autoriser **plusieurs appels payants distincts par objet et par étape**, chacun avec son objectif, son ensemble d'images et son schéma de sortie. Le verrou historique `maximum_paid_requests: 1` de la caractérisation v1 **n'est pas la politique cible du flow v2**.
+- Demander un **deuxième regard indépendant** pour les rôles critiques (prises, dessus/ouverture, tranchant, bouche de canon) ou en cas de désaccord. Utiliser un modèle spatial différent si cela améliore la robustesse; ne pas simplement faire répéter une réponse incertaine.
+- Regrouper intelligemment plusieurs captures pertinentes dans une même requête de QA lorsque le modèle peut encore identifier sans ambiguïté **vue, mode et instant**. Préférer des sous-ensembles lisibles à une mosaïque incompréhensible.
+- Mettre en cache les analyses par empreinte **sources + images rendues + version du prompt/modèle + mode/pose** : aucun paiement pour reproduire une réponse identique. Sauvegarder l'original brut **avant** validation.
+- Autoriser des **révisions ciblées** (nouvelle vue, nouvelle annotation, vérificateur indépendant) lorsque les validations échouent, avec budget **configurable et explicite** par étape, plafond global par objet et historique du coût. Zéro boucle infinie, mais **ne pas confondre « pas de retry aveugle » avec « un seul appel permis »**.
+- Choisir des modèles rapides/économiques pour l'annotation et la QA courante; réserver les modèles plus puissants aux ambiguïtés persistantes ou aux contradictions entre vues. Ne pas sacraliser un fournisseur.
+- En cas de blocage ou budget atteint : conserver les preuves et `needs_review`, pas une approximation géométrique présentée comme une réussite.
+
+**Critère de performance :** un appel est utile s'il élimine une ambiguïté, confirme un repère ou juge une pose. Le nombre d'appels en soi n'est ni un score de qualité ni une raison de se priver d'une vérification nécessaire.
+
 ## Flow obligatoire
 
 ### 1. Caractériser et délimiter l'objet avant tout fitting
@@ -29,7 +58,7 @@ Un personnage tient réellement l'objet au bon endroit, avec la ou les mains att
 - Utiliser une image source recadrée de façon traçable, éventuellement quadrillée; conserver la transformation crop → pixels de l'image originale. Les boîtes doivent être visualisables en surimpression sur l'image, et non simplement décrites par du texte.
 - Vérifier automatiquement la plausibilité **géométrique** de ces délimitations (coordonnées dans l'image; intersection avec les pixels visibles lorsque la transparence existe; taille non dégénérée; séparation de prises distinctes). Ce contrôle **ne sert jamais** à attribuer une fonction à une région.
 - Vérifier **sémantiquement** les régions contre l'objet, son brief et le personnage. Une boîte sur le manche n'est pas automatiquement la bonne prise : il faut la preuve de l'identité et du mode d'emploi.
-- Émettre un contrat source-versionné de rôles, régions, contacts et modalités, avec incertitudes et motifs de refus. Si l'incertitude porte sur une fonction ou une main, demander une revue visuelle ciblée et versionnée; aucune répétition payante automatique.
+- Émettre un contrat source-versionné de rôles, régions, contacts et modalités, avec incertitudes et motifs de refus. Si l'incertitude porte sur une fonction ou une main, demander une revue visuelle ciblée et versionnée; une nouvelle analyse ciblée peut être lancée dans le budget approuvé, jamais une répétition aveugle.
 
 **Garde-fou de régression :** dans le cas pilote de la hache, la première réponse OpenRouter plaçait une prise sur `[0.15, 0.85]` et l'extrémité de la direction du tranchant sur `[0.88, 0.28]` dans le PNG original 1600 × 1600, deux zones transparentes. **Ces points doivent être rejetés**; l'existence d'une valeur numérique et une confiance élevée ne les valident pas.
 
@@ -71,7 +100,7 @@ L'échantillonnage temporel peut être densifié pour une transition suspecte **
 - **Erreur de projection GLB :** revoir la localisation visuelle du même rôle sur les vues GLB.
 - **Erreur de pose/contact :** corriger transformation, IK ou choix explicite du clip, puis recapturer **les mêmes instants**.
 - **Erreur de direction d'action :** revenir à la direction fonctionnelle caractérisée; aucun retournement ou signe « essayé au hasard ».
-- Fixer un nombre d'essais, un coût maximal et l'absence de nouvelle requête payante automatique. Conserver les réponses brutes, décisions et raisons d'arrêt.
+- Fixer un nombre d'essais, un budget par étape et un plafond global. Autoriser les **requêtes vision ciblées supplémentaires** nécessaires au diagnostic, sans répétition identique ni boucle payante aveugle. Conserver les réponses brutes, décisions et raisons d'arrêt.
 
 ## Critères d'acceptation (« Definition of Done »)
 
