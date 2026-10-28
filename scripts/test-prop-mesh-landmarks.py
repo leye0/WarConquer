@@ -38,6 +38,10 @@ def test_real_glb_projection():
         assert "re-annotate" in str(err),str(err)
     else:
         raise AssertionError("Invented a functional landmark from an off-mesh vision point")
+    collapsed=dict(recorded,functional_edge=recorded["working_head"])
+    try:module.validate_answer(collapsed)
+    except ValueError as error:assert "collapse" in str(error)
+    else:raise AssertionError("Vision returned the same point for metal head and sharp edge")
 
 
 def test_lift_keeps_signed_functional_edge():

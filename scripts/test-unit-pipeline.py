@@ -28,7 +28,9 @@ assert "equipment_identify" in pipeline.STAGES
 assert pipeline.STAGES.index("object_interaction") < pipeline.STAGES.index("object_mesh")
 assert pipeline.STAGES.index("object_interaction") < pipeline.STAGES.index("animations")
 with patch.object(pipeline,"py") as no_build:
-    try:pipeline.execute(pipeline.manifest("marches_hache"),"turnaround")
+    # The Marches axe now has confirmed source-matched hand modes. A still
+    # uncharacterized second unit must remain blocked at the same entry gate.
+    try:pipeline.execute(archer,"turnaround")
     except pipeline.PipelineError as err:assert "object_interaction" in str(err)
     else:raise AssertionError("A direct stage bypassed the initial semantic gate")
     no_build.assert_not_called()
@@ -49,9 +51,9 @@ assert set(pipeline.PAID).issubset(pipeline.STAGES)
 for stage in pipeline.STAGES:
     st=pipeline.state(m,stage)
     if stage=="object_interaction":
-        # Legacy objects have no tripartite modal contract. Do not backfill
-        # by guessing from their old single hold_mode or silently paying again.
-        assert list(st["files"].values())==["missing"],st
+        # Source-grounded review now supersedes the historically incomplete
+        # legacy plan, without pretending that the Mixamo contact is proven.
+        assert st["ready"],st
     elif stage=="object_landmarks":
         # Existing prop models become reusable only after real GLB vision
         # annotation; never pretend their legacy PCA plan is equivalent.

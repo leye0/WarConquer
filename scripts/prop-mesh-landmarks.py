@@ -55,6 +55,10 @@ PROMPT = (
     "working_head: center of the working head, or the upper functional end "
     "of a curved frame; functional_edge: the ACTUAL working/cutting edge's "
     "outer edge or the functional FRONT of the object, NOT the back/poll. "
+    "working_head and functional_edge MUST be two DISTINCT physical locations "
+    "separated clearly in the image; NEVER return the same coordinates for both. "
+    "For a chopping axe, working_head is inside the metal head and "
+    "functional_edge is on the visible SHARP side of the blade. "
     "For an axe, make CERTAIN functional_edge points to the SHARP side of "
     "the head, not the flat back. Never use generic assumptions about which "
     "way the mesh axes point. For a symmetric double-edge, choose either "
@@ -342,6 +346,8 @@ def validate_answer(answer, semantic=None):
         raise ValueError("Functional edge insufficiently visible to annotate")
     for name in LANDMARKS:
         vision_point(answer[name], name)
+    if math.dist(answer["working_head"],answer["functional_edge"])<.035:
+        raise ValueError("Vision working head and functional edge collapse on the image")
     if semantic is not None:
         for collection, coordinate_fields in (("grips", ("point",)),
                                              ("features", ("origin", "direction_tip"))):
