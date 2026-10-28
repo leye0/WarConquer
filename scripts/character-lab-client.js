@@ -365,18 +365,13 @@
 
   function buildGripRotation(prop, wantedShaft, wantedBlade) {
     const B=BABYLON;
-    const gram=(shaft,blade)=>{
-      const y=shaft.normalize();
-      const x=blade.subtract(y.scale(B.Vector3.Dot(y,blade))).normalize();
-      const z=B.Vector3.Cross(x,y).normalize();
-      return {x,y,z};
-    };
-    const source=gram(new B.Vector3(...prop.shaft),new B.Vector3(...prop.blade));
-    const target=gram(wantedShaft,wantedBlade);
-    const from=B.Matrix.Identity(),to=B.Matrix.Identity();
-    B.Matrix.FromXYZAxesToRef(source.x,source.y,source.z,from);
-    B.Matrix.FromXYZAxesToRef(target.x,target.y,target.z,to);
-    const rotation=to.multiply(B.Matrix.Transpose(from));
+    const r=window.WCWeaponGrip.rotationBetweenFrames(
+      prop.shaft,prop.blade,wantedShaft.asArray(),wantedBlade.asArray());
+    const rotation=B.Matrix.FromValues(
+      r[0],r[1],r[2],0,
+      r[3],r[4],r[5],0,
+      r[6],r[7],r[8],0,
+      0,0,0,1);
     return B.Quaternion.FromRotationMatrix(rotation).normalize();
   }
 
