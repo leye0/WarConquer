@@ -1,0 +1,107 @@
+name: Pilot · rig and animate Crown archer through local project code
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/rig-couronne-archer-pilot.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: crown-archer-uthana-mixamo-once
+  cancel-in-progress: false
+
+jobs:
+  rig-and-move:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 48
+    env:
+      REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_KEY }}
+      OMP_NUM_THREADS: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install rigging adapter dependencies
+        run: python -m pip install 'replicate==1.0.7' 'Pillow==11.3.0'
+      - name: Confirm independent archer 3D input and its approved fingerprint
+        run: |
+          python -m py_compile scripts/build-fal-rig-playable.py scripts/unit-pipeline.py
+          python scripts/build-fal-rig-playable.py --unit couronne_archer --stage validate
+          python scripts/unit-pipeline.py status --unit couronne_archer
+      - name: Submit at most ONE paid Uthana prediction for selected unit
+        run: python scripts/build-fal-rig-playable.py --unit couronne_archer --stage rig-submit
+      - name: Immediately commit Uthana ID to avoid duplicate paid predictions
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/motion/fal-mixamo-v1/rig-prediction.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: checkpoint archer Uthana prediction before collection'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Collect selected archer rig (no new prediction)
+        run: python scripts/build-fal-rig-playable.py --unit couronne_archer --stage rig-collect
+      - name: Save real rig with UV textures in main
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/motion/ 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: preserve true archer skeleton and source UV texture'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Install locally converted Mixamo animation dependencies
+        run: python scripts/unit-pipeline.py bootstrap --unit couronne_archer --stage animations
+      - name: Retarget existing idle, walking, running animation to archer
+        run: python scripts/unit-pipeline.py run --unit couronne_archer --stage animations
+      - name: Save playable archer GLB with no misleading axe attack
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/motion/ 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: publish independent animated archer GLB from real Mixamo clips'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Confirm archer animations without requiring a bow release clip
+        run: |
+          python scripts/unit-pipeline.py status --unit couronne_archer
+          python - <<'PY'
+          import json, pathlib, struct
+          p=pathlib.Path('assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/motion/fal-mixamo-v1/warconquer-textured-playable.glb')
+          data=p.read_bytes()
+          assert data[:4]==b'glTF'
+          doc=json.loads(data[20:20+struct.unpack_from('<I',data,12)[0]])
+          names=[a['name'] for a in doc['animations']]
+          assert len(names)==5,names
+          assert any('Walk' in n for n in names)
+          assert any('Run' in n for n in names)
+          assert not any('Attack' in n or 'WithAxe' in n for n in names),names
+          print('PASS: independent Crown archer rig and five real Mixamo motions',names)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: couronne-archer-rig-mixamo
+          path: |
+            assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/motion/fal-mixamo-v1/
+          retention-days: 7
+          if-no-files-found: ignore
