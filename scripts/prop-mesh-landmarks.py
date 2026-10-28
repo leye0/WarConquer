@@ -191,12 +191,10 @@ def validate_answer(answer):
 
 
 def lift_landmarks(meshes, views, answer):
-    """Use vision for semantic SIGNS; use geometry for actual 3D contacts.
+    """Lift vision-labelled roles onto the real GLB, without semantic guesses.
 
-    Pixel coordinates from tiny vision models can be approximate. A point on
-    the *correct side* of a blade must project onto the real mesh silhouette,
-    even when the model placed it outside that silhouette. We do not accept
-    guessed 3D coordinates or blindly snap both head/edge to one vertex.
+    Geometry may project a confirmed point to a surface, but must not invent
+    which extremity is a working head or which silhouette is functional.
     """
     validate_answer(answer)
     v = views[answer["view"]]
@@ -222,13 +220,12 @@ def lift_landmarks(meshes, views, answer):
         nearby.sort(key=lambda entry:(entry[0],entry[1]))
         distance, _, mesh, index = nearby[0]
         return mesh, index, distance
-    # These two references are on the narrow handle; direct nearest-surface
-    # projection is stable without assuming any mesh coordinates or axes.
-    for name in ("handle_butt", "grip_center"):
+    # Every semantic role comes from vision, not a mesh length or width rule.
+    for name in LANDMARKS:
         target = np.array(answer[name])*VIEW_SIZE
         mesh, idx, distance = nearest_surface(target)
         if distance > VIEW_SIZE*.085:
-            raise ValueError(f"Handle landmark {name} is outside the real GLB")
+            raise ValueError(f"Vision landmark {name} lies outside the GLB: re-annotate")
         result[name] = record(mesh,idx,distance,"vision-nearest-surface")
     def pos(name):
         item = result[name]
@@ -238,59 +235,10 @@ def lift_landmarks(meshes, views, answer):
                 j = np.argmin(np.linalg.norm(m["local"]-local, axis=1))
                 return m["world"][j]
         raise ValueError("Landmark mesh missing")
-    # Estimate where the HEAD lives from the long axis of the handle. This
-    # is independent of its shape, material, category or facing direction.
-    butt, grip = pos("handle_butt"), pos("grip_center")
-    axis = grip-butt
-    length = np.linalg.norm(axis)
-    if length < 1e-5:raise ValueError("Handle endpoints collapse")
-    axis /= length
-    world = np.vstack([m["world"] for m in meshes])
-    projection = (world-butt)@axis
-    low, high = float(projection.min()), float(projection.max())
-    if high-low < length*.8:raise ValueError("Model shaft too short")
-    head_mask = projection > low+.69*(high-low)
-    active_mask = projection > low+.49*(high-low)
-    if head_mask.sum()<8 or active_mask.sum()<12:
-        raise ValueError("No recognizable working end of the mesh")
-    center = world[head_mask].mean(axis=0)
-    # Choose a REAL surface vertex close to the head's geometric center.
-    offsets = np.linalg.norm(world-center, axis=1)
-    offsets[~head_mask] = np.inf
-    head_index = int(np.argmin(offsets))
-    def at_global(index):
-        for m in meshes:
-            if index < len(m["world"]):return m,index
-            index -= len(m["world"])
-        raise ValueError("Missing mesh vertex")
-    head_mesh, head_local = at_global(head_index)
-    head_pixel = np.array([VIEW_SIZE/2+(center-v["center"])@v["right"]*v["scale"],
-                           VIEW_SIZE/2-(center-v["center"])@v["up"]*v["scale"]])
-    # The *sign* of the functional face is a visual-semantic decision. Its
-    # position and outermost point are solved from the actual GLB silhouette.
-    expected_head = np.array(answer["working_head"])*VIEW_SIZE
-    expected_edge = np.array(answer["functional_edge"])*VIEW_SIZE
-    to_edge = expected_edge-expected_head
-    edge_distance = np.linalg.norm(to_edge)
-    if edge_distance < VIEW_SIZE*.035:
-        raise ValueError("Vision cannot distinguish working edge from its head")
-    if np.linalg.norm(expected_head-head_pixel)>VIEW_SIZE*.28:
-        raise ValueError("Vision working head does not match the mesh's working end")
-    to_edge /= edge_distance
-    pixels = np.column_stack([
-        VIEW_SIZE/2+(world-v["center"])@v["right"]*v["scale"],
-        VIEW_SIZE/2-(world-v["center"])@v["up"]*v["scale"]])
-    signed = (pixels-head_pixel)@to_edge
-    signed[~active_mask] = -np.inf
-    edge_index = int(np.argmax(signed))
-    edge_mesh, edge_local = at_global(edge_index)
-    edge_pixel = pixels[edge_index]
-    if signed[edge_index]<VIEW_SIZE*.04:
-        raise ValueError("No functional surface extends toward the vision-defined side")
-    result["working_head"] = record(head_mesh,head_local,
-        np.linalg.norm(expected_head-pixels[head_index]),"3d-working-head-centroid")
-    result["functional_edge"] = record(edge_mesh,edge_local,
-        np.linalg.norm(expected_edge-edge_pixel),"signed-mesh-silhouette-extreme")
+    # These are sanity checks on the FOUR labelled points, not rules for
+    # assigning any point's function to a particular part of the mesh.
+    if np.linalg.norm(pos("handle_butt")-pos("grip_center"))<1e-5:
+        raise ValueError("Vision identified a collapsed handle")
     shaft = pos("working_head")-pos("grip_center")
     blade = pos("functional_edge")-pos("working_head")
     if np.linalg.norm(shaft)<1e-6:raise ValueError("Grip and working head coincide")
