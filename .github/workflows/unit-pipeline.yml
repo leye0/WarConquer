@@ -85,7 +85,9 @@ jobs:
           python scripts/unit-pipeline.py run --unit "$UNIT_ID" --stage "$PIPELINE_STAGE" --dry-run
           # This full local integration checks the generated site catalog and
           # all existing GLB links without any paid inference.
-          python scripts/unit-pipeline.py run --unit "$UNIT_ID" --stage integrate
+          # Existing finished unit checks the catalog before new paid outputs exist.
+          # The selected unit is integrated after its own generation stages.
+          python scripts/unit-pipeline.py run --unit marches_hache --stage integrate
       - name: Install only stage dependencies needed by the project
         if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.head_commit.message == 'run-couronne-archer-full-pipeline-once')
         run: python scripts/unit-pipeline.py bootstrap --unit "$UNIT_ID" --stage "$PIPELINE_STAGE"
@@ -117,7 +119,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always() && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.head_commit.message == 'run-couronne-archer-full-pipeline-once'))
         with:
-          name: project-unit-${{ inputs.unit || 'marches_hache' }}
+          name: project-unit-${{ env.UNIT_ID }}
           path: |
             assets/experiments/props/
             assets/experiments/rig-ready-3d/
