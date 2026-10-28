@@ -1,0 +1,99 @@
+{
+  "status": "generated-awaiting-live-browser-QA",
+  "source": "assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/fal-textured.glb",
+  "rigged_model": "assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/motion/fal-mixamo-v1/fal-rigged.glb",
+  "playable_model": "assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/motion/fal-mixamo-v1/warconquer-textured-playable.glb",
+  "output_sha256": "74c30fb36e05b18b6cdf94e299bd551e681b89773b5458af8a7be7a33839e6fa",
+  "bytes": 4890744,
+  "texture_method": "original fal.ai native embedded UV/PBR, no new projection",
+  "rigging_model": "uthana/create-character-v1",
+  "rigging_prediction": "ydqkjd0p11rmw0d1fzv9veprqg",
+  "animations_origin": "genuine archived Mixamo FBX converted with FBX2glTF",
+  "texture_and_skeleton": {
+    "valid": true,
+    "mesh_count": 1,
+    "primitive_count": 1,
+    "uv_primitives": 1,
+    "textured_primitives": 1,
+    "image_count": 1,
+    "embedded_images": 1,
+    "material_count": 1,
+    "skin_count": 1,
+    "joint_count": 52,
+    "skinned_primitives": 1,
+    "animation_count": 5
+  },
+  "animation_clips": [
+    {
+      "name": "Idle",
+      "fbx": "Standard_Idle.fbx",
+      "source_glb_sha256": "557ad0006ad2bf5abf52eb5082535dc2f6b9d26cb7c784b4a407c7fadec69b75",
+      "duration": 3.0,
+      "frames": 91,
+      "mapped_joints": 52,
+      "rotation_channels": 52,
+      "largest_rotation_degrees": 6.53,
+      "initial_upper_arm_offset_degrees": {
+        "leftarm": 72.97,
+        "rightarm": 68.36
+      }
+    },
+    {
+      "name": "Walk",
+      "fbx": "Walking_21.fbx",
+      "source_glb_sha256": "ea39761e0a6d5274ee70141f1a3a90a97e63d51b04e269b9debaa19c18318353",
+      "duration": 1.233,
+      "frames": 38,
+      "mapped_joints": 52,
+      "rotation_channels": 52,
+      "largest_rotation_degrees": 49.38,
+      "initial_upper_arm_offset_degrees": {
+        "leftarm": 69.34,
+        "rightarm": 67.49
+      }
+    },
+    {
+      "name": "Run",
+      "fbx": "Run_With_Sword.fbx",
+      "source_glb_sha256": "58d815145cf31b801489842a9bcf7ca73d1400fe23c69dd9e4e31327f13de972",
+      "duration": 0.8,
+      "frames": 25,
+      "mapped_joints": 52,
+      "rotation_channels": 52,
+      "largest_rotation_degrees": 99.35,
+      "initial_upper_arm_offset_degrees": {
+        "leftarm": 71.88,
+        "rightarm": 66.78
+      }
+    },
+    {
+      "name": "Idle_Relaxed",
+      "fbx": "Unarmed_Idle_01_2.fbx",
+      "source_glb_sha256": "3932e822eabd30e435e3e864b74e5c76b1f4d6e5cdbae84022408826b91cb755",
+      "duration": 5.067,
+      "frames": 153,
+      "mapped_joints": 52,
+      "rotation_channels": 52,
+      "largest_rotation_degrees": 18.98,
+      "initial_upper_arm_offset_degrees": {
+        "leftarm": 77.87,
+        "rightarm": 75.26
+      }
+    },
+    {
+      "name": "Idle_Wipe",
+      "fbx": "Wiping_Sweat.fbx",
+      "source_glb_sha256": "daa43d7ec5466de7d68cbbb903935eab42599e9ef17a67d0643ed75c61f3d31c",
+      "duration": 2.633,
+      "frames": 80,
+      "mapped_joints": 52,
+      "rotation_channels": 52,
+      "largest_rotation_degrees": 98.79,
+      "initial_upper_arm_offset_degrees": {
+        "leftarm": 65.03,
+        "rightarm": 64.56
+      }
+    }
+  ],
+  "visual_QA": "pending: joints, materials, walk, run; bow draw/release not yet implemented"
+}
