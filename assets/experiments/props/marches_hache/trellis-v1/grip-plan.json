@@ -53,12 +53,14 @@
   "automatic_paid_retries": 0,
   "visual_qa": {
     "status": "rejected",
-    "signature": "0d9579f8c12636fb0a8f50625cff1965468ab09e39c89ad41227b0b95303b170",
+    "signature": "3f11a1551590ef183a9dc60a3591fffba4901d27ec35a6779ff3fcaa04e92648",
     "confidence": 1.0,
     "issues": [
-      "The axe head is clipping through the character's back in the side and back views."
+      "The axe head is clipping through the character's back in the side and back views.",
+      "The handle is not gripped by the character's hand in the front view, it appears to be floating.",
+      "The axe head is facing towards the character's back in the side and back views, which is a safety concern."
     ],
-    "reason": "The axe is held correctly in a passive carry posture, with the heavy end hanging naturally below the hand. However, the axe head is intersecting with the character's mesh in the side and back views, which is a significant visual artifact.",
+    "reason": "The prop is not attached correctly. The axe head is clipping through the character's back, the handle is not gripped by the character's hand, and the axe head is facing the wrong direction, posing a safety risk.",
     "vision_model": "google/gemini-2.5-flash-lite",
     "checked_views": [
       "front",
