@@ -614,8 +614,41 @@
       }
       state.weaponImport=prop;
       state.weaponAnchor=anchor;
+      // Browser QA can inspect the actual animated geometry at arbitrary
+      // motion frames, not only the pose cached at import time.
+      window.WCPropContactDiagnostic=()=>{
+        if(anchor.isDisposed()||state.weaponAnchor!==anchor)return null;
+        const v=window.WCWeaponGrip;
+        const next=findGripAnatomy(imported,side);
+        const nextContact=window.WCRigContact.contactFrame(next.joints,{
+          hand:side,palm_fraction:spec.palm_from_wrist,
+          shaft_direction:"gravity",working_face:spec.edge_direction
+        });
+        const mounted=importedPropPoints(prop.meshes||[]);
+        const marks=importedPropLandmarks(prop.meshes||[],vision);
+        const mass=v.mul(mounted.reduce(v.add,[0,0,0]),1/mounted.length);
+        const edge=v.unit(v.sub(marks.functional_edge,marks.working_head));
+        const shoulderSpan=v.norm(v.sub(next.joints.LeftShoulder,next.joints.RightShoulder));
+        const radius=Math.max(.17,shoulderSpan*.46);
+        const capsules=[{a:next.joints.Hips,b:next.joints.Chest,radius},
+          {a:next.joints.Chest,b:next.joints.Neck||next.joints.Chest,radius:radius*.75}];
+        return {mode:state.attacking?"action":state.moving?"moving":"idle",
+          balanceY:Number((mass[1]-marks.grip_center[1]).toFixed(3)),
+          headY:Number((marks.working_head[1]-marks.grip_center[1]).toFixed(3)),
+          gripError:Number(v.norm(v.sub(nextContact.grip,marks.grip_center)).toFixed(3)),
+          edgeOutward:Number(v.dot(edge,nextContact.blade).toFixed(3)),
+          edgeForward:Number(v.dot(edge,nextContact.body.forward).toFixed(3)),
+          clearance:Number(v.capsuleClearance(mounted,capsules).toFixed(3))};
+      };
       if(selectedFit){
         const v=window.WCWeaponGrip;
+        let actionReference=null;
+        const handRotation=()=>{
+          hand.computeWorldMatrix(true);
+          const scale=new B.Vector3(),rotation=new B.Quaternion();
+          hand.getWorldMatrix().decompose(scale,rotation);
+          return rotation.normalize();
+        };
         const observer=state.scene.onBeforeRenderObservable.add(()=>{
           if(anchor.isDisposed()||state.weaponAnchor!==anchor){
             state.scene.onBeforeRenderObservable.remove(observer);return;
@@ -626,20 +659,35 @@
             const nextJoints=nextAnatomy.joints;
             const nextContact=window.WCRigContact.contactFrame(nextJoints,{
               hand:side,palm_fraction:spec.palm_from_wrist,
-              shaft_direction:state.attacking?spec.head_direction:"gravity",
+              shaft_direction:"gravity",
               working_face:spec.edge_direction
             });
             anchor.position.copyFrom(new B.Vector3(...nextContact.grip));
-            let shaft=nextContact.shaft;
             if(!state.attacking){
+              actionReference=null;
               const center=v.add(v.mul(nextJoints.Hips,.45),v.mul(nextJoints.Chest,.55));
               const outward=v.unit(v.sub(nextContact.grip,center));
               const lateral=v.unit([outward[0],0,outward[2]]);
-              shaft=v.unit(v.add([0,-1,0],v.mul(lateral,selectedFit.tilt)));
+              const shaft=v.unit(v.add([0,-1,0],v.mul(lateral,selectedFit.tilt)));
+              anchor.rotationQuaternion=buildGripRotation(gripFrame,
+                new B.Vector3(...shaft),new B.Vector3(...nextContact.blade),
+                selectedFit.transpose);
+            }else{
+              // The object is rigid in the palm throughout an action. A
+              // Mixamo wrist rotation drives the swing; a fixed semantic
+              // 'toward_elbow' shaft would flip heavy heads upwards.
+              const currentHand=handRotation();
+              if(!actionReference){
+                const forward=nextContact.body.forward;
+                const startRotation=buildGripRotation(gripFrame,
+                  new B.Vector3(...nextContact.shaft),new B.Vector3(...forward),
+                  selectedFit.transpose);
+                actionReference={hand:currentHand.clone(),prop:startRotation};
+              }
+              anchor.rotationQuaternion=actionReference.prop.multiply(
+                B.Quaternion.Inverse(actionReference.hand)).multiply(currentHand).normalize();
             }
-            anchor.rotationQuaternion=buildGripRotation(gripFrame,
-              new B.Vector3(...shaft),new B.Vector3(...nextContact.blade),
-              selectedFit.transpose);
+            byId("world").dataset.weaponContactMode=state.attacking?"action":"carry";
           }catch(error){
             // Keep the last valid rigid pose when an animation temporarily
             // collapses a joint reference; never attach to guessed coordinates.

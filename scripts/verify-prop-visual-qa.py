@@ -28,20 +28,22 @@ SCHEMA = {"type":"object","additionalProperties":False,"properties":{
 },"required":["go","confidence","issues","explanation"]}
 PROMPT = (
     "You are the final visual QA judge of a generic 3D game prop attachment. "
-    "IMAGE 1 is the ORIGINAL isolated prop concept. The remaining images are "
-    "REAL browser screenshots of the same 3D object held by an animated "
-    "humanoid in a NEUTRAL IDLE stance, viewed from front, side and back. "
-    "IMPORTANT: this is a PASSIVE CARRY/TRANSPORT posture, NOT a combat-ready "
-    "aiming or attacking posture. Gravity naturally hangs a heavy working end "
-    "BELOW the gripping hand. The blade or active face does NOT need to point "
-    "toward the direction of travel or a nonexistent target when idle. "
-    "Give GO if the character truly GRIPS the handle/holding region, the "
-    "heavy end hangs naturally, the active/sharp region faces safely away "
-    "from the body rather than cutting the holder, and scale is plausible. "
-    "Reject genuine mesh intersections, floating handles, backwards functional "
-    "faces that cut the holder, or implausible gravity, NOT harmless downwards "
-    "carriage or lack of combat readiness. Focus on the real 3D resting pose, "
-    "not UI, terrain, or transitory attack animation frames. "
+    "IMAGE 1 is the ORIGINAL isolated prop concept. Remaining labeled images "
+    "are REAL Babylon browser screenshots of the SAME animated character. "
+    "front, side, back are NEUTRAL IDLE; walk and run are passive transport; "
+    "action and action_mid are equipment-specific ACTION phases if available. "
+    "In idle, walking, and running, gravity should keep the heavy end BELOW "
+    "the gripping hand; the sharp/active edge must not face into the holder. "
+    "During an attack, a deliberate backswing MAY temporarily raise the head, "
+    "but the handle must remain in the correct palm, the active edge must "
+    "remain logically usable toward the opponent, and the prop must not "
+    "invert or detach when switching animations. "
+    "Give GO only if the character truly GRIPS the handle in ALL states, the "
+    "passive carry is plausible and safe, the functional side is correctly "
+    "oriented for carrying AND use, and scale is plausible. "
+    "Reject clipping, floating handles, sudden 180-degree flips, reversed "
+    "functional faces, and backwards gravity during locomotion. "
+    "Do not judge UI, terrain, or animation style. "
     "Do not require bow-string simulation or optional secondary-hand IK. "
     "If unsure, return NO-GO with actionable reasons. For a GO, issues MUST "
     "be an empty list. Return JSON only."
@@ -58,6 +60,7 @@ def image_part(path: Path):
 
 def signature(plan):
     dependencies=("scripts/character-lab-client.js",
+                  "scripts/capture-prop-contact.mjs",
                   "scripts/weapon-grip-geometry.js",
                   "scripts/rig-contact-landmarks.js")
     input_data={"qa_prompt_sha256":hashlib.sha256(PROMPT.encode()).hexdigest(),
@@ -93,10 +96,8 @@ def review(plan_path: Path, shots_dir: Path):
     if existing.get("signature")==fingerprint:
         print("VISUAL_GO_CACHED" if existing.get("status")=="approved" else "VISUAL_NO_GO_CACHED")
         return existing.get("status")=="approved"
-    # Action clips have dynamic backswing phases; one arbitrary captured frame
-    # cannot certify a NEUTRAL attachment orientation. Real Mixamo action
-    # compatibility is tested separately in the browser smoke suite.
-    shots=[shots_dir/(label+".png") for label in ("front","side","back")]
+    shots=[shots_dir/(label+".png") for label in
+           ("front","side","back","walk","run","action","action_mid")]
     shots=[p for p in shots if p.is_file()]
     if len(shots)<3:raise ValueError("Need three real browser view screenshots")
     receipt=plan_path.with_name("grip-visual-qa-response.json")

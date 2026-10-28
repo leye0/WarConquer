@@ -105,14 +105,43 @@ try{
       workingFace:Number(d.weaponWorkingFace||0)}})()`);
   writeFileSync(join(output,"contact-state.json"),JSON.stringify({unit,prop,...diagnostics})+"\n");
   console.log("CONTACT_STATE",JSON.stringify({unit,prop,...diagnostics}));
+  const motionStates=[];
+  const checkFrame=async name=>{
+    const result=await js("window.WCPropContactDiagnostic?.()||null");
+    if(!result)throw Error("No live articulated prop contact diagnostic: "+name);
+    motionStates.push({name,...result});
+    console.log("CONTACT_FRAME",name,JSON.stringify(result));
+    if(result.gripError>.045)throw Error("Prop slipped out of the palm during "+name);
+    if(["idle","walk","run"].includes(name) &&
+      (result.balanceY>=0||result.clearance<-.015))
+      throw Error("Prop inverted or intersects body during "+name);
+    return result;
+  };
+  await checkFrame("idle");
   await camera(Math.PI/2);await capture("front");
   await camera(0);await capture("side");
   await camera(-Math.PI/2);await capture("back");
+  const down=(key,code,virtualKey)=>request("Input.dispatchKeyEvent",{
+    type:"rawKeyDown",key,code,windowsVirtualKeyCode:virtualKey});
+  const up=(key,code,virtualKey)=>request("Input.dispatchKeyEvent",{
+    type:"keyUp",key,code,windowsVirtualKeyCode:virtualKey});
+  await camera(0);
+  await down("w","KeyW",87);await sleep(500);
+  await checkFrame("walk");await capture("walk");
+  await down("Shift","ShiftLeft",16);await sleep(500);
+  await checkFrame("run");await capture("run");
+  await up("Shift","ShiftLeft",16);await up("w","KeyW",87);
+  await sleep(280);
   if(await js("!document.getElementById('attackButton').disabled")){
     await js("document.getElementById('attackButton').click()");
     await sleep(190);
+    await checkFrame("action");
     await capture("action");
+    await sleep(300);
+    await checkFrame("action_mid");
+    await capture("action_mid");
   }
+  writeFileSync(join(output,"contact-motions.json"),JSON.stringify(motionStates,null,2)+"\n");
   console.log("PASS: real animated humanoid holds requested prop in three browser views");
 }finally{
   try{socket?.close();}catch{}
