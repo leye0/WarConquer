@@ -73,6 +73,14 @@ def run(selected,output,allow_paid):
                 edge_already_selected=(previous_search.get("selected_edge_direction")
                                       or previous_search.get("selected_direction"))
                 axis="head_direction" if edge_already_selected else "edge_direction"
+                state_file=screenshots/"contact-state.json"
+                state=json.loads(state_file.read_text()) if state_file.is_file() else {}
+                if axis=="head_direction" and state.get("carry")=="mass-below-hand":
+                    # Head direction is intentionally overridden by physical
+                    # gravity in this carry state: trying six identical
+                    # rotations would waste renders/model calls.
+                    failures.append(unit+"/"+prop+" (gravity-balanced carry still rejected visually)")
+                    continue
                 previous=source["specifications"][axis]
                 alternatives=output/(unit+"_"+prop+"_"+axis+"_alternatives")
                 try:
