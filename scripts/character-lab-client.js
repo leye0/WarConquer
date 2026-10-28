@@ -1000,7 +1000,7 @@
             // Project it to the EXACT source-grip sphere intersected with
             // the real secondary arm's reachable volume before solving roll.
             const constrained=limb.reachableSecondaryGripTarget({
-              sourcePrimary:primarySource,sourceSecondary,
+              sourcePrimary:primarySource,sourceSecondary:secondarySource,
               scale,primaryPalm:handFrame.grip,
               secondaryPalm:secondaryHand.grip,
               shoulder:sec.upperarm.getAbsolutePosition().asArray(),
