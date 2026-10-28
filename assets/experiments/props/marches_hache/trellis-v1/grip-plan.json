@@ -53,14 +53,12 @@
   "automatic_paid_retries": 0,
   "visual_qa": {
     "status": "rejected",
-    "signature": "fa2c07f05405af6557cbde463ebf6e182a5b044816f36958aa1855ef961cd289",
+    "signature": "d9e7c533ce18c371c4f9292a35076b463cc3edf30a287a8e2a16ac9376d99dc0",
     "confidence": 0.9,
     "issues": [
-      "The axe head is clipping through the character's back in the side view.",
-      "The axe head is clipping through the character's arm in the action view.",
-      "The axe head is clipping through the character's leg in the action_mid view."
+      "The axe head is oriented incorrectly during the walk and run animations, facing into the character's body instead of away from it."
     ],
-    "reason": "The axe is not held correctly in all animations. There is significant clipping of the axe head through the character's body in multiple views, indicating a collision issue or incorrect attachment point. The passive carry also appears to be problematic as the axe head is not positioned safely away from the character's body.",
+    "reason": "The character grips the axe correctly in all animations, and the passive carry orientation is plausible in the idle and action states. However, during the walk and run animations, the axe head is rotated incorrectly, facing the character's body, which is not a safe or logical way to carry the weapon. The action animations show the axe being used correctly.",
     "vision_model": "google/gemini-2.5-flash-lite",
     "checked_views": [
       "front",
