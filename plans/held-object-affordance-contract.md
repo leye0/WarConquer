@@ -197,6 +197,59 @@ Exemple **schématique**, uniquement pour illustrer le vocabulaire. Les `part_id
 
 Ce n'est **pas encore un schéma JSON exécutable** : les chaînes `vision_polygon_required` et `determined_from_rig` sont des **garde-fous de conception**, pas des valeurs que le runtime doit accepter. La future implémentation devra choisir un vrai schéma versionné, des types contraints, des références valides et des champs `unknown` rejetés lorsqu'ils sont bloquants. Ne pas modifier en douce l'ancien contrat v1 pour lui faire prétendre supporter toutes ces contraintes.
 
+## Projection déterministe : des régions reconnues aux véritables repères 3D
+
+**Principe :** faire observer au modèle des images du **vrai GLB**, déjà placées dans un référentiel entièrement connu. Le modèle dit **ce que représente chaque partie et l'entoure**; notre renderer sait **où se trouve chaque pixel sur la vraie surface 3D**. Aucune classification « manche/tête/avant » par géométrie n'est nécessaire.
+
+### Entrées de la reconnaissance spatiale
+
+Pour une instance d'objet, fixer et enregistrer :
+
+- Le GLB exact (empreinte du fichier), les transforms de ses nœuds, et sa matrice de placement `T_object_to_world`.
+- Les vues réelles (face, arrière, côté, trois-quarts, dessus si nécessaire), leurs matrices caméra `view`/`projection`, dimensions, cadrage et **depth buffer** ou les informations de raycasting sur les triangles.
+- Une image des vues non annotées, plus une **grille de coordonnées/pixels** de repérage; le crop éventuel garde sa transformation explicite vers l'image entière.
+- Les noms et fonctions issus de la vision du concept original, son brief et l'état déclaré. Les annotations de vue GLB doivent réutiliser les **mêmes IDs**, mais la vision doit pouvoir signaler qu'une partie du concept ne se retrouve pas dans le mesh.
+
+### Ce que la vision retourne
+
+Pour chaque `part_id` visible dans une vue, le modèle renvoie une **région délimitée** (`bbox`, `polygon` ou `mask`), les points stratégiques **s'ils sont discernables**, la fonction, l'explication du sens physique et la visibilité. Il ne retourne **pas** une rotation Euler arbitraire ni une désignation d'axe `X/Y/Z` à deviner.
+
+Trois formes d'annotation sont différentes et complémentaires :
+
+| Forme sémantique | Exemples | Géométrie récupérée |
+|---|---|---|
+| **Région de surface** (`surface_region`) | Deux prises distinctes d'une hache; poignée d'une tasse; appui de crosse | Ensemble de triangles visibles et zone de contact admissible, pas un unique point magique |
+| **Point ou zone stratégique** (`contact_anchor`, `effect_origin`, `tip`) | Centre d'une prise, bouche de fusil, pointe de lance, bec verseur | Point sur la vraie surface, normale locale et voisinage de contact |
+| **Direction / plan orienté** (`oriented_axis`, `oriented_plane`) | Canon vers sa bouche, tranchant vers sa face coupante, normale sortante de l'ouverture du pot | Origine et extrémité signées, ou plan de surface avec sa normale **dont le côté est identifié par vision** |
+
+**Avoir une région ne signifie pas connaître automatiquement la bonne prise.** Pour la main, on a besoin d'une zone saisissable **et** d'un repère de contact (`contact_frame`) compatible avec la paume : centre local, normale d'approche, tangente éventuellement orientée le long d'un manche, dimensions/largeur, état `needs_review` si l'accès n'est pas visible.
+
+### Récupération 3D, sans devinette sémantique
+
+1. Vérifier la cohérence de la région annotée : pixels dans l'image, intersection effective avec le rendu de l'objet, non exclusivement fond/vide, preuve explicite de la fonction. **Ne jamais déplacer la boîte pour lui donner l'air valide.**
+2. Dans chaque vue, faire correspondre les pixels annotés aux **triangles réellement visibles** : par depth buffer + déprojection avec les matrices connues, ou par rayons caméra et intersection avec le mesh. En cas de transparence, d'occlusion ou de plusieurs surfaces possibles, utiliser une autre vue ou refuser le point.
+3. Transformer le résultat dans les coordonnées de l'objet via l'inverse de `T_object_to_world` (et les transforms des nœuds GLB), et le conserver comme référence stable à la **primitive/face + coordonnées barycentriques**, avec surface/normal/tangente. Une approximation au sommet voisin n'est pas la seule stratégie et n'est pas une preuve suffisante si elle tombe loin de la région.
+4. Reconstruire les **axes signés** à partir de deux landmarks visuellement identifiés, ou les **plans** à partir d'une région identifiée et de sa normale. Un produit vectoriel / une normale du mesh peut calculer la géométrie, mais **la vision indique quel signe correspond au dessus, à l'extérieur, au tranchant ou à la sortie**.
+5. Faire contrôler le **même rôle** dans plusieurs angles : projections 3D compatibles, ID stable, direction signée cohérente; les éléments invisibles restent `unresolved`, pas interpolés vers l'extrémité géométrique la plus proche.
+6. Stocker pour chaque ancre : `part_id`, `role`, `source_view`, `annotated_region`, `mesh_node`, `mesh_primitive`, `triangle_id`, `barycentric_coordinates`, `local_position`, `local_surface_normal`, `local_tangent` (si utile), `signed_axis`/`plane` (si démontré), `evidence`, `projection_error`, `status`.
+
+En notation géométrique : pixel + **profondeur connue** → point monde par déprojection caméra → point local par `inverse(T_object_to_world)`. La matrice caméra et la profondeur sont des **mesures du renderer**, pas des prédictions du modèle.
+
+### À quoi ces repères servent ensuite
+
+| Objet | Régions identifiées par vision | Repères 3D utilisables |
+|---|---|---|
+| **Pot** | Anse/corps, ouverture, lèvre | `grasp_region` + plan de l'ouverture; **normale sortante** comparée au haut gravitationnel pour `keep_upright`, puis lèvre orientée vers la cible pendant `pour` |
+| **Fusil** | Poignée, garde-main, crosse, bouche, mire | Contacts main/main/épaule + axe signé **crosse → bouche** pour `point_at`; ne pas confondre avec l'axe principal d'un maillage |
+| **Hache** | Manche inférieur/supérieur, tête, face tranchante | Deux zones de contact, repère longitudinal du manche, direction vers **le vrai tranchant**, trajectoire déterminée par le geste |
+| **Épée** | Poignée, tranchant, pointe, garde | Repère de paume + **axe de pointe** (estoc) distinct de la **normale du tranchant** (taille) |
+| **Bouclier** | Poignée arrière, sangle, face protectrice | Région d'attache à l'avant-bras + **normale signée de la face avant** vers la menace |
+| **Torche / lanterne** | Zone de prise ou suspension, foyer/flamme | Repère d'accroche + direction de la flamme et marge d'éloignement du corps; la suspension peut pivoter relativement à la main |
+
+Ce qui dépend de **l'objet** (points, régions, normales et axes) devient réutilisable avec différents personnages. Ce qui dépend du **personnage/clip** (paume, reachabilité, IK, trajectoire) se résout ensuite, sans refaire la classification sémantique pour chaque animation. Ce qui dépend du **monde/état** (gravité, cible, liquide, remplissage) s'évalue à chaque mode et pose.
+
+**Interdictions :** ne pas utiliser une PCA pour décider de la tête ou du tranchant; ne pas remplacer une normale signée inconnue par le signe arbitraire du mesh; ne pas supposer qu'un rectangle 2D à lui seul révèle une surface cachée; ne pas déduire que le pot est rempli d'après sa forme; ne pas confondre un repère de prise avec une pose de main déjà validée.
+
 ## Questions exactes à poser au modèle vision
 
 La requête doit demander, dans cet ordre :
