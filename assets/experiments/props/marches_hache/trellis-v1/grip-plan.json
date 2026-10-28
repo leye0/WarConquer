@@ -52,8 +52,20 @@
   "paid_vision_requests": 1,
   "automatic_paid_retries": 0,
   "visual_qa": {
-    "status": "candidate",
-    "reason": "LLM viewed live Idle and Attack; not yet independently checked after applying new transform"
+    "status": "rejected",
+    "signature": "b79b422d991368349610592b4d121103555e3450b85b88edb69bae167c73658c",
+    "confidence": 1.0,
+    "issues": [
+      "The axe head is facing the wrong direction. It should be pointing away from the character's body when held in this manner."
+    ],
+    "reason": "The character is holding the axe, but the cutting edge is facing inwards towards the character's body, which is not the physically expected orientation for an axe. The handle grip is correct, and the scale appears plausible.",
+    "vision_model": "google/gemini-2.5-flash-lite",
+    "checked_views": [
+      "front",
+      "side",
+      "back",
+      "action"
+    ]
   },
   "vision_review": {
     "target_length_relative_character_height": 1.1,
