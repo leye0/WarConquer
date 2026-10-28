@@ -34,15 +34,15 @@ jobs:
           python scripts/test-prop-visual-qa.py
           python scripts/test-verify-prop-visual-qa.py
           node scripts/test-prop-motion-contact.mjs
-      - name: Ground GLB regions with Qwen (semantic labels, no concept-space coordinates)
+      - name: Ground GLB points with exact coordinate grid and strict spatial schema
         run: |
-          # Prior Qwen vision response copied the original illustration's 2D
-          # annotation coordinates into the *different* GLB camera frame.
-          # Re-annotate from real textured mesh pixels with role labels only.
-          # Immutable prior (including rejected) responses remain inspectable.
+          # Second Qwen reply localized named grips, but emitted four-number
+          # BOXES for legacy two-number POINTS. The stronger schema prevents
+          # this; visible panel ticks enable unambiguous mesh coordinates.
+          # Immutable failed results and raw evidence remain inspectable.
           python scripts/prop-mesh-landmarks.py \
             --plan assets/experiments/props/marches_hache/trellis-v1/grip-plan.json \
-            --pass-id qwen_role_only --model qwen/qwen3-vl-235b-a22b-instruct
+            --pass-id qwen_grid_ticks --model qwen/qwen3-vl-235b-a22b-instruct
       - name: Preserve the GLB source-matched vision receipts and the canonical plan on the feature branch
         if: always()
         shell: bash

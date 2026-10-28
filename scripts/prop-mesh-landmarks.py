@@ -32,11 +32,15 @@ MODEL = "google/gemini-2.5-flash-lite"
 LANDMARKS = ("handle_butt", "grip_center", "working_head", "functional_edge")
 VIEW_SIZE = 510
 MARGIN = 38
+POINT_SCHEMA = {"type": "array", "items": {"type": "number"},
+                "minItems": 2, "maxItems": 2}
+REGION_SCHEMA = {"type": "array", "items": {"type": "number"},
+                 "minItems": 4, "maxItems": 4}
 SCHEMA = {
     "type": "object", "additionalProperties": False,
     "properties": {
         "view": {"type": "integer", "enum": [0, 1, 2, 3]},
-        **{name: {"type": "array", "items": {"type": "number"}} for name in LANDMARKS},
+        **{name: POINT_SCHEMA for name in LANDMARKS},
         "confidence": {"type": "number"},
         "explanation": {"type": "string"},
     },
@@ -51,6 +55,15 @@ PROMPT = (
     "coordinate systems. Never copy any point, box, or numeric position from "
     "the illustration. Locate every requested point ANEW on the visible "
     "pixels of the actual 3D mesh in a specific VIEW of IMAGE 1. "
+    "Legacy landmarks handle_butt, grip_center, working_head, and "
+    "functional_edge are POINTS: exactly TWO numbers [x,y] each; they "
+    "must NOT be bounding boxes. Named grip/feature regions are bounding "
+    "boxes: exactly FOUR numbers [xmin,ymin,xmax,ymax]. "
+    "Each 3D view has a faint grid with 0.1 coordinate ticks in its OWN "
+    "panel. Use those ticks to measure the precise IMAGE 1 positions. "
+    "Before answering, CHECK that EVERY point lands on visible TEXTURED "
+    "object pixels, never blank grid/background; keep functional-feature "
+    "regions tight around actual visible material (metal, wood, string). "
     "Select ONE of the four views where the functional working edge and "
     "handle are CLEARLY visible. Coordinates of ALL four landmarks must be "
     "normalized [x,y] (0..1) WITHIN THE SELECTED PANEL, including its margin. "
@@ -138,9 +151,9 @@ def named_schema(semantic):
             raise ValueError("Duplicate source-confirmed semantic identifier")
         props = {"id": {"type": "string", "enum": names},
                  "view": {"type": "integer", "enum": [0, 1, 2, 3]},
-                 "region": {"type": "array", "items": {"type": "number"}},
+                 "region": REGION_SCHEMA,
                  "evidence": {"type": "string"}}
-        props.update({field: {"type": "array", "items": {"type": "number"}}
+        props.update({field: POINT_SCHEMA
                       for field in point_fields})
         extra[collection] = {"type": "array", "items": {"type": "object",
             "additionalProperties": False, "properties": props,
@@ -259,7 +272,15 @@ def make_views(meshes):
         # CPU-rasterize the ACTUAL GLB baseColorTexture using its UVs and a
         # depth buffer. Flat brown silhouettes erase exactly the material
         # evidence that vision needs to distinguish wood, metal and sharp edge.
-        pixels=np.full((VIEW_SIZE,VIEW_SIZE,3),(250,250,249),dtype=np.uint8)
+        grid=Image.new("RGB",(VIEW_SIZE,VIEW_SIZE),(250,250,249))
+        ticks=ImageDraw.Draw(grid)
+        for tenth in range(1,10):
+            p=tenth*VIEW_SIZE//10
+            ticks.line((p,0,p,VIEW_SIZE-1),fill=(231,232,234))
+            ticks.line((0,p,VIEW_SIZE-1,p),fill=(231,232,234))
+            ticks.text((p+2,45),f"{tenth/10:.1f}",fill=(126,132,136))
+            ticks.text((5,p+2),f"{tenth/10:.1f}",fill=(126,132,136))
+        pixels=np.asarray(grid,dtype=np.uint8).copy()
         zbuffer=np.full((VIEW_SIZE,VIEW_SIZE),-np.inf,dtype=float)
         for mesh in meshes:
             coords = mesh["world"]-center
@@ -480,6 +501,25 @@ def annotated_view_image(source, answer):
     """Make the model's actual claimed semantic regions inspectable as PNG."""
     picture=Image.open(io.BytesIO(source)).convert("RGB")
     draw=ImageDraw.Draw(picture)
+    legacy_view=answer.get("view",0)
+    if type(legacy_view) is int and legacy_view in range(4):
+        ox=(legacy_view%2)*VIEW_SIZE;oy=(legacy_view//2)*VIEW_SIZE
+        for label in LANDMARKS:
+            position=answer.get(label,[])
+            if not isinstance(position,list) or not all(
+                    isinstance(p,(float,int)) for p in position):
+                continue
+            if len(position)==2:
+                x,y=ox+position[0]*VIEW_SIZE,oy+position[1]*VIEW_SIZE
+                draw.ellipse((x-4,y-4,x+4,y+4),fill=(25,149,111),
+                    outline=(255,255,255),width=1)
+                draw.text((x+5,y+5),label,fill=(25,101,78))
+            elif len(position)==4:
+                x0,y0,x1,y1=position
+                draw.rectangle((ox+x0*VIEW_SIZE,oy+y0*VIEW_SIZE,
+                    ox+x1*VIEW_SIZE,oy+y1*VIEW_SIZE),outline=(215,135,0),width=2)
+                draw.text((ox+x0*VIEW_SIZE,oy+y0*VIEW_SIZE-12),
+                    label+" [BAD BOX]",fill=(150,83,0))
     for kind,color,points in (("grips",(20,115,230),("point",)),
                               ("features",(223,45,67),("origin","direction_tip"))):
         for item in answer.get(kind,[]):

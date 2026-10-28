@@ -101,6 +101,12 @@ def test_lift_keeps_signed_functional_edge():
             "evidence":"Visible sharp side of working head"}]}
     expected=module.named_schema(semantic)
     assert set(expected["properties"]) == set(annotated)
+    for key in module.LANDMARKS:
+        assert expected["properties"][key]["minItems"] == 2
+        assert expected["properties"][key]["maxItems"] == 2
+    grip_shape=expected["properties"]["grips"]["items"]["properties"]
+    assert grip_shape["region"]["minItems"] == 4
+    assert grip_shape["point"]["maxItems"] == 2
     lifted=module.lift_named_landmarks(meshes,views,annotated,semantic)
     assert set(lifted["grips"])=={"lower_handle","upper_handle"}
     assert set(lifted["features"])=={"cutting_edge"}
