@@ -50,6 +50,58 @@
       wrist:[...target],reach};
   }
 
+  function reachableSecondaryGripTarget({sourcePrimary,sourceSecondary,scale,
+      primaryPalm,secondaryPalm,shoulder,elbow,wrist,palmOffset=[0,0,0],
+      margin=.025}){
+    // The object fixes grip spacing, and the real animated arm fixes reach.
+    // The allowable SECOND contact is the INTERSECTION of two spheres:
+    //   object radius around the primary palm, limb radius around shoulder.
+    // Project the existing Mixamo palm direction to the nearest feasible
+    // spherical cap; neither a weapon axis nor a per-clip pose is invented.
+    for(const [name,p] of Object.entries({sourcePrimary,sourceSecondary,
+        primaryPalm,secondaryPalm,shoulder,elbow,wrist,palmOffset}))
+      requirePoint(p,name);
+    if(!Number.isFinite(scale)||scale<=0||!Number.isFinite(margin)||margin<0)
+      throw Error("Invalid source-vision grip scale or anatomical safety margin");
+    const radius=v.norm(v.sub(sourceSecondary,sourcePrimary))*scale;
+    if(radius<1e-5)throw Error("Two visual grips are not physically distinct");
+    const reach=armReach(shoulder,elbow,wrist,wrist);
+    const effectiveShoulder=plus(shoulder,palmOffset);
+    const fromPrimary=v.sub(effectiveShoulder,primaryPalm);
+    const separation=v.norm(fromPrimary);
+    const natural=unit(v.sub(secondaryPalm,primaryPalm));
+    if(!natural)throw Error("Animated palms are indistinguishable");
+    if(separation<1e-6){
+      if(radius>reach.max-margin)
+        throw Error("Vision grips farther apart than the real arm can reach");
+      return {target:plus(primaryPalm,v.mul(natural,radius)),reach,
+        requiredLength:radius,reachAdjusted:false};
+    }
+    const shoulderDir=v.mul(fromPrimary,1/separation);
+    const maxRadius=reach.max-margin;
+    const cosine=(radius*radius+separation*separation-maxRadius*maxRadius)/
+      (2*radius*separation);
+    if(cosine>1+1e-7)
+      throw Error("Vision grip spacing and actual shoulder cannot satisfy two-hand carry");
+    let direction=natural;
+    let adjusted=false;
+    if(cosine>-1 && v.dot(direction,shoulderDir)<cosine){
+      let tangent=v.sub(direction,v.mul(shoulderDir,v.dot(direction,shoulderDir)));
+      if(v.norm(tangent)<1e-7){
+        const elbowHint=v.sub(elbow,shoulder);
+        tangent=v.sub(elbowHint,v.mul(shoulderDir,v.dot(elbowHint,shoulderDir)));
+      }
+      const t=unit(tangent);
+      if(!t)throw Error("Straight Mixamo arm has no observed bend plane");
+      direction=v.add(v.mul(shoulderDir,Math.max(-1,Math.min(1,cosine))),
+        v.mul(t,Math.sqrt(Math.max(0,1-cosine*cosine))));
+      adjusted=true;
+    }
+    const target=plus(primaryPalm,v.mul(direction,radius));
+    return {target,reach,requiredLength:radius,reachAdjusted:adjusted,
+      effectiveShoulder};
+  }
+
   function solveTwoGrips({sourcePrimary,sourceSecondary,featureOrigin,featureTip,
       primaryPalm,secondaryPalm,actionForward,scale,secondaryArm=null}){
     for(const [name,p] of Object.entries({sourcePrimary,sourceSecondary,
@@ -107,5 +159,6 @@
       throw Error("Invalid confirmed anatomical/functional contact mode");
     return mode;
   }
-  return {solveTwoGrips,armReach,twoBoneElbow,rowTransform,resolveMode};
+  return {solveTwoGrips,armReach,twoBoneElbow,reachableSecondaryGripTarget,
+    rowTransform,resolveMode};
 });

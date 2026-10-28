@@ -504,7 +504,22 @@
           current.joints,side,palmFraction).grip;
         const error=v.norm(v.sub(palm,wantedPalm));
         if(error<=.045)return {undo,error,reach:lastReach||{reachable:true}};
-        const desiredW=v.add(w,v.sub(wantedPalm,palm));
+        let desiredW=v.add(w,v.sub(wantedPalm,palm));
+        const measured=limb.armReach(s,e,w,desiredW);
+        if(!measured.reachable){
+          // A rotated hand changes the wrist-to-palm offset. Clamp only a
+          // sub-tolerance residual to the REAL measured arm length, then
+          // measure the palm again. A truly unreachable target remains NO-GO.
+          if(measured.reachDeficit>.045)
+            throw Error("IK hors portée réelle : déficit "+
+              measured.reachDeficit.toFixed(3)+" m (distance "+
+              measured.distance.toFixed(3)+" m, bras "+
+              measured.max.toFixed(3)+" m)");
+          const fromShoulder=v.sub(desiredW,s);
+          const length=measured.distance>measured.max
+            ?measured.max-1e-5:measured.min+1e-5;
+          desiredW=v.add(s,v.mul(v.unit(fromShoulder),length));
+        }
         const expected=limb.twoBoneElbow(s,e,w,desiredW);
         lastReach=expected.reach;
         turn(rig.upperarm,e.map((x,i)=>x-s[i]),
@@ -886,7 +901,22 @@
             jointData,side,spec.palm_from_wrist);
           const secondaryPalm=window.WCRigContact.palmFrame(
             jointData,carryMode.secondary_hand,spec.palm_from_wrist);
-          const desiredBetween=v.sub(secondaryPalm.grip,primaryPalm.grip);
+          const secondaryRig=findGripAnatomy(imported,carryMode.secondary_hand);
+          if(!secondaryRig?.upperarm||!secondaryRig.forearm||!secondaryRig.hand)
+            throw Error("Chaîne Mixamo secondaire manquante");
+          const observedWrist=secondaryRig.hand.getAbsolutePosition().asArray();
+          const constrained=window.WCPropMotionContact.reachableSecondaryGripTarget({
+            sourcePrimary:sourceGrip,
+            sourceSecondary:meshPoints.namedGrips[carryMode.secondary_grip],
+            scale:desiredLength/frame.length,
+            primaryPalm:primaryPalm.grip,
+            secondaryPalm:secondaryPalm.grip,
+            shoulder:secondaryRig.upperarm.getAbsolutePosition().asArray(),
+            elbow:secondaryRig.forearm.getAbsolutePosition().asArray(),
+            wrist:observedWrist,
+            palmOffset:v.sub(secondaryPalm.grip,observedWrist)
+          });
+          const desiredBetween=v.sub(constrained.target,primaryPalm.grip);
           const target=window.WCRigContact.contactFrame(jointData,{
             hand:side,palm_fraction:spec.palm_from_wrist,
             shaft_direction:spec.head_direction,working_face:spec.edge_direction
@@ -922,6 +952,7 @@
           anchor.computeWorldMatrix(true);offset.computeWorldMatrix(true);
           enforceCarrySecondaryContact();
           byId("world").dataset.weaponContactMode="vision-two-palm-live-carry";
+          byId("world").dataset.weaponCarryReachAdjusted=String(constrained.reachAdjusted);
         };
         const afterObserver=state.scene.onAfterRenderObservable.add(()=>{
           if(pendingIkUndo){pendingIkUndo();pendingIkUndo=null;}

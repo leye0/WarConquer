@@ -58,7 +58,9 @@ jobs:
           # Regression replay of the real 0.506 / 0.451 / 0.936 m gaps.
           # A two-hand mode must fit the rigid prop to BOTH animated palms
           # first; the old one-hand gravity hang put grip 2 beyond arm reach.
-          # Iterative IK handles only residual anatomical contact error.
+          # Project the target to the intersection of the exact vision-grip
+          # spacing sphere and the real secondary shoulder reach sphere;
+          # iterative IK then handles only residual palm-offset error.
           python scripts/run-prop-visual-qa.py \
             --unit marches_hache \
             --output "$RUNNER_TEMP/contact-views" \

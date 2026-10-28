@@ -3,7 +3,8 @@
 import assert from "node:assert/strict";
 import {createRequire} from "node:module";
 const require=createRequire(import.meta.url);
-const {solveTwoGrips,armReach,twoBoneElbow,resolveMode}=require("./prop-motion-contact.js");
+const {solveTwoGrips,armReach,twoBoneElbow,reachableSecondaryGripTarget,
+  resolveMode}=require("./prop-motion-contact.js");
 const v=require("./weapon-grip-geometry.js");
 const close=(a,b,tol=1e-9)=>assert(v.norm(v.sub(a,b))<tol,`${a} != ${b}`);
 const labelled={sourcePrimary:[0,-.5,0],sourceSecondary:[0,.3,0],
@@ -39,6 +40,20 @@ assert(Math.abs(v.norm(v.sub(ik.elbow,ik.wrist))-Math.SQRT2)<1e-9);
 assert(ik.elbow[1]>0,"Elbow keeps the observed bend side");
 assert.throws(()=>twoBoneElbow([0,0,0],[1,1,0],[2,0,0],[5,0,0]),/reach/);
 assert.throws(()=>twoBoneElbow([0,0,0],[1,0,0],[2,0,0],[1.5,.5,0]),/bend side/);
+const grasp={sourcePrimary:[0,0,0],sourceSecondary:[0,.8,0],scale:1,
+  primaryPalm:[0,0,0],secondaryPalm:[-.3,0,0],
+  shoulder:[1,0,0],elbow:[1,.4,0],wrist:[1.4,.4,0]};
+const constrained=reachableSecondaryGripTarget(grasp);
+assert(constrained.reachAdjusted,"Unreachable Mixamo palm must change target direction");
+assert(Math.abs(v.norm(constrained.target)-.8)<1e-8,
+  "Known vision grip spacing may not shrink to fake a contact");
+assert(v.norm(v.sub(constrained.target,grasp.shoulder))<constrained.reach.max,
+  "Secondary palm must remain within the measured anatomical reach");
+const natural=reachableSecondaryGripTarget({...grasp,secondaryPalm:[.8,0,0]});
+assert(!natural.reachAdjusted,"Already reachable real Mixamo contacts are preserved");
+close(natural.target,[.8,0,0]);
+assert.throws(()=>reachableSecondaryGripTarget({...grasp,shoulder:[5,0,0],
+  elbow:[5,.4,0],wrist:[5.4,.4,0]}),/cannot satisfy/);
 assert.throws(()=>solveTwoGrips({...labelled,
   primaryPalm:[0,0,0],secondaryPalm:[0,1,0],actionForward:[0,1,0],scale:1}),
   /ambiguous/);
