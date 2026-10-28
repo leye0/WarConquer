@@ -5,10 +5,10 @@ Select a unit by data/units/<unit>.json, audit its inputs and outputs, and
 run the existing repository tools in a reproducible order. GitHub Actions is
 a thin optional wrapper; it never defines pipeline decisions.
 
-The original Marches toolchain still contains hard-coded experiment paths.
-We label this adapter explicitly and refuse to run it for other unit IDs.
-New unit manifests are supported for cataloging, but generator adapters for
-new units must be parameterized before charging an API.
+The original Marches toolchain still contains hard-coded paths. A generic
+manifest-driven turnaround and textured-body builder is now available for
+additional units; rigging and weapon-specific stages remain staged adapters.
+No step may silently substitute another unit's assets.
 """
 from __future__ import annotations
 
@@ -176,8 +176,11 @@ def ensure_adapter(doc):
         raise PipelineError("The current generator adapter only supports the Marches axe")
 
 def execute(doc, stage):
-    # Reading an original concept works for *every* unit. The old generator
-    # adapter remains intentionally limited to the first Marches warrior.
+    # Generic Muse and fal.ai body construction are selected by the unit
+    # manifest, not by a GitHub Actions workflow.
+    if doc.get("adapter") == "manifest_v1" and stage in ("turnaround","body"):
+        py("build-unit-3d.py","--unit",doc["id"],"--stage",stage,"--allow-paid")
+        return
     if stage != "source":
         ensure_adapter(doc)
     prop = doc["equipment"][0]
@@ -294,7 +297,8 @@ def main(argv=None):
             if stage != "integrate" and current["ready"]:
                 print("SKIP", stage, "(existing, validated outputs)", flush=True)
                 continue
-            if stage != "source" and doc.get("adapter") != "legacy_marches_hache":
+            if (stage != "source" and doc.get("adapter") != "legacy_marches_hache"
+                and not (doc.get("adapter") == "manifest_v1" and stage in ("turnaround","body"))):
                 if opts.dry_run:
                     print("ADAPTER REQUIRED", stage, "(unit-specific generator not yet implemented)")
                     continue
