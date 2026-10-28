@@ -7,6 +7,7 @@
  * Read-only. Discovers generated GLBs on each request; never invokes AI APIs.
  */
 import { createServer } from "node:http";
+import { createHash } from "node:crypto";
 import { createReadStream, existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, extname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -57,28 +58,71 @@ function parseJson(file) {
   try { return JSON.parse(readFileSync(file, "utf8")); }
   catch { return null; }
 }
+function fingerprint(file) {
+  return createHash("sha256").update(readFileSync(file)).digest("hex");
+}
+function selectedGripPlan(folder, baseFile) {
+  const base=parseJson(baseFile);
+  if(![2,3].includes(base?.schema))return null;
+  const objectPath=base.inputs?.object_image;
+  const characterPath=base.inputs?.character_image;
+  const modelPath=base.inputs?.object_glb;
+  if(![objectPath,characterPath,modelPath].every(p=>typeof p==="string" &&
+    p.startsWith("assets/") && !p.includes("..") && !p.includes("\\")))return null;
+  const assetHashes=[objectPath,characterPath].map(p=>{
+    const file=resolve(REPO,p);
+    return file.startsWith(REPO+sep)&&existsSync(file)?fingerprint(file):null;
+  });
+  const mesh=resolve(REPO,modelPath);
+  if(!mesh.startsWith(REPO+sep)||!existsSync(mesh)||
+    base.input_hashes?.prop_glb_sha256!==fingerprint(mesh))return null;
+  const candidates=readdirSync(folder).filter(name=>/^grip-plan-v\d+\.json$/.test(name))
+    .sort((a,b)=>Number(b.match(/\d+/)[0])-Number(a.match(/\d+/)[0]));
+  const validated=[];
+  for(const name of candidates){
+    const proposed=parseJson(join(folder,name));
+    const review=proposed?.vision_review;
+    const hashes=proposed?.input_hashes;
+    const status=proposed?.visual_qa?.status;
+    if(!["candidate","approved"].includes(status) ||
+      proposed.inputs?.object_glb!==modelPath ||
+      !Number.isFinite(proposed.derived_image_geometry?.grip_fraction_from_butt))continue;
+    if(proposed.schema===4){
+      if(review?.change_needed!==true || !Number.isFinite(review.confidence) ||
+        review.confidence<.8 || hashes?.source_prop_sha256!==assetHashes[0] ||
+        hashes?.source_character_sha256!==assetHashes[1] ||
+        proposed.specifications?.head_direction!==review.head_direction ||
+        proposed.specifications?.edge_direction!==review.edge_direction)continue;
+    }else if(proposed.schema===3 && status==="approved"){
+      if(hashes?.object_image_sha256!==assetHashes[0] ||
+        hashes?.character_image_sha256!==assetHashes[1] ||
+        hashes?.prop_glb_sha256!==fingerprint(mesh))continue;
+    }else continue;
+    validated.push({file:join(folder,name),plan:proposed,reviewStatus:status});
+  }
+  validated.sort((a,b)=>Number(b.reviewStatus==="approved")-
+    Number(a.reviewStatus==="approved"));
+  if(validated.length)return validated[0];
+  return {file:baseFile,plan:base,reviewStatus:"baseline"};
+}
 // Discover per-unit grip plans, so adding the next weapon never needs a code
 // change in the Character Lab renderer or the static Pages exporter.
 function propPlans(unitId) {
   const folder = join(PROPS_ROOT, unitId);
   const result = [];
   for(const variant of dirs(folder)) {
-    // A vision model cannot self-certify visual correctness by returning
-    // both a proposed scale and a matching estimate. Only promote a v3
-    // attachment after a *separate* live rendered review approves it.
-    const nextPlan = join(folder, variant, "grip-plan-v3.json");
-    const candidate = parseJson(nextPlan);
-    const verified = candidate?.schema === 3 &&
-      candidate?.visual_qa?.status === "approved";
-    const planFile = verified ? nextPlan : join(folder, variant, "grip-plan.json");
-    const plan = parseJson(planFile);
-    if(![2,3].includes(plan?.schema)) continue;
+    // Prefer an in-situ vision correction grounded in the real source images.
+    // Candidates are deliberately exposed for the user's arena validation;
+    // their status remains visible, never falsely promoted to "approved".
+    const selected=selectedGripPlan(join(folder,variant),join(folder,variant,"grip-plan.json"));
+    if(!selected)continue;
+    const {file:planFile,plan,reviewStatus}=selected;
     const glbUrl = plan.inputs?.object_glb;
     if(typeof glbUrl !== "string" || !/^assets\/experiments\/props\/[a-z0-9_/-]+\.glb$/.test(glbUrl))continue;
     const actual = resolve(REPO, glbUrl);
     if(!actual.startsWith(PROPS_ROOT + sep) || !existsSync(actual))continue;
     const prop = {id:unitId+"/"+variant, name:plan.specifications?.object_kind||"Objet",
-      gripPlan:publicPath(planFile), model:publicPath(actual)};
+      gripPlan:publicPath(planFile), gripReviewStatus:reviewStatus, model:publicPath(actual)};
     // Physical size is an independent, approximate metric measurement; the
     // old semantic attachment file is never permitted to dictate it.
     const sizeFile = join(folder, variant, "physical-size.json");
@@ -102,12 +146,9 @@ export function inventory() {
       const models = [];
       const add = (file, name, kind, priority, motion = null) => {
         if (existsSync(file) && statSync(file).isFile()) {
-          const motionReport=parseJson(join(dirname(file),"report.json"));
-          const clips=(motionReport?.animation_clips||[])
-            .map(clip=>clip?.name).filter(name=>typeof name==="string");
           models.push({ id: id + "/" + pose + "/" + kind + "/" + models.length,
             name, kind, priority, motion, url: publicPath(file),
-            bytes: statSync(file).size, clips });
+            bytes: statSync(file).size });
         }
       };
       add(join(base, "unrigged.glb"), "01 · Maillage Hunyuan", "mesh", 10);
@@ -176,11 +217,7 @@ const server = createServer((req, res) => {
   }
   if (pathname === "/" || pathname === "/character-lab.html") {
     pathname = "/character-lab.html";
-  } else if (!["/perception-lab.html","/scripts/perception-brain.js",
-    "/scripts/perception-lab-client.js","/scripts/resource-inventory.js",
-    "/scripts/perception-gait.js","/scripts/perception-combat.js",
-    "/scripts/character-lab-client.js","/scripts/weapon-grip-geometry.js",
-    "/scripts/equipment-animation-policy.js","/scripts/arena-scene.js"].includes(pathname) && !pathname.startsWith("/assets/")) {
+  } else if (!["/scripts/character-lab-client.js","/scripts/weapon-grip-geometry.js","/scripts/equipment-animation-policy.js","/scripts/arena-scene.js"].includes(pathname) && !pathname.startsWith("/assets/")) {
     return send(res, 404, "Not found");
   }
   let absolute;

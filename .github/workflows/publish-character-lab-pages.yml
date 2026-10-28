@@ -16,6 +16,7 @@ on:
       - 'scripts/test-resource-inventory.mjs'
       - 'scripts/perception-lab-client.js'
       - 'scripts/test-perception-brain.mjs'
+      - 'scripts/test-grip-plan-selection.mjs'
       - 'scripts/character-lab-client.js'
       - 'scripts/weapon-grip-geometry.js'
       - 'scripts/equipment-animation-policy.js'
@@ -63,6 +64,7 @@ jobs:
           node --check scripts/weapon-grip-geometry.js
           node --check scripts/equipment-animation-policy.js
           node scripts/test-equipment-animation-policy.mjs
+          node scripts/test-grip-plan-selection.mjs
           node --check scripts/serve-character-lab.mjs
           node --check scripts/build-character-lab-pages.mjs
       - name: Build minimal public Character Lab bundle
@@ -94,7 +96,7 @@ jobs:
               const planPath=p.gripPlan.startsWith("/")?p.gripPlan.slice(1):p.gripPlan;
               const modelPath=p.model.startsWith("/")?p.model.slice(1):p.model;
               const plan=JSON.parse(readFileSync(join(dir,planPath)));
-              assert([2,3].includes(plan.schema),"Invalid grip plan for "+p.id);
+              assert([2,3,4].includes(plan.schema),"Invalid grip plan for "+p.id);
             if(plan.schema===3){
               assert(plan.source_provenance?.generation_brief_sha256,"Unprovenanced grip plan");
               assert(plan.scale_observation?.character_image_shows_full_object,"Scale not based on full character reference");

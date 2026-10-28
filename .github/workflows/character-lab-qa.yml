@@ -38,6 +38,7 @@ jobs:
           node scripts/audit-motion-library.mjs
           node --check scripts/weapon-grip-geometry.js
           node scripts/test-weapon-grip-geometry.mjs
+          node scripts/test-grip-plan-selection.mjs
           node --check scripts/serve-character-lab.mjs
       - name: Install pinned Babylon bundles locally for reliable WebGL QA
         run: |
@@ -91,7 +92,7 @@ jobs:
             assert(character.props?.length>0, "no unit-specific vision attachment plan");
             const prop=character.props[0];
             const plan=await fetch(base+prop.gripPlan);
-            assert(plan.ok && (await plan.json()).schema===2, "semantic grip plan unavailable");
+            assert(plan.ok && [2,3,4].includes((await plan.json()).schema), "semantic grip plan unavailable");
             const weapon=await fetch(base+prop.model);
             assert(weapon.ok && new TextDecoder().decode((await weapon.arrayBuffer()).slice(0,4))==="glTF",
               "discovered GLB weapon invalid");

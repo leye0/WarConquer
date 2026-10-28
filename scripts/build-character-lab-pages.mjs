@@ -8,6 +8,7 @@
  * images/GLBs are published. No secrets, git history, or generation scripts.
  */
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, extname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -69,12 +70,26 @@ bytes += publish("perception-lab.html");
 bytes += publish("scripts/arena-scene.js");
 bytes += publish("scripts/perception-brain.js");
 bytes += publish("scripts/resource-inventory.js");
-bytes += publish("scripts/perception-gait.js");
-bytes += publish("scripts/perception-combat.js");
 bytes += publish("scripts/perception-lab-client.js");
 bytes += publish("scripts/character-lab-client.js");
 bytes += publish("scripts/weapon-grip-geometry.js");
 bytes += publish("scripts/equipment-animation-policy.js");
+// Publish URLs that change with the JS contents. Mobile browsers otherwise
+// reuse the previous rotation logic even after a successful Pages deployment.
+for (const page of ["index.html","character-lab.html"]) {
+  const target=join(output,page);
+  let html=readFileSync(target,"utf8");
+  for(const script of ["character-lab-client.js","weapon-grip-geometry.js",
+                         "equipment-animation-policy.js","arena-scene.js"]){
+    const name="scripts/"+script;
+    const hash=createHash("sha256").update(readFileSync(join(repo,name)))
+      .digest("hex").slice(0,12);
+    const old='src="'+name+'"';
+    assert(html.includes(old),"Missing script include for cache busting: "+name);
+    html=html.replace(old,'src="'+name+'?v='+hash+'"');
+  }
+  writeFileSync(target,html);
+}
 for (const path of [...assets].sort()) bytes += publish(path);
 const apiDir = join(output, "api");
 mkdirSync(apiDir, { recursive: true });
