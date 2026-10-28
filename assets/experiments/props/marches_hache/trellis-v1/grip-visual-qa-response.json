@@ -1,15 +1,15 @@
 {
   "schema": 1,
-  "signature": "8205a43e191b772ae4182c9292ccf8b468ee958e15a9a6437a93c60c8731fad6",
+  "signature": "fa2c07f05405af6557cbde463ebf6e182a5b044816f36958aa1855ef961cd289",
   "vision_model": "google/gemini-2.5-flash-lite",
   "raw_review": {
     "go": false,
     "confidence": 0.9,
     "issues": [
-      "The axe head is oriented incorrectly during the walk and run animations, facing into the character's body instead of away from it.",
-      "In the action and action_mid animations, the axe handle appears to be clipping through the character's hand, indicating an improper grip.",
-      "The axe head is positioned too high relative to the character's gripping hand during the walk and run animations, which is not plausible for a heavy weapon."
+      "The axe head is clipping through the character's back in the side view.",
+      "The axe head is clipping through the character's arm in the action view.",
+      "The axe head is clipping through the character's leg in the action_mid view."
     ],
-    "explanation": "The prop is not consistently gripped correctly across all animations. The orientation of the axe head is problematic during locomotion, and its position relative to the hand during walking and running is not plausible for a heavy weapon. Clipping is also observed during action animations."
+    "explanation": "The axe is not held correctly in all animations. There is significant clipping of the axe head through the character's body in multiple views, indicating a collision issue or incorrect attachment point. The passive carry also appears to be problematic as the axe head is not positioned safely away from the character's body."
   }
 }
