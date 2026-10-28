@@ -158,3 +158,20 @@ Le modèle vision léger (`google/gemini-2.5-flash-lite`) reçoit uniquement la 
 Le résultat initial de notre hache est **110 cm** (`assets/experiments/props/marches_hache/trellis-v1/physical-size.json`) pour un coût OpenRouter de **0,0001421 $ US**. C'est une estimation grossière, pas une mesure certifiée. Le jeu adopte 1 unité = 1 mètre (avatar affiché à 1,9 unité) et transforme les centimètres en mètres pour normaliser le GLB. Le plan de prise existant sert uniquement à choisir la main, la position et l'orientation, **sans imposer son ancienne longueur de 110 %**.
 
 Le script actif est `scripts/estimate-prop-physical-size.py` ; la définition d'entrée se trouve dans `assets/experiments/props/marches_hache/trellis-v1/physical-size-request.json`. L'ancien système de mesures comparatives (v3-v6) reste archivé pour référence mais ne pilote pas la taille. Les tests Chrome comparent la longueur utilisée dans l'arène à celle enregistrée en centimètres.
+
+
+## Sélection de plusieurs unités (test d'extensibilité)
+
+Le Character Lab présente désormais un menu **Choisir une unité**, distinct du sélecteur de variante GLB. La première unité, `marches_hache`, possède toujours son modèle 3D UV, son rig, ses huit mouvements Mixamo et sa hache TRELLIS. La deuxième, `couronne_archer`, réutilise sa **vraie illustration originale** déjà produite dans `assets/concepts/couronne/units/archer.png` et est déclarée dans `data/units/couronne_archer.json`.
+
+**État réel du test :** l'archer a bien sa fiche 2D, mais ses quatre profils, le GLB fal.ai, son rig, son arc 3D et ses animations de tir n'existent pas encore. Le menu permet de sélectionner cette unité et d'afficher son concept, **sans prétendre rendre une animation 3D ni réutiliser le guerrier des Marches**. La zone de scène affiche explicitement « Modèle 3D en préparation » et désactive les actions non disponibles.
+
+Le pipeline local est testable sans paiement :
+```bash
+python scripts/unit-pipeline.py status --unit couronne_archer
+python scripts/unit-pipeline.py run --unit couronne_archer --stage source
+python scripts/unit-pipeline.py run --unit couronne_archer --dry-run
+```
+Il valide le fichier source et liste les étapes manquantes. Les générateurs d'origine fal/Muse/Replicate sont encore dédiés à `marches_hache`; un appel de génération sur l'archer est volontairement bloqué jusqu'à un adaptateur générique. Il ne s'agit **pas** d'une chaîne de génération de l'archer validée de bout en bout. L'exécution à venir en 3D nécessitera les nouvelles générations et les gestes d'archerie.
+
+Le catalogue Pages est le **même** que celui du serveur local : les unités dont le 3D manque sont publiées avec `models:[]`, `buildStatus: "source_only"`, l'image d'origine et le chemin de manifeste. Les tests navigateur sélectionnent l'archer, confirment l'absence de vieux maillage 3D, puis reviennent au guerrier jouable.
