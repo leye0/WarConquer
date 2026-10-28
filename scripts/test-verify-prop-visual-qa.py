@@ -20,5 +20,8 @@ selection_spec=importlib.util.spec_from_file_location("selection",Path(__file__)
 selection=importlib.util.module_from_spec(selection_spec)
 selection_spec.loader.exec_module(selection)
 assert set(selection.CHOICES)=={"forward","backward","inward","outward"}
+assert set(selection.choices_for("head_direction"))=={
+    "toward_elbow","toward_fingers","up","down","forward","backward"}
+assert selection.choices_for("edge_direction")==selection.CHOICES
 assert not any("axe" in candidate or "bow" in candidate for candidate in selection.CHOICES)
 print("PASS: alternative orientations come from anatomy, not a named weapon")

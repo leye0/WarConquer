@@ -60,8 +60,9 @@ def run(selected,output,allow_paid):
                 cwd=ROOT,check=True,timeout=180)
             if not qa.review(plan,screenshots):
                 old_doc=json.loads(plan.read_text())
-                if old_doc.get("automatic_orientation_selection"):
-                    failures.append(unit+"/"+prop+" (visual NO-GO despite one full candidate search)")
+                previous_search=old_doc.get("automatic_orientation_selection",{})
+                if previous_search.get("selected_head_direction"):
+                    failures.append(unit+"/"+prop+" (visual NO-GO after both anatomical axis searches)")
                     continue
                 # Instead of a weapon-specific angle fix, render the SAME GLB
                 # with every valid anatomical working-face direction. Vision
@@ -69,31 +70,34 @@ def run(selected,output,allow_paid):
                 # one; the regular GO gate then checks it independently.
                 original=plan.read_text()
                 source=json.loads(original)
-                previous=source["specifications"]["edge_direction"]
-                alternatives=output/(unit+"_"+prop+"_alternatives")
+                edge_already_selected=(previous_search.get("selected_edge_direction")
+                                      or previous_search.get("selected_direction"))
+                axis="head_direction" if edge_already_selected else "edge_direction"
+                previous=source["specifications"][axis]
+                alternatives=output/(unit+"_"+prop+"_"+axis+"_alternatives")
                 try:
-                    for direction in selector.CHOICES:
+                    for direction in selector.choices_for(axis):
                         target=alternatives/direction
                         if direction==previous:
                             shutil.copytree(screenshots,target,dirs_exist_ok=True)
                             continue
                         candidate=json.loads(original)
-                        candidate["specifications"]["edge_direction"]=direction
+                        candidate["specifications"][axis]=direction
                         plan.write_text(json.dumps(candidate,ensure_ascii=False,indent=2)+"\n")
                         subprocess.run(["node","scripts/capture-prop-contact.mjs",unit,prop,str(target)],
                             cwd=ROOT,check=True,timeout=180)
                 finally:
                     plan.write_text(original)
-                direction=selector.choose(plan,alternatives,previous)
+                direction=selector.choose(plan,alternatives,previous,axis)
                 updated=json.loads(original)
-                updated["specifications"]["edge_direction"]=direction
+                updated["specifications"][axis]=direction
                 updated.pop("vision_review",None)
                 updated["visual_qa"]={"status":"candidate",
                     "reason":"Real-browser alternatives ranked by low-cost vision"}
-                updated["automatic_orientation_selection"]={
+                updated["automatic_orientation_selection"]={**previous_search,
                     "method":"real-3d-vision-candidate-search",
-                    "previous_direction":previous,"selected_direction":direction,
-                    "candidates":list(selector.CHOICES)}
+                    "previous_"+axis:previous,"selected_"+axis:direction,
+                    "candidates_"+axis:list(selector.choices_for(axis))}
                 plan.write_text(json.dumps(updated,ensure_ascii=False,indent=2)+"\n")
                 if not qa.review(plan,alternatives/direction):
                     failures.append(unit+"/"+prop+" (no GO after visual candidate selection)")
