@@ -1,0 +1,190 @@
+{
+  "schema": 1,
+  "model": "google/gemini-2.5-flash",
+  "pass_id": "studio_flash_crops2",
+  "glb_view": 2,
+  "bbox_convention": "xyxy_normalized_1000",
+  "receipt": "assets/experiments/props/marches_hache/trellis-v1/vision-region-receipts/studio-studio_flash_crops2-eacb78fec4e3d277fd73a9b277139bf586f98cf125e5afc6bf5166cac878a624.json",
+  "overlay": "assets/experiments/props/marches_hache/trellis-v1/vision-regions-studio-studio_flash_crops2.png",
+  "boxes": {
+    "handle_butt": {
+      "visible": true,
+      "box_2d": [
+        580.8,
+        788.2,
+        608.3,
+        865.9
+      ],
+      "confidence": 0.9
+    },
+    "grip_center": {
+      "visible": true,
+      "box_2d": [
+        434.3,
+        617.3,
+        521.8,
+        695.3
+      ],
+      "confidence": 0.9
+    },
+    "working_head": {
+      "visible": true,
+      "box_2d": [
+        391.5,
+        213.4,
+        569.0,
+        425.5
+      ],
+      "confidence": 0.9
+    },
+    "functional_edge": {
+      "visible": true,
+      "box_2d": [
+        410.2,
+        219.6,
+        466.7,
+        290.2
+      ],
+      "confidence": 0.9
+    },
+    "grip_lower_haft": {
+      "visible": true,
+      "box_2d": [
+        436.3,
+        782.0,
+        610.3,
+        860.0
+      ],
+      "confidence": 0.9
+    },
+    "grip_upper_haft": {
+      "visible": true,
+      "box_2d": [
+        387.5,
+        546.7,
+        475.8,
+        624.7
+      ],
+      "confidence": 0.9
+    },
+    "axe_head": {
+      "visible": true,
+      "box_2d": [
+        512.2,
+        213.7,
+        568.6,
+        284.3
+      ],
+      "confidence": 0.9
+    }
+  },
+  "boxes_within_labeled_crops_1000": {
+    "handle_butt": {
+      "visible": true,
+      "box_2d": [
+        790,
+        400,
+        868,
+        620
+      ],
+      "confidence": 0.9
+    },
+    "grip_center": {
+      "visible": true,
+      "box_2d": [
+        375,
+        399,
+        623,
+        620
+      ],
+      "confidence": 0.9
+    },
+    "working_head": {
+      "visible": true,
+      "box_2d": [
+        248,
+        199,
+        751,
+        800
+      ],
+      "confidence": 0.9
+    },
+    "functional_edge": {
+      "visible": true,
+      "box_2d": [
+        590,
+        200,
+        750,
+        400
+      ],
+      "confidence": 0.9
+    },
+    "grip_lower_haft": {
+      "visible": true,
+      "box_2d": [
+        375,
+        399,
+        868,
+        620
+      ],
+      "confidence": 0.9
+    },
+    "grip_upper_haft": {
+      "visible": true,
+      "box_2d": [
+        248,
+        399,
+        498,
+        620
+      ],
+      "confidence": 0.9
+    },
+    "axe_head": {
+      "visible": true,
+      "box_2d": [
+        590,
+        200,
+        750,
+        400
+      ],
+      "confidence": 0.9
+    }
+  },
+  "original_point_positions_1000": {
+    "handle_butt": [
+      479.1,
+      881.1
+    ],
+    "grip_center": [
+      479.1,
+      653.9
+    ],
+    "working_head": [
+      480.0,
+      318.9
+    ],
+    "functional_edge": [
+      378.6,
+      324.6
+    ],
+    "grip_lower_haft": [
+      480.7,
+      817.3
+    ],
+    "grip_upper_haft": [
+      477.4,
+      581.7
+    ],
+    "axe_head": [
+      480.0,
+      318.9
+    ]
+  },
+  "status": "rejected",
+  "issues": [
+    "handle_butt: existing GLB landmark is OUTSIDE independently vision-labeled bbox",
+    "functional_edge: existing GLB landmark is OUTSIDE independently vision-labeled bbox",
+    "grip_upper_haft: existing GLB landmark is OUTSIDE independently vision-labeled bbox",
+    "axe_head: existing GLB landmark is OUTSIDE independently vision-labeled bbox"
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "signature": "eacb78fec4e3d277fd73a9b277139bf586f98cf125e5afc6bf5166cac878a624",
+  "model": "google/gemini-2.5-flash",
+  "answer": {
+    "objects": {
+      "handle_butt": {
+        "visible": true,
+        "box_2d": [
+          790,
+          400,
+          868,
+          620
+        ],
+        "confidence": 0.9
+      },
+      "grip_center": {
+        "visible": true,
+        "box_2d": [
+          375,
+          399,
+          623,
+          620
+        ],
+        "confidence": 0.9
+      },
+      "working_head": {
+        "visible": true,
+        "box_2d": [
+          248,
+          199,
+          751,
+          800
+        ],
+        "confidence": 0.9
+      },
+      "functional_edge": {
+        "visible": true,
+        "box_2d": [
+          590,
+          200,
+          750,
+          400
+        ],
+        "confidence": 0.9
+      },
+      "grip_lower_haft": {
+        "visible": true,
+        "box_2d": [
+          375,
+          399,
+          868,
+          620
+        ],
+        "confidence": 0.9
+      },
+      "grip_upper_haft": {
+        "visible": true,
+        "box_2d": [
+          248,
+          399,
+          498,
+          620
+        ],
+        "confidence": 0.9
+      },
+      "axe_head": {
+        "visible": true,
+        "box_2d": [
+          590,
+          200,
+          750,
+          400
+        ],
+        "confidence": 0.9
+      }
+    }
+  }
+}
