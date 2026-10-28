@@ -1,0 +1,87 @@
+name: Equipment · pilot real Mixamo hand contact and vision QA
+
+on:
+  push:
+    branches: [feat/semantic-prop-contact-contract]
+    paths:
+      - '.github/workflows/feature-held-prop-pose-qa.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wc-held-prop-pose-pilot
+  cancel-in-progress: false
+
+jobs:
+  pose-contact:
+    if: contains(github.event.head_commit.message, '[contact-pilot:marches_hache]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Preflight actual unit and confirmed object/GLB contracts
+        run: |
+          set -euo pipefail
+          python -m pip install 'Pillow==11.3.0' 'numpy==2.2.6'
+          python scripts/unit-pipeline.py status --unit marches_hache
+          python scripts/test-prop-interaction-contract.py
+          python scripts/test-prop-mesh-landmarks.py
+          python scripts/test-audit-prop-vision-regions.py
+          python scripts/test-verify-prop-visual-qa.py
+          node scripts/test-prop-motion-contact.mjs
+          node --check scripts/capture-prop-contact.mjs
+      - name: Serve authentic Character Lab and pinned Babylon/WebGL runtime
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-audit --no-fund babylonjs@7.48.3 babylonjs-loaders@7.48.3
+          mkdir -p assets/browser-qa
+          cp node_modules/babylonjs/babylon.js assets/browser-qa/babylon.js
+          cp node_modules/babylonjs-loaders/babylonjs.loaders.min.js assets/browser-qa/babylonjs.loaders.min.js
+          python - <<'PY'
+          from pathlib import Path
+          page=Path('character-lab.html')
+          html=page.read_text()
+          html=html.replace('https://cdn.babylonjs.com/babylon.js','/assets/browser-qa/babylon.js')
+          html=html.replace('https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js','/assets/browser-qa/babylonjs.loaders.min.js')
+          page.write_text(html)
+          PY
+          node scripts/serve-character-lab.mjs > "$RUNNER_TEMP/contact-server.log" 2>&1 &
+      - name: Deterministic real Mixamo poses, two-palm geometry and independent vision
+        run: |
+          set -euo pipefail
+          python scripts/run-prop-visual-qa.py \
+            --unit marches_hache \
+            --output "$RUNNER_TEMP/contact-views" \
+            --passes primary,independent \
+            --allow-paid
+      - name: Preserve independent pose verdicts and receipts on feature branch only
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git restore -- character-lab.html
+          git add -A -- assets/experiments/props/marches_hache/trellis-v1/
+          if ! git diff --cached --quiet; then
+            git commit -m 'qa: preserve real Mixamo pose, hand-contact and independent vision verdict'
+            git fetch origin feat/semantic-prop-contact-contract
+            git rebase origin/feat/semantic-prop-contact-contract
+            git push origin HEAD:feat/semantic-prop-contact-contract
+          fi
+      - name: Preserve exact rendered pose evidence, including rejected frames
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marches-axe-real-mixamo-contact-frames
+          path: |
+            ${{ runner.temp }}/contact-views/
+            ${{ runner.temp }}/contact-server.log
+          retention-days: 7
+          if-no-files-found: warn
