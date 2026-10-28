@@ -41,6 +41,7 @@
     importUrl: null, weaponImport: null, weaponAnchor: null
   };
   const viewLabels = { front: "Face", back: "Dos", left: "Profil gauche", right: "Profil droit" };
+  let originalUnitCaption="";
 
   function text(id, value) { const node = byId(id); if (node) node.textContent = value; }
   function setStatus(value, level) {
@@ -95,6 +96,8 @@
     removeImported();
     state.selected=char;
     text("unitName",char.name);
+    text("unitCaption","Concept d’origine prêt. Le pipeline indique les étapes manquantes : quatre vues, corps 3D, squelette, arc et gestes de tir.");
+    text("attackShortcutLabel","Arc non disponible");
     text("sceneUnitLabel",char.name+" · concept initial");
     document.querySelectorAll('[data-command="attack"]').forEach(btn=>
       btn.textContent=btn.id==="runButton"?"Courir":"🏹 Arc indisponible");
@@ -106,6 +109,7 @@
     text("weaponMetric","Arc 3D à générer");
     text("walkMetric","Fiche source prête ; génération 3D non commencée.");
     byId("idleSelect").disabled=true;
+    byId("idleSelect").replaceChildren(new Option("Animations non produites",""));
     byId("attackButton").disabled=true;
     byId("castButton").disabled=true;
     document.querySelectorAll('[data-command="attack"],[data-command="cast"]')
@@ -167,6 +171,8 @@
         byId("world").dataset.unitBuildStatus="playable";
         text("unitBuildStatus","Modèle 3D disponible · prêt à tester");
         text("unitName", c.name);
+        text("unitCaption",originalUnitCaption);
+        text("attackShortcutLabel","Hache");
         text("sceneUnitLabel",c.name+" · camp d’essai");
         document.querySelectorAll('[data-command="attack"]').forEach(btn=>
           btn.textContent=btn.classList.contains("touch-action")?"⚔ Hache":"Espace");
