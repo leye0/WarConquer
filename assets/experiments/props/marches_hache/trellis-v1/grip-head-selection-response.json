@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "signature": "236cb031f3d35ddbe388a4071e8744c03b6e0f8425990f9709c1af5a1644caa2",
+  "model": "google/gemini-2.5-flash-lite",
+  "raw_selection": {
+    "direction": "toward_elbow",
+    "confidence": 1.5,
+    "explanation": "The axe head is pointing downwards and slightly towards the character's elbow, which is a natural resting position for a two-handed axe. The other poses either have the axe in an awkward position or pointing in a direction that would be impractical for a neutral idle stance."
+  }
+}
