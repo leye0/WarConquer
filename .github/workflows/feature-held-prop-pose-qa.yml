@@ -55,9 +55,10 @@ jobs:
       - name: Deterministic real Mixamo poses, two-palm geometry and independent vision
         run: |
           set -euo pipefail
-          # Regression replay of the exact poses that measured 0.506 m,
-          # 0.451 m and 0.936 m secondary-hand gaps. The new generic
-          # iterative anatomical IK must really close both carry/use grips.
+          # Regression replay of the real 0.506 / 0.451 / 0.936 m gaps.
+          # A two-hand mode must fit the rigid prop to BOTH animated palms
+          # first; the old one-hand gravity hang put grip 2 beyond arm reach.
+          # Iterative IK handles only residual anatomical contact error.
           python scripts/run-prop-visual-qa.py \
             --unit marches_hache \
             --output "$RUNNER_TEMP/contact-views" \

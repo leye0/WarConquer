@@ -632,7 +632,13 @@
       hand.computeWorldMatrix(true);
       if(!window.WCRigContact?.contactFrame)
         throw Error("Repères articulaires génériques indisponibles");
-      const gravityCarry=!!frame.carryShaft;
+      const v=window.WCWeaponGrip;
+      const twoHandCarry=carryMode?.hands===2;
+      const sourceBetween=twoHandCarry
+        ?v.sub(meshPoints.namedGrips[carryMode.secondary_grip],sourceGrip):null;
+      const otherInitial=twoHandCarry?window.WCRigContact.palmFrame(
+        joints,carryMode.secondary_hand,spec.palm_from_wrist):null;
+      const gravityCarry=!!frame.carryShaft&&!twoHandCarry;
       const contact=window.WCRigContact.contactFrame(joints,{
         hand:side,palm_fraction:spec.palm_from_wrist,
         shaft_direction:gravityCarry?"gravity":spec.head_direction,
@@ -658,10 +664,16 @@
         carryFit=v.chooseNonCollidingCarry(points,frame,contact.grip,
           contact.blade,away,desiredLength,bodyCapsules);
       }
-      const shaftWorld=new B.Vector3(...(carryFit?.shaft||contact.shaft));
+      const targetBetween=twoHandCarry
+        ?v.sub(otherInitial.grip,contact.grip):null;
+      const sourceCarryFrame=twoHandCarry
+        ?{...frame,shaft:v.unit(sourceBetween)}:frame;
+      const shaftWorld=new B.Vector3(...(twoHandCarry
+        ?targetBetween:carryFit?.shaft||contact.shaft));
       let bladeWorld=new B.Vector3(...contact.blade);
       const worldRotation=buildGripRotation(
-        gravityCarry?{...frame,shaft:frame.carryShaft}:frame,shaftWorld,bladeWorld);
+        gravityCarry?{...frame,shaft:frame.carryShaft}:sourceCarryFrame,
+        shaftWorld,bladeWorld);
       // The hand's imported transform may include nonuniform scale or mirrored
       // GLB basis. Keep the rigid prop in WORLD space and track its anatomical
       // grip explicitly, so child-parent quaternion conventions cannot flip
@@ -678,7 +690,7 @@
       // A source-frame prediction is not necessarily identical to Babylon's
       // final parent/skin/model matrices. Resolve the physical fit using the
       // actual mounted mesh and the *same* generic anatomical constraints.
-      const gripFrame=gravityCarry?{...frame,shaft:frame.carryShaft}:frame;
+      const gripFrame=gravityCarry?{...frame,shaft:frame.carryShaft}:sourceCarryFrame;
       let actualClearance=NaN;
       let actualBalanceY=NaN;
       let actualGripError=NaN;
@@ -747,19 +759,32 @@
         }
       }
       if(interaction&&!selectedFit){
-        // A balanced object (e.g. a bow) has no meaningful gravity carry axis.
-        // Verify its actual mounted vertices without inventing a heavy end.
+        // A two-hand carry is constrained by TWO anatomical palms, not by a
+        // one-hand mass-hanging axis. Test the true imported mesh in each
+        // Babylon handedness, with zero weapon-specific rotation constants.
+        let best=null;
+        for(const transpose of (twoHandCarry?[false,true]:[false])){
+          const q=buildGripRotation(gripFrame,shaftWorld,bladeWorld,transpose);
+          anchor.rotationQuaternion=q;
+          anchor.computeWorldMatrix(true);offset.computeWorldMatrix(true);
+          const marks=importedPropLandmarks(prop.meshes||[],vision);
+          const edge=v.unit(v.sub(marks.functional_edge,marks.working_head));
+          const mountedGrip=carryMode?marks.namedGrips[carryMode.primary_grip]:marks.grip_center;
+          const error=v.norm(v.sub(mountedGrip,contact.grip));
+          const face=v.dot(edge,contact.blade);
+          const partnerError=twoHandCarry?v.norm(v.sub(
+            marks.namedGrips[carryMode.secondary_grip],otherInitial.grip)):0;
+          const score=error*100+partnerError*15+Math.max(0,.5-face)*20;
+          if(!best||score<best.score)best={q:q.clone(),error,face,partnerError,
+            transpose,score};
+        }
+        if(!best||best.error>.04||best.face<.25)
+          throw Error("Montage sémantique anatomique non validé : "+
+            JSON.stringify({gripError:best?.error,functionalFace:best?.face,
+              secondaryError:best?.partnerError}));
+        anchor.rotationQuaternion=best.q;
         anchor.computeWorldMatrix(true);offset.computeWorldMatrix(true);
-        const marks=importedPropLandmarks(prop.meshes||[],vision);
-        const v=window.WCWeaponGrip;
-        const edge=v.unit(v.sub(marks.functional_edge,marks.working_head));
-        const mountedGrip=carryMode?marks.namedGrips[carryMode.primary_grip]:marks.grip_center;
-        const error=v.norm(v.sub(mountedGrip,contact.grip));
-        const face=v.dot(edge,contact.blade);
-        if(error>.04||face<.25)
-          throw Error("Montage sémantique sans axe de gravité non validé : "+
-            JSON.stringify({gripError:error,functionalFace:face}));
-        selectedFit={transpose:false,faceDirection:spec.edge_direction};
+        selectedFit={transpose:best.transpose,faceDirection:spec.edge_direction};
       }
       state.weaponImport=prop;
       state.weaponAnchor=anchor;
@@ -851,6 +876,52 @@
               secondaryGripError:Infinity,gripError:Infinity};
             throw error;
           }
+        };
+        const alignTwoHandCarry=()=>{
+          // Use actual LIVE palms and the two GLB source-confirmed grip IDs.
+          // The rigid object is fitted to the anatomical pair every frame;
+          // residual reach is then handled by real two-bone IK.
+          const jointData=findGripAnatomy(imported,side).joints;
+          const primaryPalm=window.WCRigContact.palmFrame(
+            jointData,side,spec.palm_from_wrist);
+          const secondaryPalm=window.WCRigContact.palmFrame(
+            jointData,carryMode.secondary_hand,spec.palm_from_wrist);
+          const desiredBetween=v.sub(secondaryPalm.grip,primaryPalm.grip);
+          const target=window.WCRigContact.contactFrame(jointData,{
+            hand:side,palm_fraction:spec.palm_from_wrist,
+            shaft_direction:spec.head_direction,working_face:spec.edge_direction
+          });
+          if(v.norm(desiredBetween)<.02)
+            throw Error("Les paumes Mixamo ne fournissent pas deux contacts distincts");
+          if(anchor.parent)anchor.setParent(null,true);
+          anchor.scaling.setAll(desiredLength/frame.length);
+          anchor.position=B.Vector3.FromArray(primaryPalm.grip);
+          let best=null;
+          for(const transpose of [false,true]){
+            let q;
+            try{q=buildGripRotation(gripFrame,
+              new B.Vector3(...desiredBetween),new B.Vector3(...target.blade),transpose);}
+            catch{continue;}
+            anchor.rotationQuaternion=q;
+            anchor.computeWorldMatrix(true);offset.computeWorldMatrix(true);
+            const marks=importedPropLandmarks(prop.meshes||[],vision);
+            const mainError=v.norm(v.sub(
+              marks.namedGrips[carryMode.primary_grip],primaryPalm.grip));
+            const secondaryError=v.norm(v.sub(
+              marks.namedGrips[carryMode.secondary_grip],secondaryPalm.grip));
+            const edge=v.unit(v.sub(marks.functional_edge,marks.working_head));
+            const face=v.dot(edge,target.blade);
+            const score=mainError*100+secondaryError*20+Math.max(0,.6-face)*20;
+            if(!best||score<best.score)best={q:q.clone(),mainError,
+              secondaryError,face,score};
+          }
+          if(!best||best.mainError>.045||best.face<.25)
+            throw Error("Deux prises Mixamo : direction ou paume principale incohérente : "+
+              JSON.stringify({mainError:best?.mainError,face:best?.face}));
+          anchor.rotationQuaternion=best.q;
+          anchor.computeWorldMatrix(true);offset.computeWorldMatrix(true);
+          enforceCarrySecondaryContact();
+          byId("world").dataset.weaponContactMode="vision-two-palm-live-carry";
         };
         const afterObserver=state.scene.onAfterRenderObservable.add(()=>{
           if(pendingIkUndo){pendingIkUndo();pendingIkUndo=null;}
@@ -992,6 +1063,16 @@
             lastCarryPose=null;
           }
           previousAction=false;
+          if(twoHandCarry){
+            try{alignTwoHandCarry();}
+            catch(error){
+              lastCarryPose={mode:state.moving?"moving":"idle",
+                semanticStatus:"rejected",reason:String(error.message||error),
+                expectedHands:2,secondaryGripError:Infinity,gripError:Infinity};
+              byId("world").dataset.weaponContactUpdateError=lastCarryPose.reason;
+            }
+            return;
+          }
           try{
             const next=findGripAnatomy(imported,side).joints;
             const nextFrame=window.WCRigContact.bodyFrame(next);
