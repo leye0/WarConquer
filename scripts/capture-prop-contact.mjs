@@ -111,8 +111,18 @@ try{
     if(!result)throw Error("No live articulated prop contact diagnostic: "+name);
     motionStates.push({name,...result});
     console.log("CONTACT_FRAME",name,JSON.stringify(result));
+    if(result.semanticStatus==="rejected")
+      throw Error("Actual Mixamo/IK contact rejected in "+name+": "+result.reason);
     if(result.gripError>.045)throw Error("Prop slipped out of the palm during "+name);
-    if(["idle","walk","run"].includes(name) &&
+    if(name.startsWith("action")&&result.semanticStatus==="confirmed"){
+      if(result.expectedHands===2&&
+         (!Number.isFinite(result.secondaryGripError)||result.secondaryGripError>.045||
+          result.ikReachable!==true))
+        throw Error("Secondary hand does not touch its vision-labelled GLB grip in "+name);
+      if(!Number.isFinite(result.actionForwardError)||result.actionForwardError>.3)
+        throw Error("Functional action surface points away from the confirmed target");
+    }
+    if(diagnostics.carry==="mass-below-hand"&&["idle","walk","run"].includes(name) &&
       (result.balanceY>=0||result.clearance<-.015||result.edgeOutward<-.15))
       throw Error("Prop inverted, sharp edge inward or intersects body during "+name);
     return result;
@@ -137,9 +147,11 @@ try{
     await sleep(190);
     await checkFrame("action");
     await capture("action");
-    await sleep(300);
-    await checkFrame("action_mid");
-    await capture("action_mid");
+    for(let i=1;i<=5;i++){
+      await sleep(90);
+      await checkFrame("action_mid_"+i);
+      if(i===3)await capture("action_mid");
+    }
   }
   writeFileSync(join(output,"contact-motions.json"),JSON.stringify(motionStates,null,2)+"\n");
   console.log("PASS: real animated humanoid holds requested prop in three browser views");
