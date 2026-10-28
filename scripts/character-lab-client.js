@@ -646,12 +646,21 @@
         const radius=Math.max(.17,shoulderSpan*.46);
         const capsules=[{a:next.joints.Hips,b:next.joints.Chest,radius},
           {a:next.joints.Chest,b:next.joints.Neck||next.joints.Chest,radius:radius*.75}];
+        let secondaryGripError=null;
+        if(spec.hold_mode==="two_hands"){
+          const other=window.WCRigContact.palmFrame(next.joints,
+            side==="left"?"right":"left",spec.palm_from_wrist);
+          const axis=v.unit(v.sub(marks.grip_center,marks.handle_butt));
+          const diff=v.sub(other.grip,marks.grip_center);
+          secondaryGripError=Number(v.norm(v.sub(diff,v.mul(axis,v.dot(diff,axis)))).toFixed(3));
+        }
         return {mode:state.attacking?"action":state.moving?"moving":"idle",
           balanceY:Number((mass[1]-marks.grip_center[1]).toFixed(3)),
           headY:Number((marks.working_head[1]-marks.grip_center[1]).toFixed(3)),
           gripError:Number(v.norm(v.sub(nextContact.grip,marks.grip_center)).toFixed(3)),
           edgeOutward:Number(v.dot(edge,nextContact.blade).toFixed(3)),
           edgeForward:Number(v.dot(edge,nextContact.body.forward).toFixed(3)),
+          secondaryGripError,
           clearance:Number(v.capsuleClearance(mounted,capsules).toFixed(3))};
       };
       if(selectedFit){
@@ -690,16 +699,38 @@
               // The object is rigid in the palm throughout an action. A
               // Mixamo wrist rotation drives the swing; a fixed semantic
               // 'toward_elbow' shaft would flip heavy heads upwards.
-              const currentHand=handRotation();
-              if(!actionReference){
-                const forward=nextContact.body.forward;
-                const startRotation=buildGripRotation(gripFrame,
-                  new B.Vector3(...nextContact.shaft),new B.Vector3(...forward),
-                  selectedFit.transpose);
-                actionReference={hand:currentHand.clone(),prop:startRotation};
+              let solvedWithTwoHands=false;
+              if(spec.hold_mode==="two_hands"){
+                const otherSide=side==="left"?"right":"left";
+                const secondary=window.WCRigContact.palmFrame(
+                  nextJoints,otherSide,spec.palm_from_wrist);
+                const between=v.sub(nextContact.grip,secondary.grip);
+                const spacing=v.norm(between);
+                if(spacing>.07 && spacing<desiredLength*.6){
+                  // Both palms define the handle's line. The working head
+                  // extends beyond the dominant grip, away from the support
+                  // hand; this is independent of the object category.
+                  const shaft=v.unit(between);
+                  anchor.rotationQuaternion=buildGripRotation(gripFrame,
+                    new B.Vector3(...shaft),new B.Vector3(...nextContact.body.forward),
+                    selectedFit.transpose);
+                  solvedWithTwoHands=true;
+                  actionReference=null;
+                }
               }
-              anchor.rotationQuaternion=actionReference.prop.multiply(
-                B.Quaternion.Inverse(actionReference.hand)).multiply(currentHand).normalize();
+              if(!solvedWithTwoHands){
+                const currentHand=handRotation();
+                if(!actionReference){
+                  const forward=nextContact.body.forward;
+                  const startRotation=buildGripRotation(gripFrame,
+                    new B.Vector3(...nextContact.shaft),new B.Vector3(...forward),
+                    selectedFit.transpose);
+                  actionReference={hand:currentHand.clone(),prop:startRotation};
+                }
+                anchor.rotationQuaternion=actionReference.prop.multiply(
+                  B.Quaternion.Inverse(actionReference.hand)).multiply(currentHand).normalize();
+              }
+              byId("world").dataset.weaponActionGrip=solvedWithTwoHands?"two-palm-shaft":"wrist-rigid";
             }
             byId("world").dataset.weaponContactMode=state.attacking?"action":"carry";
           }catch(error){
