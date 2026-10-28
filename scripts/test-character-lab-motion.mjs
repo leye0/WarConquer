@@ -60,7 +60,10 @@ async function state() {
   weaponLengthCm:Number(document.getElementById("world")?.dataset.weaponLengthCm||0),
   weaponScaleOrigin:document.getElementById("world")?.dataset.weaponScaleOrigin||"",
   equipmentAction:document.getElementById("world")?.dataset.equipmentAction||"",
-  equipmentReady:document.getElementById("world")?.dataset.equipmentReady||""}})()`);
+  equipmentReady:document.getElementById("world")?.dataset.equipmentReady||"",
+  unitId:document.getElementById("world")?.dataset.unitId||"",
+  unitBuildStatus:document.getElementById("world")?.dataset.unitBuildStatus||"",
+  conceptVisible:!document.getElementById("conceptPreview")?.hidden}})()`);
 }
 async function until(check,label,timeout=30000) {
   const end=Date.now()+timeout;let last;
@@ -265,6 +268,28 @@ try {
   assert.equal(await js("document.getElementById('runButton').getAttribute('aria-pressed')"),"false","mobile run can turn off");
   await until(s=>s.motion.startsWith("Idle_"),"mobile control returns to idle",12000);
   console.log("MOBILE_BUTTONS_PASS");
+  // An independent second unit exists as an original concept. Verify that
+  // switching to it removes the first unit's 3D actor rather than reusing it.
+  await request("Emulation.setDeviceMetricsOverride",{width:1280,height:800,deviceScaleFactor:1,mobile:false});
+  assert.equal(await js("document.getElementById('unitSelect').options.length"),2,
+    "Unit selector must include playable Marches warrior and Crown archer");
+  await js("(()=>{const e=document.getElementById('unitSelect');e.value='couronne_archer';e.dispatchEvent(new Event('change',{bubbles:true}));})()");
+  const archer=await until(s=>s.unitId==="couronne_archer"&&
+    s.unitBuildStatus==="source_only"&&s.conceptVisible&&
+    s.status.includes("Unité 2D"),"source-only Crown archer in lab",10000);
+  assert.equal(await js("document.getElementById('modelSelect').disabled"),true,
+    "3D selector must be disabled if the selected unit has no GLB");
+  assert.equal(await js("document.getElementById('attackButton').disabled"),true,
+    "No axe attack can be played by an unbuilt archer");
+  assert.equal(await js("BABYLON.EngineStore.LastCreatedEngine.scenes[0].transformNodes.some(n=>n.name==='wc-character-pivot'&&!n.isDisposed())"),false,
+    "Switching units must remove prior warrior model");
+  console.log("SECOND_UNIT_SOURCE_ONLY_PASS",JSON.stringify(archer));
+  await screenshot("couronne-archer-source-only-live");
+  await js("(()=>{const e=document.getElementById('unitSelect');e.value='marches_hache';e.dispatchEvent(new Event('change',{bubbles:true}));})()");
+  await until(s=>s.unitId==="marches_hache"&&s.unitBuildStatus==="playable"&&
+    s.status.startsWith("Prêt")&&s.motion.startsWith("Idle_"),
+    "switching back loads actual Marches 3D model",45000);
+  console.log("SECOND_UNIT_RETURN_TO_3D_PASS");
   console.log("PASS: textured fal 52-bone model, eight archived Mixamo animations, idle selector, casting/fireball, mobile sprint controls and screenshots");
 } finally {
   try{socket?.close();}catch{}
