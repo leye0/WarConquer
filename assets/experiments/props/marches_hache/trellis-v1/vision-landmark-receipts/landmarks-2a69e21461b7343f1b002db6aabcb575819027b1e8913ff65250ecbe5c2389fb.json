@@ -1,0 +1,90 @@
+{
+  "schema": 2,
+  "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+  "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
+  "pass_signature": "2a69e21461b7343f1b002db6aabcb575819027b1e8913ff65250ecbe5c2389fb",
+  "pass_id": "qwen_role_only",
+  "model": "qwen/qwen3-vl-235b-a22b-instruct",
+  "raw_landmarks": {
+    "view": 2,
+    "handle_butt": [
+      0.47,
+      0.94,
+      0.53,
+      0.98
+    ],
+    "grip_center": [
+      0.45,
+      0.62,
+      0.55,
+      0.72
+    ],
+    "working_head": [
+      0.28,
+      0.35,
+      0.38,
+      0.45
+    ],
+    "functional_edge": [
+      0.18,
+      0.32,
+      0.28,
+      0.42
+    ],
+    "confidence": 0.92,
+    "explanation": "Selected VIEW 2 as it clearly shows the full profile of the axe head and handle, with the sharp cutting edge and handle butt both visible. handle_butt is the bottom tip of the wooden haft, visible as the dark, rounded end at the bottom of the panel. grip_center is located on the mid-section of the handle, where the texture and slight bulge suggest a natural palm grip point. working_head is the center of the metal axe head, located at the thickest part of the head near the eye. functional_edge is the outer curved edge of the blade, clearly visible as the sharp, convex cutting surface on the left side of the head \u2014 distinct from the flat poll on the right. All four points are physically distinct and clearly visible in this view.",
+    "grips": [
+      {
+        "id": "grip_lower_haft",
+        "view": 2,
+        "region": [
+          0.42,
+          0.75,
+          0.58,
+          0.98
+        ],
+        "evidence": "The lower portion of the wooden haft, clearly visible in VIEW 2, shows a textured, slightly darker surface consistent with a leather-wrapped grip. It is physically separated from the axe head and extends to the handle butt.",
+        "point": [
+          0.47,
+          0.85
+        ]
+      },
+      {
+        "id": "grip_upper_haft",
+        "view": 2,
+        "region": [
+          0.42,
+          0.45,
+          0.58,
+          0.65
+        ],
+        "evidence": "The upper-middle section of the haft, visible in VIEW 2, shows a smoother, bare wood texture with visible grain and metal bands, clearly distinct from the axe head and the lower leather-wrapped grip.",
+        "point": [
+          0.48,
+          0.55
+        ]
+      }
+    ],
+    "features": [
+      {
+        "id": "axe_head",
+        "view": 2,
+        "region": [
+          0.15,
+          0.25,
+          0.4,
+          0.5
+        ],
+        "evidence": "The entire axe head is visible in VIEW 2. The functional cutting edge is the curved, convex outer edge on the left side of the head, clearly distinct from the flat poll on the right. The direction 'outward toward the visible sharp curved blade edge' is unambiguously defined by the geometry in this view.",
+        "origin": [
+          0.28,
+          0.35
+        ],
+        "direction_tip": [
+          0.18,
+          0.32
+        ]
+      }
+    ]
+  }
+}
