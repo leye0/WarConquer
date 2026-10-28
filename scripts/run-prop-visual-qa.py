@@ -63,7 +63,11 @@ def run(selected,output,allow_paid,passes=("primary","independent")):
                     ", ".join(sorted(expected-available)))
             decisions=[]
             for pass_id in passes:
-                passed=qa.review(plan,screenshots,pass_id)
+                # Independently challenge Gemini with native Qwen3-VL region boxes.
+                # Different vision families avoid a same-model false consensus.
+                model=("qwen/qwen3-vl-8b-instruct"
+                    if pass_id=="independent" else qa.MODEL)
+                passed=qa.review(plan,screenshots,pass_id,model=model)
                 decision=json.loads(plan.read_text())["visual_qa"]
                 decisions.append({"pass_id":pass_id,"go":passed,**decision})
             numeric_ok=capture.returncode==0 and numeric.get("status")=="approved"
