@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "source_hashes": {
+    "object_image": "061c18599da536c363ffa8bb10f648405d31c240f027c3867a46541d2b0d79bc",
+    "character_image": "40596135f14365c2a77258cd34fe8285c2968fc791816023fbe37cdb197982c7",
+    "generation_brief": "7292454751dbea7110a1817f371e5da086f18d3d0b7f578a4f10af92b259680c",
+    "mixamo_catalog": "90f80de12b316420b9af9143e7332938d532b08c728133a2b05123bb7337ae80"
+  },
+  "raw_characterization": {
+    "object_kind": "axe",
+    "object_function": "Axe for chopping wood or combat.",
+    "object_evidence": "IMAGE 1 shows a single-handed axe with a long wooden haft and a broad wedge-shaped iron chopping blade. The haft is reinforced with copper rings and leather wrapping at the grip. The blade is worn steel with a gently curved cutting edge. The overall design aligns with the declared object kind and design brief.",
+    "features": [
+      {
+        "id": "axe_head",
+        "function": "Chopping blade",
+        "origin": [
+          0.76,
+          0.38
+        ],
+        "direction_tip": [
+          0.88,
+          0.28
+        ],
+        "direction_semantics": "forward",
+        "evidence": "IMAGE 1 shows the broad wedge-shaped iron chopping blade of the axe. The cutting edge is clearly visible and appears sharp."
+      },
+      {
+        "id": "haft_upper",
+        "function": "Grip region",
+        "origin": [
+          0.5,
+          0.5
+        ],
+        "direction_tip": [
+          0.3,
+          0.7
+        ],
+        "direction_semantics": "downward",
+        "evidence": "IMAGE 1 shows the upper portion of the wooden haft, which is a potential grip area."
+      },
+      {
+        "id": "haft_lower",
+        "function": "Grip region",
+        "origin": [
+          0.2,
+          0.8
+        ],
+        "direction_tip": [
+          0.05,
+          0.95
+        ],
+        "direction_semantics": "downward",
+        "evidence": "IMAGE 1 shows the lower portion of the wooden haft, wrapped in leather, indicating it is a primary grip area."
+      }
+    ],
+    "grips": [
+      {
+        "id": "grip_upper_haft",
+        "point": [
+          0.4,
+          0.6
+        ],
+        "surface": "wood",
+        "evidence": "IMAGE 1 shows the upper part of the haft, which is a plausible grip location."
+      },
+      {
+        "id": "grip_lower_haft",
+        "point": [
+          0.15,
+          0.85
+        ],
+        "surface": "leather",
+        "evidence": "IMAGE 1 shows the leather-wrapped lower part of the haft, clearly designed for gripping."
+      },
+      {
+        "id": "grip_axe_head_base",
+        "point": [
+          0.65,
+          0.45
+        ],
+        "surface": "metal/wood junction",
+        "evidence": "IMAGE 1 shows the area where the axe head meets the haft, which could be a secondary grip point for two-handed use."
+      }
+    ],
+    "modes": [
+      {
+        "id": "carry_mode",
+        "phase": "carry",
+        "hands": 2,
+        "primary_hand": "right",
+        "primary_grip": "grip_lower_haft",
+        "secondary_hand": "left",
+        "secondary_grip": "grip_upper_haft",
+        "functional_feature": "haft_lower",
+        "action_direction": "none",
+        "mixamo_role": "none",
+        "action_intent": "Carrying the axe in a relaxed manner.",
+        "evidence": "IMAGE 2 shows the character carrying the axe with both hands on the haft, one hand lower and one hand higher, consistent with a two-handed carry."
+      },
+      {
+        "id": "use_mode_chop",
+        "phase": "use",
+        "hands": 2,
+        "primary_hand": "right",
+        "primary_grip": "grip_lower_haft",
+        "secondary_hand": "left",
+        "secondary_grip": "grip_upper_haft",
+        "functional_feature": "axe_head",
+        "action_direction": "down",
+        "mixamo_role": "axe_chop",
+        "action_intent": "Chopping with the axe.",
+        "evidence": "IMAGE 2 shows the character in a pose consistent with preparing to chop or having just chopped with the axe. The Mixamo role 'axe_chop' is appropriate for this action."
+      }
+    ],
+    "confidence": 0.9,
+    "uncertainties": [
+      "The exact grip points for the secondary hand in the 'carry' mode are inferred from the character's pose in IMAGE 2, as the isolated axe in IMAGE 1 does not explicitly define multiple grip regions beyond the primary lower grip."
+    ],
+    "explanation": "The object is identified as an axe based on its visual characteristics in IMAGE 1 and the declared object kind. The features identified are the chopping blade and the haft, with specific grip regions defined on the haft. Two modes are described: a two-handed carry mode and a two-handed chop mode. The carry mode uses both hands on the haft, while the chop mode utilizes the axe head for its primary function and involves a downward action direction. The Mixamo role 'axe_chop' is selected for the use mode. The character in IMAGE 2 provides strong evidence for the two-handed use and carry of this type of axe."
+  },
+  "paid_requests": 1,
+  "automatic_paid_retries": 0
+}
