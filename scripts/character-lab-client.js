@@ -650,7 +650,12 @@
       state.imported=imported;
       lookForAnimations(imported.animationGroups||[]);
       pivot.setEnabled(true);
-      const propPlan=state.selected?.props?.[0]?.gripPlan;
+      // Selection is data-driven. A unit may own several independently
+      // grabbable props; the rig solver itself does not know their identities.
+      const requestedProp=new URLSearchParams(location.search).get("prop");
+      const propEntry=state.selected?.props?.find(p=>p.id===requestedProp)
+        ||state.selected?.props?.[0];
+      const propPlan=propEntry?.gripPlan;
       if (url && propPlan && imported.skeletons?.length)
         void tryEquipProp(imported,token,propPlan);
       setIsometricCamera();
