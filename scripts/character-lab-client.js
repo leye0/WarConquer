@@ -917,18 +917,20 @@
   }
 
   async function boot() {
+    originalUnitCaption=byId("unitCaption")?.textContent||"";
     bindUI();
     await fetchCatalog();
-    if (createWorld()) {
-      const selected=byId("modelSelect").value;
-      if(location.protocol==="file:") {
-        setOverlay("Ouvre avec le serveur local pour charger les modèles automatiquement, ou choisis un GLB.",false);
-        setStatus("Mode fichier : importer un GLB avec le bouton", "warning");
-      } else if(selected) {
-        await loadModel(selected);
-      } else if(state.selected && !state.selected.models.length){
-        showSourceOnly(state.selected);
-      }
+    const hasWorld=createWorld();
+    const path=byId("modelSelect").value;
+    if(state.selected && state.selected.models.length===0) {
+      // Intentionally source-only: keep the image unobscured even when WebGL
+      // or the external Babylon CDN is unavailable.
+      showSourceOnly(state.selected);
+    } else if(hasWorld && location.protocol==="file:") {
+      setOverlay("Ouvre avec le serveur local pour charger les modèles automatiquement, ou choisis un GLB.",false);
+      setStatus("Mode fichier : importer un GLB avec le bouton","warning");
+    } else if(hasWorld && path) {
+      await loadModel(path);
     }
   }
   window.addEventListener("DOMContentLoaded",boot);
