@@ -53,12 +53,12 @@
   "automatic_paid_retries": 0,
   "visual_qa": {
     "status": "rejected",
-    "signature": "bde8d38a9e23d362467de55f2ff15835acfe026c3f7b64fc26d2b90039e1c841",
+    "signature": "3b7a1899ec07e7c2dcf62df63ffa582c4eabab69c2f66b608286328be5c32cbf",
     "confidence": 1.0,
     "issues": [
-      "The axe head is clipping through the character's back in the side view."
+      "The axe head is clipping through the character's back in the side and back views."
     ],
-    "reason": "The axe is held correctly with the heavy end hanging down, but there is a mesh intersection issue where the axe head clips through the character's back in the side view. This needs to be fixed.",
+    "reason": "The axe is held correctly, with the heavy end hanging down. However, the axe head is intersecting with the character's mesh in the side and back views, which is a significant visual artifact.",
     "vision_model": "google/gemini-2.5-flash-lite",
     "checked_views": [
       "front",
