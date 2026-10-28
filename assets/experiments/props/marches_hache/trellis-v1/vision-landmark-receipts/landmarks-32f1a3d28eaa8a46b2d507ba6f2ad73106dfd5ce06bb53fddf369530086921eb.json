@@ -1,0 +1,9 @@
+{
+  "schema": 2,
+  "pass_signature": "32f1a3d28eaa8a46b2d507ba6f2ad73106dfd5ce06bb53fddf369530086921eb",
+  "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+  "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
+  "pass_id": "primary",
+  "model": "google/gemini-2.5-flash-lite",
+  "status": "submission-outcome-unknown"
+}
