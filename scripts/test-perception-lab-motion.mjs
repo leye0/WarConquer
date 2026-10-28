@@ -50,7 +50,7 @@ async function js(expression){
 async function status(){
   return js(`(()=>{
     const t=id=>document.getElementById(id)?.textContent?.trim()||"";
-    const scene=BABYLON.EngineStore.LastCreatedEngine?.scenes[0];
+    const scene=window.BABYLON?.EngineStore.LastCreatedEngine?.scenes[0];
     const pose=scene?.getTransformNodeByName("scout-root")?.position;
     const walk=scene?.animationGroups?.find(g=>/^Walk[_ -]/i.test(g.name));
     return {badge:t("engineBadge"),unit:t("avatarInfo"),motion:t("animationState"),
