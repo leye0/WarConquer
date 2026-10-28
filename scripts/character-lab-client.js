@@ -916,40 +916,93 @@
             wrist:observedWrist,
             palmOffset:v.sub(secondaryPalm.grip,observedWrist)
           });
-          const desiredBetween=v.sub(constrained.target,primaryPalm.grip);
           const target=window.WCRigContact.contactFrame(jointData,{
             hand:side,palm_fraction:spec.palm_from_wrist,
             shaft_direction:spec.head_direction,working_face:spec.edge_direction
           });
-          if(v.norm(desiredBetween)<.02)
-            throw Error("Les paumes Mixamo ne fournissent pas deux contacts distincts");
           if(anchor.parent)anchor.setParent(null,true);
           anchor.scaling.setAll(desiredLength/frame.length);
           anchor.position=B.Vector3.FromArray(primaryPalm.grip);
-          let best=null;
-          for(const transpose of [false,true]){
-            let q;
-            try{q=buildGripRotation(gripFrame,
-              new B.Vector3(...desiredBetween),new B.Vector3(...target.blade),transpose);}
-            catch{continue;}
-            anchor.rotationQuaternion=q;
-            anchor.computeWorldMatrix(true);offset.computeWorldMatrix(true);
-            const marks=importedPropLandmarks(prop.meshes||[],vision);
-            const mainError=v.norm(v.sub(
-              marks.namedGrips[carryMode.primary_grip],primaryPalm.grip));
-            const secondaryError=v.norm(v.sub(
-              marks.namedGrips[carryMode.secondary_grip],secondaryPalm.grip));
-            const edge=v.unit(v.sub(marks.functional_edge,marks.working_head));
-            const face=v.dot(edge,target.blade);
-            const score=mainError*100+secondaryError*20+Math.max(0,.6-face)*20;
-            if(!best||score<best.score)best={q:q.clone(),mainError,
-              secondaryError,face,score};
+          // Contact alone can put an axe through the torso. Search the REAL
+          // object mesh against the measured anatomical body capsules, while
+          // keeping its source-labelled grip distance EXACT. Candidate axes
+          // are directions from the current body/palms, not weapon heuristics.
+          const body=window.WCRigContact.bodyFrame(jointData);
+          const torsoCenter=v.add(v.mul(jointData.Hips,.45),
+            v.mul(jointData.Chest,.55));
+          const shoulderSpan=v.norm(v.sub(jointData.LeftShoulder,
+            jointData.RightShoulder));
+          const radius=Math.max(.17,shoulderSpan*.46);
+          const capsules=[{a:jointData.Hips,b:jointData.Chest,radius},
+            {a:jointData.Chest,b:jointData.Neck||jointData.Chest,
+              radius:radius*.75}];
+          const away=v.sub(primaryPalm.grip,torsoCenter);
+          const natural=v.sub(constrained.target,primaryPalm.grip);
+          const possibleDirections=[];
+          const addDirection=p=>{
+            const direction=v.unit(p);
+            if(direction&&!possibleDirections.some(q=>v.dot(q,direction)>.995))
+              possibleDirections.push(direction);
+          };
+          for(const direction of [natural,away,body.forward,
+              v.mul(body.forward,-1),body.right,v.mul(body.right,-1),
+              body.up,v.mul(body.up,-1)])addDirection(direction);
+          for(const basis of [away,body.forward,v.mul(body.forward,-1),
+              body.right,v.mul(body.right,-1)]){
+            addDirection(v.add(natural,basis));
+            addDirection(v.add(away,basis));
           }
-          if(!best||best.mainError>.045||best.face<.25)
-            throw Error("Deux prises Mixamo : direction ou paume principale incohérente : "+
-              JSON.stringify({mainError:best?.mainError,face:best?.face}));
+          const shaftLength=v.norm(sourceBetween)*desiredLength/frame.length;
+          const jointShoulder=secondaryRig.upperarm.getAbsolutePosition().asArray();
+          const jointElbow=secondaryRig.forearm.getAbsolutePosition().asArray();
+          const offsetPalm=v.sub(secondaryPalm.grip,observedWrist);
+          let best=null;
+          for(const direction of possibleDirections){
+            const intendedSecondary=v.add(primaryPalm.grip,
+              v.mul(direction,shaftLength));
+            const targetWrist=v.sub(intendedSecondary,offsetPalm);
+            const reach=window.WCPropMotionContact.armReach(
+              jointShoulder,jointElbow,observedWrist,targetWrist);
+            if(!reach.reachable||reach.distance>reach.max-.012)continue;
+            for(const transpose of [false,true]){
+              let q;
+              try{q=buildGripRotation(gripFrame,
+                new B.Vector3(...direction),new B.Vector3(...target.blade),transpose);}
+              catch{continue;}
+              anchor.rotationQuaternion=q;
+              anchor.computeWorldMatrix(true);offset.computeWorldMatrix(true);
+              const marks=importedPropLandmarks(prop.meshes||[],vision);
+              const mainError=v.norm(v.sub(
+                marks.namedGrips[carryMode.primary_grip],primaryPalm.grip));
+              const secondaryError=v.norm(v.sub(
+                marks.namedGrips[carryMode.secondary_grip],intendedSecondary));
+              const edge=v.unit(v.sub(marks.functional_edge,marks.working_head));
+              const face=v.dot(edge,target.blade);
+              if(mainError>.045||secondaryError>.045||face<.25)continue;
+              const mounted=importedPropPoints(prop.meshes||[],140);
+              const clearance=v.capsuleClearance(mounted,capsules);
+              const penetration=Math.max(0,-.015-clearance);
+              const naturalDeviation=v.norm(v.sub(
+                intendedSecondary,secondaryPalm.grip));
+              const score=penetration*2000+
+                Math.max(0,.03-clearance)*8+
+                naturalDeviation*.5+Math.max(0,.6-face)*5+
+                mainError*100+secondaryError*40;
+              if(!best||score<best.score)best={q:q.clone(),mainError,
+                secondaryError,clearance,face,score};
+            }
+          }
+          if(!best||best.clearance<-.015)
+            throw Error("Deux prises Mixamo : aucune orientation anatomiquement " +
+              "atteignable ne laisse le vrai GLB hors du torse : "+
+              JSON.stringify({clearance:best?.clearance,face:best?.face}));
           anchor.rotationQuaternion=best.q;
           anchor.computeWorldMatrix(true);offset.computeWorldMatrix(true);
+          const exactClearance=v.capsuleClearance(
+            importedPropPoints(prop.meshes||[]),capsules);
+          if(exactClearance<-.015)
+            throw Error("La surface réelle du GLB pénètre le torse de "+
+              (-exactClearance).toFixed(3)+" m après optimisation");
           enforceCarrySecondaryContact();
           byId("world").dataset.weaponContactMode="vision-two-palm-live-carry";
           byId("world").dataset.weaponCarryReachAdjusted=String(constrained.reachAdjusted);
