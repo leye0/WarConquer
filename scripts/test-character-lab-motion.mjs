@@ -51,6 +51,7 @@ async function state() {
   return {motion:t("activeMotionMetric"),clips:t("clipMetric"),walk:t("walkMetric"),
   movement:t("movementMetric"),position:t("positionMetric"),status:t("statusText"),
   canvas:!!document.getElementById("world"),
+  babylonReady:!!window.BABYLON,arenaReady:!!window.WCArena,
   fireball:typeof BABYLON!=="undefined"&&!!BABYLON.EngineStore.LastCreatedEngine?.scenes[0]?.meshes.some(m=>m.name==="wc-fireball"&&!m.isDisposed()),
   idleOptions:document.getElementById("idleSelect")?.options.length||0,
   poseReturns:Number(document.getElementById("world")?.dataset.poseReturns||0),
@@ -108,6 +109,12 @@ try {
   // Select the genuinely generated second 3D unit first, not a source-only
   // placeholder or a duplicate of the Marches GLB.
   await request("Page.navigate",{url:"http://127.0.0.1:4173/character-lab.html?unit=couronne_archer"});
+  await sleep(3500);
+  const bootstrapState=await state();
+  if(!bootstrapState.babylonReady || !bootstrapState.arenaReady){
+    const scripts=await js("Array.from(document.scripts).map(s=>s.src)");
+    throw Error("Babylon startup missing: "+JSON.stringify({bootstrapState,scripts}));
+  }
   const initialArcher=await until(s=>s.unitId==="couronne_archer" &&
     ["mesh_only","rigged","playable"].includes(s.unitBuildStatus) &&
     !s.conceptVisible && s.status.startsWith("Prêt"),
