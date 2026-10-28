@@ -153,7 +153,7 @@
       <div class="play-help" aria-label="Commandes">
         <span><button type="button" class="shortcut-key" data-move="w">W</button><button type="button" class="shortcut-key" data-move="a">A</button><button type="button" class="shortcut-key" data-move="s">S</button><button type="button" class="shortcut-key" data-move="d">D</button> <strong>Déplacer</strong></span>
         <span><button type="button" class="shortcut-key" data-command="sprint" aria-pressed="false">Shift</button> <strong>Courir (activer/désactiver)</strong></span>
-        <span><button type="button" class="shortcut-key" data-command="attack">Espace</button> <strong>Hache</strong></span>
+        <span><button type="button" class="shortcut-key" data-command="attack">Espace</button> <strong id="attackShortcutLabel">Hache</strong></span>
         <span><button type="button" class="shortcut-key" data-command="cast">F</button> <strong>Boule de feu</strong></span>
         <span><button type="button" class="shortcut-key" data-command="reset">R</button> <strong>Recentrer</strong></span>
         <span class="desktop-only">Glisser : orienter la caméra · Molette : zoom</span>
@@ -162,7 +162,7 @@
     <aside class="side" aria-label="Commandes et provenance">
       <div class="side-heading">02 / Unité sélectionnée</div>
       <h2 class="unit-title" id="unitName">Guerrier à la hache · Marches</h2>
-      <p class="unit-caption">Contrôlez directement le personnage reconstruit à partir des quatre références. La scène utilise le GLB du dépôt, pas une image simulée. La version fal.ai texturée et riggée est sélectionnée par défaut : marche, course, quatre variantes de repos, attaque Mixamo et lancement de boule de feu. Les commandes tactiles sont accessibles sur téléphone, avec un cadrage adapté. Après une attaque ou un sort, le guerrier retrouve progressivement sa pose précédente. Le maillage brut et l'ancien personnage restent disponibles pour comparaison. La prise des objets reste expérimentale : un nouveau plan tient compte de la description originale de l'arme mais ne sera activé qu'après une validation visuelle indépendante de sa taille.</p>
+      <p class="unit-caption" id="unitCaption">Contrôlez directement le personnage reconstruit à partir des quatre références. La scène utilise le GLB du dépôt, pas une image simulée. La version fal.ai texturée et riggée est sélectionnée par défaut : marche, course, quatre variantes de repos, attaque Mixamo et lancement de boule de feu. Les commandes tactiles sont accessibles sur téléphone, avec un cadrage adapté. Après une attaque ou un sort, le guerrier retrouve progressivement sa pose précédente. Le maillage brut et l'ancien personnage restent disponibles pour comparaison. La prise des objets reste expérimentale : un nouveau plan tient compte de la description originale de l'arme mais ne sera activé qu'après une validation visuelle indépendante de sa taille.</p>
       <label for="unitSelect" class="field-label">Choisir une unité</label>
       <select id="unitSelect" aria-label="Choisir une unité à construire ou à tester"><option>Chargement des unités…</option></select>
       <p id="unitBuildStatus" class="unit-caption" role="status" style="margin:7px 0 16px">Vérification du pipeline…</p>
