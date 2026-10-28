@@ -34,6 +34,22 @@
       reachDeficit:Math.max(0,min-distance,distance-max)};
   }
 
+  function twoBoneElbow(shoulder,elbow,wrist,target){
+    const reach=armReach(shoulder,elbow,wrist,target);
+    if(!reach.reachable)throw Error("Secondary wrist target lies beyond actual arm reach");
+    if(v.norm(v.cross(v.sub(elbow,shoulder),v.sub(wrist,elbow)))<1e-7)
+      throw Error("Source elbow is straight: cannot invent its bend side");
+    const direction=unit(v.sub(target,shoulder));
+    if(!direction)throw Error("Arm target coincides with shoulder: undefined bend plane");
+    const oldUpper=v.sub(elbow,shoulder);
+    const bend=unit(v.sub(oldUpper,v.mul(direction,v.dot(oldUpper,direction))));
+    if(!bend)throw Error("Source elbow is straight: cannot invent its bend side");
+    const along=(reach.upper**2-reach.lower**2+reach.distance**2)/(2*reach.distance);
+    const offset=Math.sqrt(Math.max(0,reach.upper**2-along**2));
+    return {elbow:plus(plus(shoulder,v.mul(direction,along)),v.mul(bend,offset)),
+      wrist:[...target],reach};
+  }
+
   function solveTwoGrips({sourcePrimary,sourceSecondary,featureOrigin,featureTip,
       primaryPalm,secondaryPalm,actionForward,scale,secondaryArm=null}){
     for(const [name,p] of Object.entries({sourcePrimary,sourceSecondary,
@@ -91,5 +107,5 @@
       throw Error("Invalid confirmed anatomical/functional contact mode");
     return mode;
   }
-  return {solveTwoGrips,armReach,rowTransform,resolveMode};
+  return {solveTwoGrips,armReach,twoBoneElbow,rowTransform,resolveMode};
 });
