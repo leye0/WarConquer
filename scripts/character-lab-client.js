@@ -665,11 +665,8 @@
           clearance:Number(v.capsuleClearance(mounted,capsules).toFixed(3))};
       };
       if(selectedFit){
-        // Calibrate the complete prop once in world coordinates, then preserve
-        // that exact pose while parenting to the animated palm joint. Babylon
-        // setParent() maintains the world transform (unlike direct .parent=),
-        // including mirrored GLB bases; all Mixamo states inherit one rigid
-        // local grip without per-frame pose switches or Euler patches.
+        // Preserve the exact calibrated grip when parenting the prop to the
+        // animated wrist. The position remains rigid in the palm in ALL clips.
         anchor.computeWorldMatrix(true);
         anchor.setParent(hand);
         anchor.computeWorldMatrix(true);
@@ -677,6 +674,81 @@
         const check=window.WCPropContactDiagnostic();
         if(!check || check.gripError>.04 || check.balanceY>=0)
           throw Error("Le rattachement rigide ne conserve pas la prise calibrée");
+        const rigidActionRotation=anchor.rotationQuaternion.clone();
+        const v=window.WCWeaponGrip;
+        let tick=0,previousAction=false;
+        const observer=state.scene.onBeforeRenderObservable.add(()=>{
+          if(anchor.isDisposed()||state.weaponAnchor!==anchor){
+            state.scene.onBeforeRenderObservable.remove(observer);return;
+          }
+          if(state.attacking){
+            if(!previousAction)anchor.rotationQuaternion=rigidActionRotation.clone();
+            previousAction=true;
+            byId("world").dataset.weaponContactMode="wrist-driven-action";
+            return;
+          }
+          previousAction=false;
+          if(++tick%5!==0)return;
+          try{
+            const next=findGripAnatomy(imported,side).joints;
+            const nextFrame=window.WCRigContact.bodyFrame(next);
+            const center=v.add(v.mul(next.Hips,.45),v.mul(next.Chest,.55));
+            const palm=window.WCRigContact.palmFrame(next,side,spec.palm_from_wrist);
+            const away=v.sub(palm.grip,center);
+            const shoulder=v.norm(v.sub(next.LeftShoulder,next.RightShoulder));
+            const radius=Math.max(.17,shoulder*.46);
+            const capsules=[{a:next.Hips,b:next.Chest,radius},
+              {a:next.Chest,b:next.Neck||next.Chest,radius:radius*.75}];
+            const handScale=new B.Vector3(),handRotation=new B.Quaternion();
+            hand.computeWorldMatrix(true);
+            hand.getWorldMatrix().decompose(handScale,handRotation);
+            const invHand=B.Quaternion.Inverse(handRotation);
+            let best=null;
+            for(const faceName of [...new Set(["forward",spec.edge_direction])]){
+              const target=window.WCRigContact.contactFrame(next,{
+                hand:side,palm_fraction:spec.palm_from_wrist,
+                shaft_direction:"gravity",working_face:faceName
+              });
+              for(const candidate of v.gravityCarryCandidates(target.blade,away)){
+                if(candidate.tilt>1.4)continue;
+                const worldQ=buildGripRotation(gripFrame,new B.Vector3(...candidate.shaft),
+                  new B.Vector3(...target.blade),selectedFit.transpose);
+                for(const localQ of [worldQ.multiply(invHand),invHand.multiply(worldQ)]){
+                  anchor.rotationQuaternion=localQ;
+                  anchor.computeWorldMatrix(true);offset.computeWorldMatrix(true);
+                  const mounted=importedPropPoints(prop.meshes||[],250);
+                  const mass=v.mul(mounted.reduce(v.add,[0,0,0]),1/mounted.length);
+                  const balanceY=mass[1]-palm.grip[1];
+                  const map=p=>B.Vector3.TransformCoordinates(
+                    new B.Vector3(...v.sub(p,frame.grip)),anchor.getWorldMatrix()).asArray();
+                  const edge=v.unit(v.sub(map(meshPoints.functional_edge),
+                    map(meshPoints.working_head)));
+                  const outward=side==="right"?nextFrame.right:v.mul(nextFrame.right,-1);
+                  const edgeOut=v.dot(edge,outward);
+                  const edgeFront=v.dot(edge,nextFrame.forward);
+                  const clearance=v.capsuleClearance(mounted,capsules);
+                  const gravityError=Math.max(0,balanceY+.03);
+                  const inward=Math.max(0,.05-edgeOut);
+                  const proximity=Math.max(0,.06-clearance);
+                  const score=gravityError**2*1200+inward**2*180+
+                    proximity**2*500+Math.max(0,.45-edgeFront)**2*10+
+                    candidate.tilt*.03+(faceName==="forward"?0:.12);
+                  if(!best||score<best.score)best={q:localQ.clone(),score,
+                    balanceY,edgeOut,clearance};
+                }
+              }
+            }
+            if(best){
+              anchor.rotationQuaternion=best.q;
+              byId("world").dataset.weaponContactMode="gravity-stabilized-carry";
+              byId("world").dataset.weaponLiveBalanceY=best.balanceY.toFixed(3);
+              byId("world").dataset.weaponLiveEdgeAway=best.edgeOut.toFixed(3);
+              byId("world").dataset.weaponLiveClearance=best.clearance.toFixed(3);
+            }
+          }catch(error){
+            byId("world").dataset.weaponContactUpdateError=String(error.message||error);
+          }
+        });
       }
       text("weaponMetric","Prise anatomique auto · vision sur GLB · main "+side+
         (spec.hold_mode==="two_hands"?" (seconde main non pilotée)":"")+
