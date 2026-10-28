@@ -29,6 +29,15 @@ assert boxes["functional_edge"]["box_2d"]==[120,200,180,265]
 image=module.render_overlay(Image.new("RGB",(510,510),"white"),boxes,
     {"functional_edge":[150,230]})
 assert Image.open(io.BytesIO(image)).size==(510,510)
+focus=module.named_crops(Image.new("RGB",(510,510),"white"),roles,
+    {name:[480,600] for name in roles})
+assert all(Image.open(io.BytesIO(c["image"])).size==(720,720)
+           for c in focus.values())
+centered={name:{"visible":True,"box_2d":[400,400,600,600],"confidence":.9}
+          for name in roles}
+mapped=module.remap_crop_boxes(centered,focus,510)
+assert all(x["box_2d"][0]<=480<=x["box_2d"][2]
+    and x["box_2d"][1]<=600<=x["box_2d"][3] for x in mapped.values())
 
 wrong=json.loads(json.dumps(answer));wrong["objects"]["axe_head"]["box_2d"]=[10,20,30]
 try:module.validate_boxes(wrong,roles)

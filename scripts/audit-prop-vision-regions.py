@@ -11,7 +11,6 @@ agreement; geometry NEVER assigns semantic roles by length, axes or silhouette.
 from __future__ import annotations
 
 import argparse
-import base64
 import hashlib
 import importlib.util
 import io
@@ -96,7 +95,7 @@ def project_confirmed_point(point,meshes,view):
         round(float(.5-delta@view["up"]*view["scale"]/mesh_vision.VIEW_SIZE)*1000,1)]
 
 
-def qa_points(plan,meshes,view,boxes):
+def projected_landmarks(plan,meshes,view):
     points=plan["mesh_landmarks"]["points"]
     located={k:project_confirmed_point(v,meshes,view) for k,v in points.items()}
     located.update({k:project_confirmed_point(v,meshes,view)
@@ -105,6 +104,11 @@ def qa_points(plan,meshes,view,boxes):
         located[name]=project_confirmed_point(detail["origin"],meshes,view)
         # Both origin and action endpoint are separately tested: the first
         # must be on the named head, the tip on the named functional edge.
+    return located
+
+
+def qa_points(plan,meshes,view,boxes):
+    located=projected_landmarks(plan,meshes,view)
     issues=[]
     for label,point in located.items():
         region=boxes.get(label)
@@ -115,6 +119,42 @@ def qa_points(plan,meshes,view,boxes):
         if not (x0<=x<=x1 and y0<=y<=y1):
             issues.append(label+": existing GLB landmark is OUTSIDE independently vision-labeled bbox")
     return located,issues
+
+
+def named_crops(panel,labels,points):
+    """Studio's labeled close-ups: independent source-matched image coordinates.
+
+    The already-annotated points select only a REVIEW CAMERA CROP, never a
+    functional region. The independent model receives no previous points.
+    """
+    crops={};size=min(panel.width,180)
+    for name in labels:
+        px=round(points[name][0]*panel.width/1000)
+        py=round(points[name][1]*panel.height/1000)
+        left=max(0,min(panel.width-size,px-size//2))
+        top=max(0,min(panel.height-size,py-size//2))
+        zoom=panel.crop((left,top,left+size,top+size))
+        zoom=zoom.resize((720,720),Image.Resampling.LANCZOS)
+        output=io.BytesIO();zoom.save(output,format="PNG")
+        crops[name]={"left":left,"top":top,"size":size,
+            "image":output.getvalue()}
+    return crops
+
+
+def remap_crop_boxes(boxes,crops,panel_size):
+    """Map native Studio 0..1000 TARGET-CROP box_2d to its real GLB view."""
+    mapped={}
+    for name,item in boxes.items():
+        if not item["visible"]:
+            mapped[name]=dict(item);continue
+        crop=crops[name]
+        x0,y0,x1,y1=item["box_2d"]
+        box=[(crop["left"]+x0*crop["size"]/1000)/panel_size*1000,
+             (crop["top"]+y0*crop["size"]/1000)/panel_size*1000,
+             (crop["left"]+x1*crop["size"]/1000)/panel_size*1000,
+             (crop["top"]+y1*crop["size"]/1000)/panel_size*1000]
+        mapped[name]={**item,"box_2d":[round(x,1) for x in box]}
+    return mapped
 
 
 def render_overlay(panel,boxes,points):
@@ -148,14 +188,19 @@ def audit(plan_path,pass_id,model):
     selected=int(landmark["view"]);width=mesh_vision.VIEW_SIZE
     panel=Image.open(io.BytesIO(rendered)).crop(((selected%2)*width,(selected//2)*width,
         (selected%2+1)*width,(selected//2+1)*width))
-    stream=io.BytesIO();panel.save(stream,format="PNG");image=stream.getvalue()
     labels=expected_labels(semantic)
-    prompt=("Inspect this ONE precise, ACTUAL textured 3D GLB view. "
+    prior_points=projected_landmarks(plan,meshes,views[selected])
+    crops=named_crops(panel,labels,prior_points)
+    prompt=("Inspect each of the following INDEPENDENT, enlarged TARGET CROPS "
+        "of the ACTUAL textured 3D GLB. Each crop is explicitly paired with "
+        "ONE exact label in the following messages, as in Studio's labeled "
+        "contact-sheet crop protocol. "
         "Independently LOCATE every requested functional region from visible pixels. "
         "Return JSON only: {\"objects\":{\"<exact label>\":{\"visible\":true,"
         "\"box_2d\":[xmin,ymin,xmax,ymax],\"confidence\":0.9}}}. "
         "Use each exact label below, no invented labels. box_2d is an integer "
-        "[xmin,ymin,xmax,ymax] normalized to 0..1000 of THIS SINGLE IMAGE, "
+        "[xmin,ymin,xmax,ymax] normalized to 0..1000 of THAT LABEL'S OWN "
+        "TARGET CROP IMAGE, NEVER the full GLB view or all-image mosaic, "
         "as in Studio's scene-bbox-detector and rain-splash-zone-detector. "
         "Give a TIGHT rectangle around the named VISIBLE physical part, not "
         "background. A sharp blade's functional_edge is the visible thin "
@@ -165,13 +210,20 @@ def audit(plan_path,pass_id,model):
         "No other illustrations, source-image coordinates or old GLB point "
         "annotations are supplied; do NOT infer them. REQUESTED LABELS:\n"+
         json.dumps(labels,ensure_ascii=False,indent=2))
+    content=[{"type":"text","text":prompt}]
+    base="studio-"+pass_id
+    for label,crop in crops.items():
+        content.append({"type":"text","text":"TARGET CROP for EXACT label " +
+            label + ": " + labels[label] +
+            ". Report box_2d relative to THIS IMAGE only."})
+        content.append(mesh_vision.image_part(crop["image"]))
+        (plan_path.parent/("vision-input-glb-"+base+"-"+label+".png")).write_bytes(crop["image"])
     signature=hashlib.sha256(json.dumps({"model":model,"pass_id":pass_id,
-        "image_sha":hashlib.sha256(image).hexdigest(),"semantic_sha":semantic_hash,
+        "image_sha":{k:hashlib.sha256(v["image"]).hexdigest() for k,v in crops.items()},
+        "semantic_sha":semantic_hash,
         "landmark_sha":hashlib.sha256(json.dumps(landmark,sort_keys=True).encode()).hexdigest(),
         "prompt":prompt},sort_keys=True).encode()).hexdigest()
     folder=plan_path.parent/"vision-region-receipts";folder.mkdir(parents=True,exist_ok=True)
-    base="studio-"+pass_id
-    (plan_path.parent/("vision-input-glb-"+base+".png")).write_bytes(image)
     receipt=folder/(base+"-"+signature+".json")
     if receipt.exists():
         doc=json.loads(receipt.read_text())
@@ -185,9 +237,7 @@ def audit(plan_path,pass_id,model):
             "status":"submission-outcome-unknown"},indent=2)+"\n")
         payload={"model":model,"temperature":0,
             "provider":{"sort":"price","max_price":{"prompt":3,"completion":3}},
-            "messages":[{"role":"user","content":[{"type":"text","text":prompt},
-                {"type":"image_url","image_url":{"url":"data:image/png;base64,"+
-                    base64.b64encode(image).decode("ascii")}}]}]}
+            "messages":[{"role":"user","content":content}]}
         request=Request(ENDPOINT,data=json.dumps(payload).encode(),method="POST",
             headers={"Authorization":"Bearer "+key,"Content-Type":"application/json",
                 "X-OpenRouter-Title":"WarConquer Studio-style 3D grounding"})
@@ -195,7 +245,8 @@ def audit(plan_path,pass_id,model):
             answer=parse_response(json.loads(response.read(200000))["choices"][0]["message"]["content"])
         receipt.write_text(json.dumps({"signature":signature,"model":model,
             "answer":answer},ensure_ascii=False,indent=2)+"\n")
-    boxes=validate_boxes(answer,labels)
+    crop_boxes=validate_boxes(answer,labels)
+    boxes=remap_crop_boxes(crop_boxes,crops,width)
     existing_points,issues=qa_points(plan,meshes,views[selected],boxes)
     for label,entry in boxes.items():
         if entry["visible"] and entry["confidence"]<.75:
@@ -205,6 +256,7 @@ def audit(plan_path,pass_id,model):
     report={"schema":1,"model":model,"pass_id":pass_id,"glb_view":selected,
         "bbox_convention":"xyxy_normalized_1000","receipt":str(receipt.relative_to(ROOT)),
         "overlay":str(overlay.relative_to(ROOT)),"boxes":boxes,
+        "boxes_within_labeled_crops_1000":crop_boxes,
         "original_point_positions_1000":existing_points,
         "status":"confirmed" if not issues else "rejected","issues":issues}
     report_path=plan_path.parent/("vision-region-review-"+base+".json")
