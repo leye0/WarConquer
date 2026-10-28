@@ -17,7 +17,18 @@ m=pipeline.manifest("marches_hache")
 assert m["id"]=="marches_hache"
 assert m["adapter"]=="legacy_marches_hache"
 assert [e["id"] for e in m["equipment"]]==["axe"]
-assert pipeline.unit_ids()==["marches_hache"],pipeline.unit_ids()
+assert pipeline.unit_ids()==["couronne_archer","marches_hache"],pipeline.unit_ids()
+archer=pipeline.manifest("couronne_archer")
+assert archer["id"]=="couronne_archer"
+assert archer["equipment"][0]["kind"]=="bow"
+assert pipeline.state(archer,"source")["ready"],"Archer original concept exists"
+assert not pipeline.state(archer,"turnaround")["ready"],"Archer 3D views must not be invented"
+assert not pipeline.state(archer,"animations")["ready"],"Archer must not inherit Marches GLB"
+assert pipeline.main(["run","--unit","couronne_archer","--stage","source"])==0
+assert pipeline.main(["run","--unit","couronne_archer","--stage","all","--dry-run"])==0
+try:pipeline.main(["run","--unit","couronne_archer","--stage","body","--allow-paid"])
+except pipeline.PipelineError as e:assert "parameterized 3D adapter" in str(e)
+else:raise AssertionError("Legacy-only model generation leaked to the archer")
 assert set(pipeline.PAID).issubset(pipeline.STAGES)
 for stage in pipeline.STAGES:
     st=pipeline.state(m,stage)
