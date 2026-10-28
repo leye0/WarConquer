@@ -3,6 +3,7 @@
 import importlib.util
 import copy
 import io
+import json
 from pathlib import Path
 import numpy as np
 from PIL import Image
@@ -124,7 +125,29 @@ def test_lift_keeps_signed_functional_edge():
     refuses(bad,"did not bound actual region")
 
 
+def test_source_image_coordinates_never_leak_into_mesh_vision_prompt():
+    """2D source points are evidence, not locations in a different 3D view."""
+    provenance = module.ROOT / "assets/experiments/props/marches_hache/trellis-v1/interaction-contract.json"
+    semantic = json.loads(provenance.read_text())["characterization"]
+    roles = module.semantic_role_labels(semantic)
+    assert set(roles) == {"object_kind", "grips", "features", "modes"}
+    assert len(roles["grips"]) == 2
+    assert roles["features"][0]["direction_semantics"].startswith("From the body")
+    serialized = json.dumps(roles)
+    for point in (semantic["grips"][0]["point"],
+                  semantic["grips"][1]["point"],
+                  semantic["features"][0]["origin"],
+                  semantic["features"][0]["direction_tip"]):
+        assert json.dumps(point) not in serialized, (
+            "Original concept coordinates contaminated the GLB spatial prompt")
+    assert '"point"' not in serialized
+    assert '"origin"' not in serialized
+    assert '"direction_tip"' not in serialized
+    assert '"evidence"' not in serialized
+
+
 if __name__=="__main__":
     test_real_glb_projection()
     test_lift_keeps_signed_functional_edge()
+    test_source_image_coordinates_never_leak_into_mesh_vision_prompt()
     print("PASS: signed real-GLB landmarks and every vision-confirmed hand/action role")

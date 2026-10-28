@@ -47,6 +47,10 @@ PROMPT = (
     "IMAGE 1 is a four-panel orthographic 3D render of the actual GLB, each "
     "panel labeled VIEW 0 through VIEW 3. IMAGE 2 is the original object "
     "illustration, only for identifying what the 3D prop's parts do. "
+    "IMPORTANT: IMAGE 2 and IMAGE 1 have DIFFERENT orientations, crops and "
+    "coordinate systems. Never copy any point, box, or numeric position from "
+    "the illustration. Locate every requested point ANEW on the visible "
+    "pixels of the actual 3D mesh in a specific VIEW of IMAGE 1. "
     "Select ONE of the four views where the functional working edge and "
     "handle are CLEARLY visible. Coordinates of ALL four landmarks must be "
     "normalized [x,y] (0..1) WITHIN THE SELECTED PANEL, including its margin. "
@@ -64,6 +68,27 @@ PROMPT = (
     "way the mesh axes point. For a symmetric double-edge, choose either "
     "equivalent cutting edge. If the mesh is unclear, lower confidence."
 )
+
+
+def semantic_role_labels(semantic):
+    """Tell 3D vision WHAT to locate without leaking 2D source landmarks.
+
+    Source concept-space points, bounding boxes, evidence and image angles
+    must not be exposed to the mesh annotator: even a strong vision model can
+    accidentally echo those numerically in a different camera coordinate frame.
+    """
+    return {
+        "object_kind": semantic["object_kind"],
+        "grips": [{"id": item["id"], "surface": item["surface"]}
+                  for item in semantic["grips"]],
+        "features": [{"id": item["id"], "function": item["function"],
+                      "direction_semantics": item["direction_semantics"]}
+                     for item in semantic["features"]],
+        "modes": [{key: mode[key] for key in (
+            "id", "phase", "hands", "primary_hand", "primary_grip",
+            "secondary_hand", "secondary_grip", "functional_feature",
+            "action_direction") if key in mode} for mode in semantic["modes"]],
+    }
 
 
 def confirmed_interaction(plan_path: Path, plan: dict):
@@ -548,9 +573,10 @@ def run(plan_path: Path, check=False, pass_id="primary", model=MODEL):
                 "The region must bound the REAL part, not the whole object or background. "
                 "If a handhold, working region or direction is not truly visible "
                 "on the 3D object, lower confidence. Never infer which end or "
-                "surface is functional by length or width. " +
-                json.dumps({key: semantic[key] for key in ("object_kind", "grips", "features", "modes")},
-                    ensure_ascii=False)})
+                "surface is functional by length or width. The following "
+                "descriptions contain role NAMES and FUNCTION only, never "
+                "concept-image coordinates: " +
+                json.dumps(semantic_role_labels(semantic), ensure_ascii=False)})
         payload = {"model": model, "temperature": 0, "max_tokens": 2400 if semantic else 520,
             "provider": {"require_parameters": True},
             "response_format": {"type": "json_schema", "json_schema": {
