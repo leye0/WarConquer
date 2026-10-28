@@ -95,6 +95,9 @@
     removeImported();
     state.selected=char;
     text("unitName",char.name);
+    text("sceneUnitLabel",char.name+" · concept initial");
+    document.querySelectorAll('[data-command="attack"]').forEach(btn=>
+      btn.textContent=btn.id==="runButton"?"Courir":"🏹 Arc indisponible");
     text("meshMetric","3D non produit");
     text("jointMetric","—");
     text("modelMetric","Concept 2D");
@@ -164,6 +167,9 @@
         byId("world").dataset.unitBuildStatus="playable";
         text("unitBuildStatus","Modèle 3D disponible · prêt à tester");
         text("unitName", c.name);
+        text("sceneUnitLabel",c.name+" · camp d’essai");
+        document.querySelectorAll('[data-command="attack"]').forEach(btn=>
+          btn.textContent=btn.classList.contains("touch-action")?"⚔ Hache":"Espace");
         text("meshMetric", (c.metrics.faces || "—") + " triangles");
         text("jointMetric", model.kind === "mesh" ? "0 os · sans rig" : (c.metrics.joints || "—") + " os");
         renderSources();
