@@ -180,7 +180,7 @@
     "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
     "model": "google/gemini-2.5-flash",
     "bbox_convention": "xyxy_normalized_1000",
-    "review": "assets/experiments/props/marches_hache/trellis-v1/vision-region-review-studio-studio_flash_crops2.json",
-    "overlay": "assets/experiments/props/marches_hache/trellis-v1/vision-regions-studio-studio_flash_crops2.png"
+    "review": "assets/experiments/props/marches_hache/trellis-v1/vision-region-review-studio-studio_flash_native3.json",
+    "overlay": "assets/experiments/props/marches_hache/trellis-v1/vision-regions-studio-studio_flash_native3.png"
   }
 }
