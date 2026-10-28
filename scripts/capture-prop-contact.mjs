@@ -113,8 +113,8 @@ try{
     console.log("CONTACT_FRAME",name,JSON.stringify(result));
     if(result.gripError>.045)throw Error("Prop slipped out of the palm during "+name);
     if(["idle","walk","run"].includes(name) &&
-      (result.balanceY>=0||result.clearance<-.015))
-      throw Error("Prop inverted or intersects body during "+name);
+      (result.balanceY>=0||result.clearance<-.015||result.edgeOutward<-.15))
+      throw Error("Prop inverted, sharp edge inward or intersects body during "+name);
     return result;
   };
   await checkFrame("idle");

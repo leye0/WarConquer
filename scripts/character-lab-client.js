@@ -642,6 +642,7 @@
         const marks=importedPropLandmarks(prop.meshes||[],vision);
         const mass=v.mul(mounted.reduce(v.add,[0,0,0]),1/mounted.length);
         const edge=v.unit(v.sub(marks.functional_edge,marks.working_head));
+        const outward=side==="right"?nextContact.body.right:v.mul(nextContact.body.right,-1);
         const shoulderSpan=v.norm(v.sub(next.joints.LeftShoulder,next.joints.RightShoulder));
         const radius=Math.max(.17,shoulderSpan*.46);
         const capsules=[{a:next.joints.Hips,b:next.joints.Chest,radius},
@@ -658,7 +659,7 @@
           balanceY:Number((mass[1]-marks.grip_center[1]).toFixed(3)),
           headY:Number((marks.working_head[1]-marks.grip_center[1]).toFixed(3)),
           gripError:Number(v.norm(v.sub(nextContact.grip,marks.grip_center)).toFixed(3)),
-          edgeOutward:Number(v.dot(edge,nextContact.blade).toFixed(3)),
+          edgeOutward:Number(v.dot(edge,outward).toFixed(3)),
           edgeForward:Number(v.dot(edge,nextContact.body.forward).toFixed(3)),
           secondaryGripError,
           clearance:Number(v.capsuleClearance(mounted,capsules).toFixed(3))};
@@ -725,14 +726,25 @@
                       const nearest=v.capsuleClearance(mounted,capsules);
                       const mass=v.mul(mounted.reduce(v.add,[0,0,0]),1/mounted.length);
                       const massY=mass[1]-faceContact.grip[1];
+                      const map=p=>B.Vector3.TransformCoordinates(
+                        new B.Vector3(...v.sub(p,frame.grip)),anchor.getWorldMatrix()).asArray();
+                      const edge=v.unit(v.sub(map(meshPoints.functional_edge),
+                        map(meshPoints.working_head)));
+                      const awayFace=side==="right"?faceContact.body.right:
+                        v.mul(faceContact.body.right,-1);
+                      const edgeAway=v.dot(edge,awayFace);
+                      const edgeForward=v.dot(edge,faceContact.body.forward);
                       const deficit=Math.max(0,.085-nearest);
                       const wrongGravity=Math.max(0,massY+.035);
+                      const unsafeEdge=Math.max(0,.1-edgeAway);
+                      const wrongFront=Math.max(0,.5-edgeForward);
                       const score=deficit*deficit*500+wrongGravity*wrongGravity*300+
                         candidate.tilt*.03+(name==="forward"?0:.18)+
-                        Math.abs(candidate.tilt-liveFit.tilt)*.02;
+                        Math.abs(candidate.tilt-liveFit.tilt)*.02+
+                        unsafeEdge*unsafeEdge*100+wrongFront*wrongFront*8;
                       if(!winner||score<winner.score)winner={...candidate,
                         faceDirection:name,transpose:liveFit.transpose,
-                        score,nearest};
+                        score,nearest,edgeAway,edgeForward};
                     }
                   }
                   if(winner){
@@ -745,6 +757,7 @@
                       new B.Vector3(...liveFit.shaft),new B.Vector3(...face.blade),
                       liveFit.transpose);
                     byId("world").dataset.weaponLiveClearance=winner.nearest.toFixed(3);
+                    byId("world").dataset.weaponLiveEdgeAway=winner.edgeAway.toFixed(3);
                   }
                 }
               }
