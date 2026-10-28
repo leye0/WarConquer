@@ -53,14 +53,12 @@
   "automatic_paid_retries": 0,
   "visual_qa": {
     "status": "rejected",
-    "signature": "1ff5398d31eb8ab6b5e1f364afd7a8b7b9fca284a1d668e8fd15fceb9944be1f",
+    "signature": "f1b23d67320f56193dafabac75af8d6a1326210c4a2e9fdae1b3cb2cabd0eb42",
     "confidence": 0.9,
     "issues": [
-      "The axe head is oriented incorrectly during the walk and run animations. The sharp edge should not be facing into the character's body.",
-      "In the action and action_mid animations, the axe handle appears to be detached from the character's hand, and the axe head is floating.",
-      "The axe head is not consistently below the gripping hand during the idle, walk, and run animations, violating the gravity expectation for a heavy prop."
+      "The axe head is oriented incorrectly in the side view, facing into the character's body instead of away from it for safe passive carry."
     ],
-    "reason": "The prop is not consistently gripped by the character's hand across all animations. The orientation of the axe head is incorrect during locomotion, and the prop appears to detach or float during action animations. Gravity is not correctly applied to the axe head during idle and locomotion.",
+    "reason": "The character grips the axe correctly in all animations, and the gravity appears to be handled appropriately. However, the axe head's orientation in the side view is problematic for passive carry, as it faces inward towards the character's body, posing a safety risk and looking unnatural. The functional edge should face away from the body during passive carry.",
     "vision_model": "google/gemini-2.5-flash-lite",
     "checked_views": [
       "front",
