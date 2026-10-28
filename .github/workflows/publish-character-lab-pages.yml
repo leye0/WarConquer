@@ -112,8 +112,14 @@ jobs:
             assert(data.characters.length > 0);
             const all = data.characters.flatMap(c => c.models);
             assert(all.some(m => m.name.includes("fal.ai") && m.kind === "playable"), "Missing default rigged warrior");
-            assert(all.some(m => m.kind==="playable" && m.clips?.some(c=>/attack/i.test(c))),
-              "No playable character exposes an authentic attack animation");
+            const playable=all.filter(m=>m.kind==="playable");
+            assert(playable.some(m=>{
+              const modelPath=m.url.startsWith("/")?m.url.slice(1):m.url;
+              const bytes=readFileSync(join(dir,modelPath));
+              const length=bytes.readUInt32LE(12);
+              const gltf=JSON.parse(bytes.subarray(20,20+length).toString("utf8"));
+              return (gltf.animations||[]).some(a=>/attack/i.test(a.name||""));
+            }),"No playable GLB contains an authentic attack animation");
             for (const m of all) {
               const p = join(dir, m.url.replace(/^\//, ""));
               assert(existsSync(p), "Missing model " + m.url);

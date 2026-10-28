@@ -7,7 +7,6 @@
  * Read-only. Discovers generated GLBs on each request; never invokes AI APIs.
  */
 import { createServer } from "node:http";
-import { createHash } from "node:crypto";
 import { createReadStream, existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, extname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -58,71 +57,23 @@ function parseJson(file) {
   try { return JSON.parse(readFileSync(file, "utf8")); }
   catch { return null; }
 }
-function fingerprint(file) {
-  return createHash("sha256").update(readFileSync(file)).digest("hex");
-}
-function selectedGripPlan(folder, baseFile) {
-  const base=parseJson(baseFile);
-  if(![2,3].includes(base?.schema))return null;
-  const objectPath=base.inputs?.object_image;
-  const characterPath=base.inputs?.character_image;
-  const modelPath=base.inputs?.object_glb;
-  if(![objectPath,characterPath,modelPath].every(p=>typeof p==="string" &&
-    p.startsWith("assets/") && !p.includes("..") && !p.includes("\\")))return null;
-  const assetHashes=[objectPath,characterPath].map(p=>{
-    const file=resolve(REPO,p);
-    return file.startsWith(REPO+sep)&&existsSync(file)?fingerprint(file):null;
-  });
-  const mesh=resolve(REPO,modelPath);
-  if(!mesh.startsWith(REPO+sep)||!existsSync(mesh)||
-    base.input_hashes?.prop_glb_sha256!==fingerprint(mesh))return null;
-  const candidates=readdirSync(folder).filter(name=>/^grip-plan-v\d+\.json$/.test(name))
-    .sort((a,b)=>Number(b.match(/\d+/)[0])-Number(a.match(/\d+/)[0]));
-  const validated=[];
-  for(const name of candidates){
-    const proposed=parseJson(join(folder,name));
-    const review=proposed?.vision_review;
-    const hashes=proposed?.input_hashes;
-    const status=proposed?.visual_qa?.status;
-    if(!["candidate","approved"].includes(status) ||
-      proposed.inputs?.object_glb!==modelPath ||
-      !Number.isFinite(proposed.derived_image_geometry?.grip_fraction_from_butt))continue;
-    if(proposed.schema===4){
-      if(review?.change_needed!==true || !Number.isFinite(review.confidence) ||
-        review.confidence<.8 || hashes?.source_prop_sha256!==assetHashes[0] ||
-        hashes?.source_character_sha256!==assetHashes[1] ||
-        proposed.specifications?.head_direction!==review.head_direction ||
-        proposed.specifications?.edge_direction!==review.edge_direction)continue;
-    }else if(proposed.schema===3 && status==="approved"){
-      if(hashes?.object_image_sha256!==assetHashes[0] ||
-        hashes?.character_image_sha256!==assetHashes[1] ||
-        hashes?.prop_glb_sha256!==fingerprint(mesh))continue;
-    }else continue;
-    validated.push({file:join(folder,name),plan:proposed,reviewStatus:status});
-  }
-  validated.sort((a,b)=>Number(b.reviewStatus==="approved")-
-    Number(a.reviewStatus==="approved"));
-  if(validated.length)return validated[0];
-  return {file:baseFile,plan:base,reviewStatus:"baseline"};
-}
 // Discover per-unit grip plans, so adding the next weapon never needs a code
 // change in the Character Lab renderer or the static Pages exporter.
 function propPlans(unitId) {
   const folder = join(PROPS_ROOT, unitId);
   const result = [];
   for(const variant of dirs(folder)) {
-    // Prefer an in-situ vision correction grounded in the real source images.
-    // Candidates are deliberately exposed for the user's arena validation;
-    // their status remains visible, never falsely promoted to "approved".
-    const selected=selectedGripPlan(join(folder,variant),join(folder,variant,"grip-plan.json"));
-    if(!selected)continue;
-    const {file:planFile,plan,reviewStatus}=selected;
+    // One canonical plan per object. Git, not numbered files, owns revisions.
+    const planFile=join(folder,variant,"grip-plan.json");
+    const plan=parseJson(planFile);
+    if(![2,3].includes(plan?.schema))continue;
     const glbUrl = plan.inputs?.object_glb;
     if(typeof glbUrl !== "string" || !/^assets\/experiments\/props\/[a-z0-9_/-]+\.glb$/.test(glbUrl))continue;
     const actual = resolve(REPO, glbUrl);
     if(!actual.startsWith(PROPS_ROOT + sep) || !existsSync(actual))continue;
     const prop = {id:unitId+"/"+variant, name:plan.specifications?.object_kind||"Objet",
-      gripPlan:publicPath(planFile), gripReviewStatus:reviewStatus, model:publicPath(actual)};
+      gripPlan:publicPath(planFile), gripReviewStatus:plan.visual_qa?.status||"baseline",
+      model:publicPath(actual)};
     // Physical size is an independent, approximate metric measurement; the
     // old semantic attachment file is never permitted to dictate it.
     const sizeFile = join(folder, variant, "physical-size.json");

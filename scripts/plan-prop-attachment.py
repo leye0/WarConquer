@@ -235,9 +235,67 @@ def run(request_path: str, check: bool) -> None:
           "length/height:",spec["length_relative_character_height"],"grip:",fit["grip_fraction_from_butt"])
 
 
+def apply_review(request_path: str, review_path: str) -> None:
+    """Promote a source-matched visual review INTO the canonical grip-plan.json.
+
+    Prior revisions belong to git history. No new paid inference is submitted.
+    """
+    cfg, obj, char, glb, output = read_request(request_path)
+    if not output.is_file() or output.name != "grip-plan.json":
+        raise ValueError("A canonical grip-plan.json must exist before review")
+    current = json.loads(output.read_text(encoding="utf8"))
+    provenance = {"object_image_sha256": sha(obj),
+                  "character_image_sha256": sha(char),
+                  "prop_glb_sha256": sha(glb)}
+    if current.get("input_hashes") != provenance:
+        raise ValueError("Canonical grip inputs have changed")
+    reviewed = json.loads(local(review_path).read_text(encoding="utf8"))
+    hashes = reviewed.get("input_hashes", {})
+    notes = reviewed.get("vision_review", {})
+    specs = reviewed.get("specifications", {})
+    if (reviewed.get("schema") != 4 or
+            reviewed.get("inputs") != current.get("inputs") or
+            reviewed.get("visual_qa", {}).get("status") not in ("candidate", "approved") or
+            hashes.get("source_prop_sha256") != provenance["object_image_sha256"] or
+            hashes.get("source_character_sha256") != provenance["character_image_sha256"] or
+            notes.get("change_needed") is not True or
+            not isinstance(notes.get("confidence"), (int, float)) or
+            notes["confidence"] < .8 or
+            specs.get("head_direction") != notes.get("head_direction") or
+            specs.get("edge_direction") != notes.get("edge_direction")):
+        raise ValueError("Visual review does not match current canonical sources")
+    fitting = validate(specs)
+    if not fitting["supported_by_current_geometry_fitter"]:
+        raise ValueError("Visual review cannot be fitted to the current GLB")
+    reviewed_fraction = notes.get("grip_fraction_from_butt")
+    if (not isinstance(reviewed_fraction, (int, float)) or
+            isinstance(reviewed_fraction, bool) or
+            not math.isfinite(reviewed_fraction) or
+            not .04 <= reviewed_fraction <= .64 or
+            abs(reviewed_fraction - fitting["grip_fraction_from_butt"]) > .15):
+        raise ValueError("Reviewed grip location conflicts with the source image")
+    fitting["grip_fraction_from_butt"] = round(reviewed_fraction, 5)
+    # The physical centimetre estimate remains a separate source of truth.
+    # The visual review changes only grip/pose geometry and semantic direction.
+    merged = dict(current)
+    merged["specifications"] = specs
+    merged["derived_image_geometry"] = fitting
+    merged["visual_qa"] = reviewed["visual_qa"]
+    merged["vision_review"] = notes
+    merged["source_provenance"] = reviewed.get("source_provenance")
+    temp = output.with_suffix(".json.tmp")
+    temp.write_text(json.dumps(merged, ensure_ascii=False, indent=2) + "\n", encoding="utf8")
+    temp.replace(output)
+    print("Updated canonical grip plan using existing visual review:", output.relative_to(ROOT))
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--request", default=DEFAULT_REQUEST)
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--apply-review", help="Source-matched in-situ review to merge into the canonical plan")
     args = parser.parse_args()
-    run(args.request, args.check)
+    if args.apply_review:
+        apply_review(args.request, args.apply_review)
+    else:
+        run(args.request, args.check)

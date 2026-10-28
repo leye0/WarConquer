@@ -403,7 +403,7 @@
       const spec=vision?.specifications;
       const gripFraction=vision?.derived_image_geometry?.grip_fraction_from_butt;
       const side=spec?.dominant_hand==="left"?"left":"right";
-      if(![2,3,4].includes(vision.schema)||!["shaft","frame"].includes(spec?.grip_geometry)||
+      if(![2,3].includes(vision.schema)||!["shaft","frame"].includes(spec?.grip_geometry)||
         spec.hold_mode==="unsupported")throw Error("Plan de prise géométrique non résolu");
       if(!Number.isFinite(gripFraction)||gripFraction<=.03||gripFraction>=.75||
         !Number.isFinite(spec.length_relative_character_height)||
