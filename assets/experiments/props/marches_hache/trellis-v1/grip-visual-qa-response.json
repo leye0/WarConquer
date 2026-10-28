@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "signature": "3b7a1899ec07e7c2dcf62df63ffa582c4eabab69c2f66b608286328be5c32cbf",
+  "signature": "0d9579f8c12636fb0a8f50625cff1965468ab09e39c89ad41227b0b95303b170",
   "vision_model": "google/gemini-2.5-flash-lite",
   "raw_review": {
     "go": false,
@@ -8,6 +8,6 @@
     "issues": [
       "The axe head is clipping through the character's back in the side and back views."
     ],
-    "explanation": "The axe is held correctly, with the heavy end hanging down. However, the axe head is intersecting with the character's mesh in the side and back views, which is a significant visual artifact."
+    "explanation": "The axe is held correctly in a passive carry posture, with the heavy end hanging naturally below the hand. However, the axe head is intersecting with the character's mesh in the side and back views, which is a significant visual artifact."
   }
 }
