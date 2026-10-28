@@ -137,6 +137,37 @@ const me=options=>new Brain({id:"scout",x:.5,z:.5,visionRange:7,...options});
   assert.notEqual(b.step(clear,{type:"hold"},100,500).status,"stuck","A new order resets the stall");
 }
 
+// The actual Perception Lab melee setup: the enemy occupies multiple grid
+// cells, and the approach point must leave room for the actor's swept body.
+{
+  const enemy={id:"melee-dummy",kind:"unit",team:"red",x:4,z:-2,
+    radius:.4,blocking:true,opaque:false,threat:1};
+  const rows=Array.from({length:32},(_,z)=>Array.from({length:32},(_,x)=>{
+    const cx=x-15.5,cz=z-15.5;
+    const dx=Math.max(0,Math.abs(cx-enemy.x)-.5);
+    const dz=Math.max(0,Math.abs(cz-enemy.z)-.5);
+    return Math.hypot(dx,dz)<enemy.radius?"#":".";
+  }).join(""));
+  const w={originX:-16,originZ:-16,grid:rows,
+    occlusion:Array.from({length:32},()=> ".".repeat(32)),objects:[enemy]};
+  const b=new Brain({id:"scout",team:"blue",x:0,z:0,visionRange:7});
+  const order={type:"attack",entityId:"melee-dummy",distance:1.65};
+  let strikes=0,collisions=0;
+  for(let i=1;i<=80;i++){
+    b.speed=2.7;
+    const d=b.step(w,order,100,i*100);
+    if(d.action==="attack"){strikes++;break;}
+    if(d.status==="stuck")break;
+    const next={x:b.x+d.move.dx,z:b.z+d.move.dz};
+    const blockedCell=firstBlockedCell(w,{x:b.x,z:b.z},next);
+    const accepted=!blockedCell;
+    b.reportMoveResult({accepted,attempted:d.move,blockedCell,nowMs:i*100});
+    if(accepted){b.x=next.x;b.z=next.z;}else collisions++;
+  }
+  assert.equal(strikes,1,"Must enter melee range and attack a blocking enemy");
+  assert.equal(collisions,0,"Planned melee approach must leave body clearance");
+}
+
 // The renderer must enforce collisions along a moving capsule, not just at
 // its destination; a fast diagonal can intersect a corner mid-step.
 {

@@ -156,11 +156,15 @@
         const c={x:targetCell.x+dx,z:targetCell.z+dz};
         if(!inside(world,c)||this.knownBlocked(world,c,nowMs))continue;
         const originX=world.originX||0,originZ=world.originZ||0;
+        // Keep the entire mover (radius .28 m) clear of neighbouring
+        // occupied cells. A point .06 m from a cell edge can be inside
+        // collision geometry even though its own grid cell is walkable.
+        const inset=.32;
         const p={
-          x:clamp(entity.x,originX+c.x+.06,originX+c.x+.94),
-          z:clamp(entity.z,originZ+c.z+.06,originZ+c.z+.94)
+          x:clamp(entity.x,originX+c.x+inset,originX+c.x+1-inset),
+          z:clamp(entity.z,originZ+c.z+inset,originZ+c.z+1-inset)
         };
-        if(dist(p,entity)>reach-.01)continue;
+        if(dist(p,entity)>reach-.01||!this.segmentClear(world,p,p,nowMs))continue;
         candidates.push(p);
       }
       candidates.sort((a,b)=>dist(this,a)-dist(this,b));
@@ -213,7 +217,10 @@
       if(this.cells.get(key(c.x,c.z))?.blocked)return true;
       for(const entity of this.entities.values()) {
         if(!entity.blocking||entity.id===this.id||nowMs-entity.seenAt>1500)continue;
-        if(dist(center(world,c),entity)<=Math.max(.45,entity.radius))return true;
+        const p=center(world,c);
+        const dx=Math.max(0,Math.abs(p.x-entity.x)-.5);
+        const dz=Math.max(0,Math.abs(p.z-entity.z)-.5);
+        if(Math.hypot(dx,dz)<Math.max(.05,entity.radius||.4))return true;
       }
       return false;
     }
