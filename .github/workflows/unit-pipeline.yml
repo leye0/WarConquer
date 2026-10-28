@@ -7,6 +7,8 @@ on:
       - 'scripts/unit-equipment.py'
       - 'scripts/plan-prop-attachment.py'
       - 'scripts/characterize-prop-interaction.py'
+      - 'scripts/prop-motion-contact.js'
+      - 'scripts/test-prop-motion-contact.mjs'
       - 'scripts/test-prop-interaction-contract.py'
       - 'scripts/test-unit-pipeline.py'
       - 'scripts/test-unit-equipment.py'
@@ -20,6 +22,8 @@ on:
       - 'scripts/unit-pipeline.py'
       - 'scripts/unit-equipment.py'
       - 'scripts/characterize-prop-interaction.py'
+      - 'scripts/prop-motion-contact.js'
+      - 'scripts/test-prop-motion-contact.mjs'
       - 'scripts/test-prop-interaction-contract.py'
       - 'scripts/build-prop-trellis.py'
       - 'scripts/build-unit-3d.py'
@@ -98,6 +102,7 @@ jobs:
           python scripts/test-unit-equipment.py
           python scripts/test-prop-interaction-contract.py
           python scripts/test-prop-mesh-landmarks.py
+          node scripts/test-prop-motion-contact.mjs
           python scripts/unit-pipeline.py list
           python scripts/unit-pipeline.py status --unit couronne_archer
           python scripts/unit-pipeline.py run --unit couronne_archer --stage source
