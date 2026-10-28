@@ -18,15 +18,17 @@ def test_real_glb_projection():
     assert preview[:8] == b"\x89PNG\r\n\x1a\n"
     assert len(views)==4
     assert len({tuple(np.round(v["camera"], 3)) for v in views})==4
-    # One cached tiny-vision answer may put a landmark OUTSIDE the silhouette.
-    # The geometric sign-based solver must still resolve two distinct *real*
-    # head/edge vertices, rather than mounting the blunt poll as the edge.
+    # An inaccurate vision answer must be rejected. Geometry may never
+    # silently invent a head/edge from the shaft's longest direction.
     recorded={"view":3,"handle_butt":[.5,.95],"grip_center":[.5,.65],
         "working_head":[.75,.35],"functional_edge":[.85,.35],
         "confidence":.9,"explanation":"The sharp side faces right in view 3"}
-    fit=module.lift_landmarks(parts,views,recorded)
-    assert fit["working_head"]["local"] != fit["functional_edge"]["local"]
-    assert fit["functional_edge"]["method"] == "signed-mesh-silhouette-extreme"
+    try:
+        module.lift_landmarks(parts,views,recorded)
+    except ValueError as err:
+        assert "re-annotate" in str(err),str(err)
+    else:
+        raise AssertionError("Invented a functional landmark from an off-mesh vision point")
 
 
 def test_lift_keeps_signed_functional_edge():
@@ -54,6 +56,7 @@ def test_lift_keeps_signed_functional_edge():
     result=module.lift_landmarks(meshes,views,answer)
     assert np.allclose(result["functional_edge"]["local"],edge)
     assert np.allclose(result["grip_center"]["local"],grip)
+    assert all(point["method"]=="vision-nearest-surface" for point in result.values())
     mirrored=dict(answer)
     other=np.array([1.0,0.0,.38])
     # The other side is actually distinct in the mesh, not an invented point.
