@@ -760,15 +760,49 @@
                 const between=v.sub(nextContact.grip,secondary.grip);
                 const spacing=v.norm(between);
                 if(spacing>.07 && spacing<desiredLength*.6){
-                  // Both palms define the handle's line. The working head
-                  // extends beyond the dominant grip, away from the support
-                  // hand; this is independent of the object category.
-                  const shaft=v.unit(between);
-                  anchor.rotationQuaternion=buildGripRotation(gripFrame,
-                    new B.Vector3(...shaft),new B.Vector3(...nextContact.body.forward),
-                    selectedFit.transpose);
-                  solvedWithTwoHands=true;
-                  actionReference=null;
+                  // Fit both palm contacts on the ACTUAL rendered shaft.
+                  // Neither glTF handedness nor animation orientation can be
+                  // inferred from naming conventions or a guessed quaternion.
+                  const shoulder=v.norm(v.sub(nextJoints.LeftShoulder,nextJoints.RightShoulder));
+                  const r=Math.max(.17,shoulder*.46);
+                  const capsules=[{a:nextJoints.Hips,b:nextJoints.Chest,radius:r},
+                    {a:nextJoints.Chest,b:nextJoints.Neck||nextJoints.Chest,radius:r*.75}];
+                  let best=null;
+                  for(const transpose of [false,true])
+                  for(const sign of [1,-1])
+                  for(const face of [nextContact.body.forward,nextContact.body.right]){
+                    const shaft=v.mul(v.unit(between),sign);
+                    let q;
+                    try{q=buildGripRotation(gripFrame,new B.Vector3(...shaft),
+                      new B.Vector3(...face),transpose);}catch{continue;}
+                    anchor.rotationQuaternion=q;
+                    anchor.computeWorldMatrix(true);offset.computeWorldMatrix(true);
+                    const map=p=>B.Vector3.TransformCoordinates(
+                      new B.Vector3(...v.sub(p,frame.grip)),anchor.getWorldMatrix()).asArray();
+                    const grip=map(meshPoints.grip_center),butt=map(meshPoints.handle_butt);
+                    const head=map(meshPoints.working_head),edge=map(meshPoints.functional_edge);
+                    const handle=v.unit(v.sub(grip,butt));
+                    const diff=v.sub(secondary.grip,grip);
+                    const projection=v.dot(diff,handle);
+                    const lineError=v.norm(v.sub(diff,v.mul(handle,projection)));
+                    const outOfHandle=Math.max(0,projection)+
+                      Math.max(0,-projection-v.norm(v.sub(grip,butt)));
+                    const faceDot=v.dot(v.unit(v.sub(edge,head)),nextContact.body.forward);
+                    const headSign=v.dot(v.unit(v.sub(head,grip)),v.unit(between));
+                    const nearest=v.capsuleClearance(importedPropPoints(prop.meshes||[],200),capsules);
+                    const collision=Math.max(0,.085-nearest);
+                    const score=lineError**2*160+outOfHandle**2*160+
+                      collision**2*280+Math.max(0,.3-faceDot)**2*15+
+                      Math.max(0,-headSign)**2*45;
+                    if(!best||score<best.score)best={q,score,lineError,
+                      nearest,faceDot,headSign,transpose};
+                  }
+                  if(best&&best.lineError<.15){
+                    anchor.rotationQuaternion=best.q;
+                    solvedWithTwoHands=true;
+                    actionReference=null;
+                    byId("world").dataset.weaponSecondHandError=best.lineError.toFixed(3);
+                  }
                 }
               }
               if(!solvedWithTwoHands){
