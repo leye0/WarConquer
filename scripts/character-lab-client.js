@@ -74,39 +74,95 @@
       root.append(card);
     }
   }
-  function renderCatalog() {
-    const characters = state.catalog.characters;
-    const dropdown = byId("modelSelect");
-    const saved = dropdown.value;
+  function renderModelVersions(preferredUrl=null) {
+    const dropdown=byId("modelSelect");
+    const char=state.selected;
     dropdown.replaceChildren();
-    if (!characters.length) {
-      text("unitName", "Aucun GLB trouvé");
-      setStatus("Ajoutez un maillage dans assets/experiments/rig-ready-3d", "warning");
+    for(const model of char.models.slice().sort((a,b)=>b.priority-a.priority)){
+      const opt=document.createElement("option");
+      opt.value=model.url;
+      opt.textContent=model.name;
+      dropdown.append(opt);
+    }
+    dropdown.disabled=char.models.length===0;
+    if(preferredUrl&&char.models.some(m=>m.url===preferredUrl))dropdown.value=preferredUrl;
+    else if(char.models.length)dropdown.value=char.models.slice().sort((a,b)=>b.priority-a.priority)[0].url;
+  }
+
+  function showSourceOnly(char) {
+    // Never reuse the previous character's imported mesh on unit changes.
+    state.pendingLoad++;
+    removeImported();
+    state.selected=char;
+    text("unitName",char.name);
+    text("meshMetric","3D non produit");
+    text("jointMetric","—");
+    text("modelMetric","Concept 2D");
+    text("clipMetric","—");
+    text("activeMotionMetric","—");
+    text("weaponMetric","Arc 3D à générer");
+    text("walkMetric","Fiche source prête ; génération 3D non commencée.");
+    byId("idleSelect").disabled=true;
+    byId("attackButton").disabled=true;
+    byId("castButton").disabled=true;
+    document.querySelectorAll('[data-command="attack"],[data-command="cast"]')
+      .forEach(button=>button.disabled=true);
+    byId("conceptImage").src=assetUrl(char.original);
+    byId("conceptImage").alt="Concept 2D original : "+char.name;
+    byId("conceptPreview").hidden=false;
+    byId("world").dataset.unitId=char.id;
+    byId("world").dataset.unitBuildStatus="source_only";
+    byId("world").closest(".playbox").dataset.unitState="source-only";
+    text("unitBuildStatus","Illustration prête · 3D, rig et animations manquants");
+    renderSources();
+    setOverlay("",false);
+    setStatus("Unité 2D sélectionnée · construction 3D à faire","warning");
+  }
+
+  function renderCatalog() {
+    const chars=state.catalog.characters;
+    const unitSelect=byId("unitSelect");
+    unitSelect.replaceChildren();
+    if(!chars.length){
+      text("unitName","Aucune unité trouvée");
+      setStatus("Ajoutez une fiche dans data/units","warning");
       return;
     }
-    state.selected = characters.find(x => x.id === state.selected?.id && x.pose === state.selected?.pose)
-      || characters[0];
-    for (const char of characters) {
-      const group = document.createElement("optgroup");
-      group.label = char.name + " / " + char.pose;
-      for (const m of char.models.slice().sort((a,b) => b.priority - a.priority)) {
-        const opt = document.createElement("option");
-        opt.value = m.url;
-        opt.textContent = char.name + " · " + m.name;
-        group.append(opt);
-      }
-      dropdown.append(group);
+    const names=new Map();
+    for(const c of chars)if(!names.has(c.id))names.set(c.id,c);
+    for(const c of names.values()){
+      const option=document.createElement("option");
+      option.value=c.id;
+      option.textContent=c.name+(c.models.length?" · 3D jouable":" · concept 2D");
+      unitSelect.append(option);
     }
-    if (saved && Array.from(dropdown.options).some(x => x.value === saved)) dropdown.value = saved;
-    else dropdown.value = state.selected.models.slice().sort((a,b) => b.priority - a.priority)[0]?.url || "";
-    selectByPath(dropdown.value);
+    // A URL can select a specific unit for mobile testing or sharing.
+    const requested=new URLSearchParams(location.search).get("unit");
+    const existing=state.selected?.id;
+    const id=[existing,requested,"marches_hache"].find(id=>names.has(id))
+      || chars[0].id;
+    state.selected=chars.find(c=>c.id===id&&c.models.length)||names.get(id);
+    unitSelect.value=id;
+    renderModelVersions();
+    if(state.selected.models.length){
+      selectByPath(byId("modelSelect").value);
+    } else {
+      showSourceOnly(state.selected);
+    }
   }
+
   function selectByPath(path) {
     for (const c of state.catalog.characters) {
       const model = c.models.find(m => m.url === path);
       if (model) {
         state.selected = c;
         state.loadedAsset = model;
+        byId("unitSelect").value=c.id;
+        byId("conceptPreview").hidden=true;
+        byId("world").closest(".playbox").dataset.unitState="ready";
+        byId("world").dataset.unitId=c.id;
+        byId("world").dataset.unitBuildStatus="playable";
+        text("unitBuildStatus","Modèle 3D disponible · prêt à tester");
         text("unitName", c.name);
         text("meshMetric", (c.metrics.faces || "—") + " triangles");
         text("jointMetric", model.kind === "mesh" ? "0 os · sans rig" : (c.metrics.joints || "—") + " os");
@@ -741,6 +797,21 @@
   }
 
   function bindUI() {
+    byId("unitSelect").addEventListener("change",event=>{
+      const char=state.catalog.characters.find(c=>c.id===event.target.value&&c.models.length)
+        ||state.catalog.characters.find(c=>c.id===event.target.value);
+      if(!char)return;
+      state.selected=char;
+      state.input.clear();state.touch.clear();
+      renderModelVersions();
+      if(!char.models.length){
+        showSourceOnly(char);
+      } else {
+        const url=byId("modelSelect").value;
+        selectByPath(url);
+        loadModel(url);
+      }
+    });
     byId("modelSelect").addEventListener("change",event=>{
       selectByPath(event.target.value);
       loadModel(event.target.value);
@@ -843,6 +914,8 @@
         setStatus("Mode fichier : importer un GLB avec le bouton", "warning");
       } else if(selected) {
         await loadModel(selected);
+      } else if(state.selected && !state.selected.models.length){
+        showSourceOnly(state.selected);
       }
     }
   }
