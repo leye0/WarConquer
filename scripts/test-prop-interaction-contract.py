@@ -32,13 +32,14 @@ valid = {
         {"id": "passive_carry", "phase": "carry", "hands": 1,
          "primary_hand": "right", "primary_grip": "lower_handle",
          "secondary_hand": "none", "secondary_grip": "",
-         "functional_feature": "", "mixamo_role": "none",
+         "functional_feature": "", "action_direction": "none", "mixamo_role": "none",
          "action_intent": "Transport the axe safely by its lower wooden handle.",
          "evidence": "Character silhouette carries the axe by its lower shaft."},
         {"id": "chop", "phase": "use", "hands": 2,
          "primary_hand": "right", "primary_grip": "lower_handle",
          "secondary_hand": "left", "secondary_grip": "upper_handle",
-         "functional_feature": "cutting_edge", "mixamo_role": "axe_chop",
+         "functional_feature": "cutting_edge", "action_direction": "forward",
+         "mixamo_role": "axe_chop",
          "action_intent": "Swing the axe and hit the target with its sharp edge.",
          "evidence": "The action needs a supporting grip and an upper stabilizing hand."}
     ],
@@ -67,6 +68,8 @@ reject(lambda p: p["features"][0].update(direction_tip=[.51,.55]), "direction")
 reject(lambda p: p.update(uncertainties=["Cannot see the functional front"]), "Uncertain")
 reject(lambda p: p["modes"][1].update(primary_grip="made_up_handle"), "Invalid hands")
 reject(lambda p: p["modes"][1].update(primary_hand="either"), "Invalid hands")
+reject(lambda p: p["modes"][1].update(action_direction="none"), "Mixamo")
+reject(lambda p: p["modes"][0].update(action_direction="forward"), "carry action")
 reject(lambda p: p["modes"].pop(), "Carry and use")
 reject(lambda p: p.update(object_kind="bow"), "Mixamo")
 reject(lambda p: p.update(object_kind="sword"), "Mixamo")
