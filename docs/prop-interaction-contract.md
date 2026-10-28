@@ -69,8 +69,20 @@ le point exact où la main secondaire **devrait** être (cible IK), l'écart ave
 sa position actuelle et l'accessibilité de cette cible d'après les longueurs
 réelles du bras et de l'avant-bras. Si la fonction est colinéaire aux prises,
 le roulis demeure indéterminé et le calcul rejette la pose plutôt que de le
-deviner. Ce calcul **ne déforme pas encore le squelette** et n'autorise donc
-pas de prétendre que le contact secondaire est résolu.
+deviner. Character Lab exploite désormais cette cible sur une vraie animation :
+le bras et l'avant-bras secondaires sont orientés par IK analytique à deux
+segments, puis leurs rotations sont restaurées **après le rendu** de chaque
+frame. Les données Mixamo originales ne sont jamais modifiées. La distance
+entre la seconde paume et la prise réelle est mesurée après l'IK ; un rejet
+reste visible dans les diagnostics. Une capture visuelle indépendante reste
+indispensable avant tout statut `fully_ready`.
+
+Le catalogue Character Lab ne publie un contrat détaillé que si les empreintes
+du plan, des annotations 3D et du contrat correspondent. Chaque action est
+liée à un groupe d'animation par le préfixe exact du rôle Mixamo déclaré dans
+`data/motion-library.json`, sans retour implicite à une animation d'une autre
+arme. La QA du navigateur vérifie l'écart de la seconde main et la direction
+fonctionnelle sur plusieurs frames, et refuse un résultat incertain.
 
 ## Validation en deux temps
 
