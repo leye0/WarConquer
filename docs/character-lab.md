@@ -177,3 +177,5 @@ Il valide le fichier source et liste les étapes manquantes. Les générateurs d
 Le catalogue Pages est le **même** que celui du serveur local : les unités dont le 3D manque sont publiées avec `models:[]`, `buildStatus: "source_only"`, l'image d'origine et le chemin de manifeste. Les tests navigateur sélectionnent l'archer, confirment l'absence de vieux maillage 3D, puis reviennent au guerrier jouable.
 
 **Tests ciblés :** la QA sélectionne désormais l'archer directement par `?unit=couronne_archer` et prend une capture du concept en premier, avant tout test WebGL; la validation de l'animation 3D du guerrier demeure distincte, car elle dépend du chargement du moteur Babylon.js. Le pipeline d'archer est testé pour la source et refuse les anciens générateurs câblés sur l'autre personnage.
+
+La vérification du catalogue compare aussi l'absence de GLB de l'archer, l'accès public à sa fiche originale et la préservation du modèle des Marches. Ces assertions s'exécutent avant les rendus WebGL.
