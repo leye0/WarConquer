@@ -21,14 +21,21 @@ assert pipeline.unit_ids()==["couronne_archer","marches_hache"],pipeline.unit_id
 archer=pipeline.manifest("couronne_archer")
 assert archer["id"]=="couronne_archer"
 assert archer["equipment"][0]["kind"]=="bow"
+assert archer["adapter"]=="manifest_v1"
 assert pipeline.state(archer,"source")["ready"],"Archer original concept exists"
 assert not pipeline.state(archer,"turnaround")["ready"],"Archer 3D views must not be invented"
 assert not pipeline.state(archer,"animations")["ready"],"Archer must not inherit Marches GLB"
 assert pipeline.main(["run","--unit","couronne_archer","--stage","source"])==0
 assert pipeline.main(["run","--unit","couronne_archer","--stage","all","--dry-run"])==0
-try:pipeline.main(["run","--unit","couronne_archer","--stage","body","--allow-paid"])
+assert pipeline.main(["run","--unit","couronne_archer","--stage","body","--dry-run"])==0
+try:pipeline.main(["run","--unit","couronne_archer","--stage","rig","--allow-paid"])
 except pipeline.PipelineError as e:assert "parameterized 3D adapter" in str(e)
-else:raise AssertionError("Legacy-only model generation leaked to the archer")
+else:raise AssertionError("Legacy-only rig generation leaked to the archer")
+with patch.object(pipeline,"execute") as execute:
+ try:pipeline.main(["run","--unit","couronne_archer","--stage","body"])
+ except pipeline.PipelineError as e:assert "--allow-paid" in str(e)
+ else:raise AssertionError("3D paid generation without consent")
+ execute.assert_not_called()
 assert set(pipeline.PAID).issubset(pipeline.STAGES)
 for stage in pipeline.STAGES:
     st=pipeline.state(m,stage)
