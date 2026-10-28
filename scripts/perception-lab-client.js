@@ -5,7 +5,8 @@
   "use strict";
   const $=id=>document.getElementById(id);
   const B=window.BABYLON;
-  if(!B||!window.WCArena||!window.WCPerception||!window.WCResources){
+  if(!B||!window.WCArena||!window.WCPerception||!window.WCResources||
+      !window.WCGait||!window.WCCombat){
     $("status").textContent="Babylon.js, l'arène ou le module de perception n'a pas chargé.";
     $("engineBadge").textContent="Moteur indisponible";
     return;
@@ -24,10 +25,10 @@
     selected:null,order:{type:"hold"},decision:null,animation:{},currentClip:null,
     actionRunning:false,actor:null,brain:null,loadedModel:false,acc:0,
     simPose:{x:0,z:0,yaw:0},prevPose:{x:0,z:0,yaw:0},
-    currentMotionMode:null,
+    currentMotionMode:null,modelOptions:[],modelToken:0,
+    imported:null,avatarContent:null,gait:{walk:1.4,run:3.55},gaitScale:1,
+    pendingHit:null,attackCount:0,
     inventory:WCResources.inventory(),events:[],actionSerial:0,lastStatus:null};
-  // Same world-unit speeds and native 1x gait as the Character Lab.
-  const WALK_SPEED=2.7,RUN_SPEED=2.7*1.75;
   const point=(x,z)=>({x,z});
   const range=(x,min,max)=>Math.max(min,Math.min(max,x));
   const color=hex=>B.Color3.FromHexString(hex);
@@ -86,6 +87,7 @@
       kind,team:options.team||(kind==="unit"?"red":"neutral"),
       x,z,radius:options.radius??(kind==="obstacle"?.65:.4),
       resourceType:options.resourceType||"wood",quantity:options.quantity??1,
+      health:options.health??(kind==="unit"?100:0),
       threat:options.threat??(kind==="unit"?1:0),
       blocking:options.blocking??(kind==="obstacle"||kind==="unit"),
       opaque:options.opaque??(kind==="obstacle"),mesh:null,static:false};
@@ -115,7 +117,8 @@
       visionRange:Number($("visionRange").value),memoryTtlMs:20000});
     state.clock=0;state.order={type:"hold"};state.decision=null;
     state.inventory=WCResources.inventory();state.events=[];state.lastStatus=null;
-    state.actionSerial++;state.actionRunning=false;
+    state.actionSerial++;state.actionRunning=false;state.pendingHit=null;
+    state.attackCount=0;
     for(const clip of state.animation.groups||[])clip.stop();
     state.currentClip=null;state.currentMotionMode=null;motion("idle");
     state.tool=null;state.pending=null;
@@ -142,7 +145,8 @@
     }
     return {originX:-16,originZ:-16,grid,occlusion,objects:state.items.map(o=>({
       id:o.id,x:o.x,z:o.z,kind:o.kind,team:o.team,
-      blocking:o.blocking,opaque:o.opaque,radius:o.radius,threat:o.threat
+      blocking:o.blocking,opaque:o.opaque,radius:o.radius,threat:o.threat,
+      health:o.health
     }))};
   }
   function drawPath(result){
@@ -159,29 +163,39 @@
       idle:/(^|[_ -])(idle|rest)([_ -]|$)/i,
       walk:/(^|[_ -])(walk|walking)([_ -]|$)/i,
       run:/(^|[_ -])(run|running)([_ -]|$)/i,
-      attack:/(^|[_ -])(attack|chop|strike|swing)([_ -]|$)/i,
+      attack:/(^|[_ -])(attack|axe|chop|melee|strike|swing)([_ -]|$)/i,
       collect:/(^|[_ -])(pick.?up|pickup|collect|gather)([_ -]|$)/i
     };
     return groups.find(g=>patterns[name].test(g.name))||null;
   }
-  function motion(name){
+  function updateGait(){
+    const settings={height:1.9,scale:state.gaitScale};
+    state.gait.walk=WCGait.nominalSpeed("walk",
+      state.animation.walk||state.animation.run,settings)||1.4*state.gaitScale;
+    state.gait.run=WCGait.nominalSpeed("run",
+      state.animation.run||state.animation.walk,settings)||3.55*state.gaitScale;
+    $("gaitInfo").textContent="Marche "+state.gait.walk.toFixed(2)+
+      " m/s · Course "+state.gait.run.toFixed(2)+" m/s";
+    $("gaitScaleLabel").textContent=Math.round(state.gaitScale*100)+" %";
+  }
+  function motion(name,speed=0){
     if(state.actionRunning)return;
     if(state.paused&&name!=="idle")name="idle";
     const clip=name==="walk"?(state.animation.walk||state.animation.run||state.animation.idle):
       name==="run"?(state.animation.run||state.animation.walk||state.animation.idle):
       (state.animation[name]||state.animation.idle)||null;
-    // Use the Character Lab's 1x gait for matching clips. If a walk/run
-    // clip is missing, scale the available gait to the actual world speed.
-    const speedRatio=name==="walk"&&clip===state.animation.run?WALK_SPEED/RUN_SPEED:
-      name==="run"&&clip===state.animation.walk?RUN_SPEED/WALK_SPEED:1;
+    // Link the number of actual world metres moved to the gait cycle rate.
+    // Animation durations come from the imported GLB, not fixed timeouts.
+    const ratio=(name==="walk"||name==="run")?
+      WCGait.playbackRatio(name,clip,speed,{height:1.9,scale:state.gaitScale}):1;
     if(clip===state.currentClip){
-      if(clip&&state.currentMotionMode!==name)clip.speedRatio=speedRatio;
+      if(clip)clip.speedRatio=ratio;
       state.currentMotionMode=name;
       return;
     }
     state.currentClip?.stop();
     state.currentClip=clip;state.currentMotionMode=name;
-    if(clip)clip.start(true,speedRatio,clip.from,clip.to);
+    if(clip)clip.start(true,ratio,clip.from,clip.to);
     $("animationState").textContent=clip?.name||"Aucun clip";
   }
   function renderPose(alpha){
@@ -227,7 +241,8 @@
         motion("idle");
         $("animationState").textContent="Collecte effectuée · sans clip Mixamo";
       }else{
-        $("animationState").textContent="Attaque indisponible · clip manquant";
+        $("animationState").textContent="Attaque indisponible · clip Mixamo absent";
+        recordEvent("Attaque impossible : le personnage sélectionné n'a aucun clip d'attaque.");
         state.order={type:"hold"};
       }
       return;
@@ -235,18 +250,48 @@
     const serial=++state.actionSerial;
     state.actionRunning=true;
     state.currentClip?.stop();state.currentClip=null;
+    state.currentMotionMode=null;
     group.stop();group.start(false,1,group.from,group.to);
     $("animationState").textContent=group.name;
+    if(action==="attack"){
+      const seconds=WCGait.duration(group)||1.4;
+      state.pendingHit={serial,entityId:state.order.entityId,
+        at:state.clock+Math.round(seconds*550)};
+    }
     group.onAnimationGroupEndObservable.addOnce(()=>{
       if(serial!==state.actionSerial)return;
       state.actionRunning=false;
+      state.pendingHit=null;
       motion("idle");
     });
   }
+  function resolveAttackImpact(){
+    const pending=state.pendingHit;
+    if(!pending||pending.serial!==state.actionSerial||state.clock<pending.at)return;
+    state.pendingHit=null;
+    const outcome=WCCombat.hit({items:state.items,entityId:pending.entityId,
+      actor:{x:state.simPose.x,z:state.simPose.z},
+      team:state.brain.team,reach:1.6,damage:34});
+    if(!outcome.ok){
+      recordEvent("Coup manqué : "+outcome.reason);
+      return;
+    }
+    state.attackCount++;
+    recordEvent("Coup porté : "+outcome.damage+" dégâts · "+outcome.name+
+      " · "+outcome.health+" PV");
+    if(outcome.defeated){
+      outcome.item.mesh?.dispose(false,true);
+      state.brain.forgetEntity(outcome.id);
+      if(state.selected===outcome.item)selectItem(null);
+      state.order={type:"hold"};
+      recordEvent(outcome.name+" vaincu.");
+    }
+  }
   function tick(){
     state.clock+=100;
+    resolveAttackImpact();
     const world=makeWorld();
-    state.brain.speed=state.order.type==="flee"?RUN_SPEED:WALK_SPEED;
+    state.brain.speed=state.order.type==="flee"?state.gait.run:state.gait.walk;
     const before=state.simPose,after={...before};
     state.brain.setPose({x:before.x,z:before.z});
     const decision=state.brain.step(world,state.order,100,state.clock);
@@ -273,7 +318,8 @@
     // Perception/collision at 10 Hz, GLB motion interpolated at render FPS.
     state.prevPose=before;state.simPose=after;
     if(decision.action)act(decision.action);
-    else if(moved)motion(decision.status==="fleeing"?"run":"walk");
+    else if(moved)motion(decision.status==="fleeing"?"run":"walk",
+      Math.hypot(attempted.dx,attempted.dz)/.1);
     else motion("idle");
     if(decision.status==="stuck"&&state.lastStatus!=="stuck")
       recordEvent("Chemin bloqué après plusieurs essais : un nouvel ordre est nécessaire.");
@@ -290,6 +336,7 @@
     $("fear").textContent=Math.round(brain.fear*100)+" %";
     $("knownCells").textContent=brain.cells.size+" / 1024";
     $("seenCount").textContent=brain.visible.length+" / "+brain.entities.size;
+    $("attackStatus").textContent=state.attackCount+" coup(s) confirmé(s)";
     $("inventoryText").textContent="Bois : "+state.inventory.wood+
       " · Minerai : "+state.inventory.ore+" · Nourriture : "+state.inventory.food;
     const history=$("eventList");history.replaceChildren();
@@ -336,6 +383,8 @@
     $("resourceKind").value=item.resourceType;
     $("resourceQuantity").value=item.quantity||1;
     $("collectSelected").disabled=item.kind!=="resource";
+    $("unitHealth").value=item.health??100;
+    $("unitHealth").disabled=item.kind!=="unit";
     $("threatLevel").value=item.threat;
     $("blocking").checked=item.blocking;
     $("opaque").checked=item.opaque;
@@ -386,16 +435,43 @@
       selectItem(obj);
     }
   }
-  async function loadAvatar(){
-    try{
-      const res=await fetch("api/character-lab.json");
-      if(!res.ok)throw Error("catalogue absent");
-      const catalog=await res.json();
-      const models=(catalog.characters||[]).flatMap(c=>c.models||[])
-        .filter(m=>m.kind==="playable").sort((a,b)=>b.priority-a.priority);
-      if(!models.length)throw Error("aucun GLB jouable");
-      const url=models[0].url.replace(/^\/assets\//,"assets/");
+  function disposeAvatar(){
+    for(const group of state.imported?.animationGroups||[]){group.stop();group.dispose();}
+    state.avatarContent?.dispose(false,true);
+    for(const skeleton of state.imported?.skeletons||[])skeleton.dispose();
+    state.imported=null;state.avatarContent=null;
+    state.animation={};state.currentClip=null;state.currentMotionMode=null;
+    state.actionSerial++;state.actionRunning=false;state.pendingHit=null;
+    state.loadedModel=false;
+    placeholder.setEnabled(true);nose.setEnabled(true);
+    $("attackNearest").disabled=true;
+    document.querySelector('[data-order="attack"]').disabled=true;
+    updateGait();
+  }
+  function modelScore(model){
+    const clips=(model.clips||[]).map(name=>name.toLowerCase());
+    const has=pattern=>clips.some(c=>pattern.test(c));
+    return (has(/attack|axe|chop|melee|strike|swing/)?100:0)+
+      (has(/walk|marche/)?10:0)+(has(/run|course/)?10:0)+
+      (model.priority||0)/100;
+  }
+  async function loadSelectedAvatar(){
+    const entry=state.modelOptions[Number($("avatarSelect").value)];
+    if(!entry)return;
+    const token=++state.modelToken;
+    disposeAvatar();
+    state.order={type:"hold"};
+    $("engineBadge").textContent="Chargement du GLB…";
+    $("animationState").textContent="Chargement…";
+    $("avatarInfo").textContent=entry.character.name+" · "+entry.model.name;
+    try {
+      const url=entry.model.url.replace(/^\/assets\//,"assets/");
       const imported=await B.SceneLoader.ImportMeshAsync(null,"",url,scene);
+      if(token!==state.modelToken){
+        for(const group of imported.animationGroups||[])group.dispose();
+        for(const mesh of imported.meshes||[])mesh.dispose(false,true);
+        return;
+      }
       const content=new B.TransformNode("scout-model-content",scene);
       content.parent=player;
       for(const node of [...imported.meshes,...imported.transformNodes])
@@ -407,39 +483,83 @@
           const max=new B.Vector3(-Infinity,-Infinity,-Infinity);
           for(const mesh of vertices){
             mesh.computeWorldMatrix(true);
-            const b=mesh.getBoundingInfo().boundingBox;
-            min.minimizeInPlace(b.minimumWorld);max.maximizeInPlace(b.maximumWorld);
+            const bb=mesh.getBoundingInfo().boundingBox;
+            min.minimizeInPlace(bb.minimumWorld);max.maximizeInPlace(bb.maximumWorld);
           }
           return {min,size:max.subtract(min)};
         }
         let bb=bounds();
-        if(bb.size.z>Math.max(.0001,bb.size.y)*1.8&&bb.size.y<Math.max(bb.size.x,bb.size.z)*.48)
+        if(bb.size.z>Math.max(.0001,bb.size.y)*1.8&&
+            bb.size.y<Math.max(bb.size.x,bb.size.z)*.48)
           content.rotation.x=-Math.PI/2;
         bb=bounds();
         const scale=range(1.9/Math.max(.00001,bb.size.y),.01,500);
         content.scaling.setAll(scale);
         content.position.y=-bb.min.y*scale;
       }
+      state.avatarContent=content;state.imported=imported;
       placeholder.setEnabled(false);nose.setEnabled(false);
       state.animation.groups=imported.animationGroups||[];
       for(const group of state.animation.groups){
         group.stop();
-        for(const entry of group.targetedAnimations||[]){
-          entry.animation.enableBlending=true;
-          entry.animation.blendingSpeed=.15;
+        for(const track of group.targetedAnimations||[]){
+          track.animation.enableBlending=true;
+          track.animation.blendingSpeed=.15;
         }
       }
       for(const name of ["idle","walk","run","attack","collect"])
         state.animation[name]=groupFor(name);
       state.loadedModel=true;
+      $("attackNearest").disabled=!state.animation.attack;
+      document.querySelector('[data-order="attack"]').disabled=!state.animation.attack;
       $("engineBadge").textContent="GLB réel · "+state.animation.groups.length+" clips";
+      $("avatarInfo").textContent=entry.character.name+" · "+state.animation.groups.map(g=>g.name).join(", ");
+      updateGait();
       motion("idle");
-      message("Personnage 3D chargé. Marche/course/attaque selon les clips détectés.");
+      message(state.animation.attack?
+        "Personnage animé chargé : attaque Mixamo disponible.":
+        "Personnage animé chargé : aucune animation d'attaque pour cette unité.");
     }catch(err){
-      state.loadedModel=false;
+      if(token!==state.modelToken)return;
+      disposeAvatar();
       $("engineBadge").textContent="Avatar de secours · 3D";
       $("animationState").textContent="GLB non chargé";
-      message("Arène active avec avatar de repérage. Le GLB réel nécessite le catalogue du serveur ou de Pages : "+err.message);
+      message("Impossible de charger ce GLB : "+err.message);
+    }
+  }
+  async function loadAvatar(){
+    try{
+      const res=await fetch("api/character-lab.json");
+      if(!res.ok)throw Error("catalogue absent");
+      const catalog=await res.json();
+      state.modelOptions=(catalog.characters||[]).flatMap(character=>{
+        const playable=(character.models||[]).filter(m=>m.kind==="playable")
+          .sort((a,b)=>modelScore(b)-modelScore(a));
+        return playable.length?[{character,model:playable[0]}]:[];
+      });
+      if(!state.modelOptions.length)throw Error("aucun GLB jouable");
+      const select=$("avatarSelect");
+      select.replaceChildren();
+      for(let i=0;i<state.modelOptions.length;i++){
+        const entry=state.modelOptions[i];
+        const opt=document.createElement("option");
+        opt.value=String(i);
+        const attack=(entry.model.clips||[]).some(c=>/attack|chop|axe|melee|swing/i.test(c));
+        opt.textContent=entry.character.name+(attack?" · ⚔":" · sans attaque");
+        select.append(opt);
+      }
+      const requested=new URLSearchParams(location.search).get("unit");
+      const initial=requested?
+        state.modelOptions.findIndex(e=>e.character.id===requested):
+        state.modelOptions.findIndex(e=>modelScore(e.model)>=100);
+      select.value=String(Math.max(0,initial));
+      select.disabled=false;
+      await loadSelectedAvatar();
+    }catch(err){
+      $("engineBadge").textContent="Avatar de secours · 3D";
+      $("animationState").textContent="GLB non chargé";
+      $("avatarInfo").textContent=err.message;
+      message("Arène active avec avatar de secours : "+err.message);
     }
   }
   for(const b of document.querySelectorAll("[data-place]"))
@@ -459,7 +579,26 @@
     state.acc=0;tick();renderPose(1);motion("idle");
   });
   $("resetDemo").addEventListener("click",resetDemo);
+  $("avatarSelect").addEventListener("change",()=>void loadSelectedAvatar());
+  $("gaitScale").addEventListener("input",event=>{
+    state.gaitScale=range(Number(event.target.value)||1,.65,1.4);
+    updateGait();
+  });
   $("visionRange").addEventListener("input",e=>{state.brain.range=Number(e.target.value);updateHud();});
+  $("attackNearest").addEventListener("click",()=>{
+    if(!state.animation.attack){
+      message("Ce modèle ne possède aucune animation d'attaque.");
+      return;
+    }
+    const enemy=state.brain.chooseEntity(e=>e.role==="enemy");
+    if(!enemy){
+      message("Aucun ennemi repéré : approchez-vous pour le percevoir.");
+      return;
+    }
+    state.order={type:"attack",entityId:enemy.id,distance:1.35};
+    state.pending=null;state.tool=null;syncMode();
+    message("Ordre d'attaque : "+enemy.id);
+  });
   $("collectNearest").addEventListener("click",()=>{
     const entity=state.brain.chooseEntity(e=>e.kind==="resource");
     if(!entity){
@@ -488,6 +627,7 @@
     objectName:["name",v=>String(v).slice(0,50)],
     objectKind:["kind",String],objectTeam:["team",String],resourceKind:["resourceType",String],
     resourceQuantity:["quantity",v=>Math.min(99,Math.max(1,Math.round(Number(v)||1)))],
+    unitHealth:["health",v=>Math.min(200,Math.max(1,Math.round(Number(v)||100)))],
     threatLevel:["threat",v=>range(Number(v)||0,0,1)],
     blocking:["blocking",v=>!!v],opaque:["opaque",v=>!!v]
   };
@@ -495,7 +635,9 @@
     $(id).addEventListener("change",event=>{
       if(!state.selected)return;
       state.selected[field]=convert(event.target.type==="checkbox"?event.target.checked:event.target.value);
-      if(field==="kind"||field==="team")renderItem(state.selected);
+      if(field==="kind"&&state.selected.kind==="unit"&&!(state.selected.health>0))
+        state.selected.health=100;
+      if(field==="kind"||field==="team"){renderItem(state.selected);selectItem(state.selected);}
       message(state.selected.name+" · propriété « "+field+" » modifiée");
     });
   scene.onPointerObservable.add(pointer=>{

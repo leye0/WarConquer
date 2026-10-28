@@ -9,6 +9,10 @@ on:
       - 'scripts/arena-scene.js'
       - 'scripts/perception-brain.js'
       - 'scripts/resource-inventory.js'
+      - 'scripts/perception-gait.js'
+      - 'scripts/test-perception-gait.mjs'
+      - 'scripts/perception-combat.js'
+      - 'scripts/test-perception-combat.mjs'
       - 'scripts/test-resource-inventory.mjs'
       - 'scripts/perception-lab-client.js'
       - 'scripts/test-perception-brain.mjs'
@@ -51,6 +55,10 @@ jobs:
           node --check scripts/arena-scene.js
           node --check scripts/perception-brain.js
           node --check scripts/resource-inventory.js
+          node --check scripts/perception-gait.js
+          node scripts/test-perception-gait.mjs
+          node --check scripts/perception-combat.js
+          node scripts/test-perception-combat.mjs
           node scripts/test-resource-inventory.mjs
           node --check scripts/perception-lab-client.js
           node scripts/test-perception-brain.mjs
@@ -76,6 +84,8 @@ jobs:
             assert(existsSync(join(dir, "scripts/arena-scene.js")));
             assert(existsSync(join(dir, "scripts/perception-brain.js")));
             assert(existsSync(join(dir, "scripts/resource-inventory.js")));
+            assert(existsSync(join(dir, "scripts/perception-gait.js")));
+            assert(existsSync(join(dir, "scripts/perception-combat.js")));
             assert(existsSync(join(dir, "scripts/perception-lab-client.js")));
             assert(existsSync(join(dir, "scripts/weapon-grip-geometry.js")));
             assert(existsSync(join(dir, "scripts/equipment-animation-policy.js")));
@@ -102,6 +112,8 @@ jobs:
             assert(data.characters.length > 0);
             const all = data.characters.flatMap(c => c.models);
             assert(all.some(m => m.name.includes("fal.ai") && m.kind === "playable"), "Missing default rigged warrior");
+            assert(all.some(m => m.kind==="playable" && m.clips?.some(c=>/attack/i.test(c))),
+              "No playable character exposes an authentic attack animation");
             for (const m of all) {
               const p = join(dir, m.url.replace(/^\//, ""));
               assert(existsSync(p), "Missing model " + m.url);

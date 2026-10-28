@@ -7,6 +7,11 @@ on:
       - 'docs/character-lab.md'
       - 'scripts/test-character-lab-motion.mjs'
       - 'scripts/character-lab-client.js'
+      - 'perception-lab.html'
+      - 'scripts/perception-lab-client.js'
+      - 'scripts/perception-gait.js'
+      - 'scripts/perception-combat.js'
+      - 'scripts/test-perception-lab-motion.mjs'
       - 'scripts/serve-character-lab.mjs'
       - 'data/units/**'
       - '.github/workflows/character-lab-qa.yml'
@@ -42,15 +47,16 @@ jobs:
           cp node_modules/babylonjs-loaders/babylonjs.loaders.min.js assets/browser-qa/babylonjs.loaders.min.js
           python - <<'PY'
           from pathlib import Path
-          file=Path("character-lab.html")
-          html=file.read_text()
-          assert 'https://cdn.babylonjs.com/babylon.js' in html
-          assert 'https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js' in html
-          html=html.replace('https://cdn.babylonjs.com/babylon.js',
-                            '/assets/browser-qa/babylon.js')
-          html=html.replace('https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js',
-                            '/assets/browser-qa/babylonjs.loaders.min.js')
-          file.write_text(html)
+          for name in ("character-lab.html", "perception-lab.html"):
+              file=Path(name)
+              html=file.read_text()
+              assert 'https://cdn.babylonjs.com/babylon.js' in html
+              assert 'https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js' in html
+              html=html.replace('https://cdn.babylonjs.com/babylon.js',
+                                '/assets/browser-qa/babylon.js')
+              html=html.replace('https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js',
+                                '/assets/browser-qa/babylonjs.loaders.min.js')
+              file.write_text(html)
           PY
       - name: Start the repository-backed localhost game server
         run: |
@@ -113,6 +119,8 @@ jobs:
           test -s assets/experiments/character-lab-qa/terrain-live.png
       - name: Exercise real idle, walk, run and axe attack with CDP keyboard
         run: node scripts/test-character-lab-motion.mjs
+      - name: Test real Perception Lab gait, melee clip and damage
+        run: node scripts/test-perception-lab-motion.mjs
       - name: Save screenshot as a reviewable repository artifact
         shell: bash
         run: |
@@ -121,7 +129,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           # The QA step rewrote HTML locally to use pinned offline Babylon.
           # Never let that test-only modification block the screenshot rebase.
-          git restore -- character-lab.html
+          git restore -- character-lab.html perception-lab.html
           git add -A assets/experiments/character-lab-qa/couronne-archer-actual-3d-initial-live.png
           git add -A assets/experiments/character-lab-qa/couronne-archer-actual-3d-switch-live.png
           # CDP writes other tracked QA screenshots too. Discard their

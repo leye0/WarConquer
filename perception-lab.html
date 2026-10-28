@@ -57,6 +57,10 @@ ul{list-style:none;padding:0;margin:0}li{font-size:12px;padding:7px 0;border-bot
 </header>
 <main class="layout">
   <section class="panel left" aria-label="Commandes">
+    <h2>Personnage animé</h2>
+    <select id="avatarSelect" aria-label="Personnage 3D" disabled><option>Chargement du catalogue…</option></select>
+    <p class="hint" id="avatarInfo">Animations Mixamo en cours de chargement.</p>
+    <div class="group"></div>
     <h2>1 · Placer dans l'arène</h2>
     <div class="buttons" id="placeButtons">
       <button data-place="enemy">⚔ Ennemi</button>
@@ -80,6 +84,7 @@ ul{list-style:none;padding:0;margin:0}li{font-size:12px;padding:7px 0;border-bot
         <button data-order="flee">Fuir !</button>
         <button data-order="hold">Arrêt ■</button>
       </div>
+      <button class="full" id="attackNearest" disabled>Attaquer l'ennemi repéré</button>
       <button class="full" id="collectNearest">Ramasser une ressource repérée</button>
       <p class="hint">Pour Aller, Attaquer ou Ramasser, cliquer ensuite sur la destination ou la cible. Le bouton ci-dessus utilise la ressource déjà mémorisée la plus proche.</p>
     </div>
@@ -92,6 +97,10 @@ ul{list-style:none;padding:0;margin:0}li{font-size:12px;padding:7px 0;border-bot
       <button class="full" id="resetDemo">Recréer l'exemple</button>
       <div class="row"><span>Vision</span><span class="num" id="visionRangeLabel">7 m</span></div>
       <input id="visionRange" aria-label="Portée de vision" type="range" min="3" max="12" value="7">
+      <div class="row"><span>Amplitude des pas</span><span class="num" id="gaitScaleLabel">100 %</span></div>
+      <input id="gaitScale" aria-label="Calibration de la longueur des pas" type="range"
+        min=".65" max="1.4" step=".05" value="1">
+      <p class="hint" id="gaitInfo">Cadence calculée après chargement du GLB.</p>
       <p class="hint">La grille est cachée au cerveau jusqu'à ce qu'il la voie. Réflexes et déplacements : 0 appel LLM.</p>
     </div>
   </section>
@@ -116,6 +125,7 @@ ul{list-style:none;padding:0;margin:0}li{font-size:12px;padding:7px 0;border-bot
     <div class="row"><span>Cases mémorisées</span><span class="num" id="knownCells">0</span></div>
     <div class="row"><span>Entités vues / mémorisées</span><span class="num" id="seenCount">0 / 0</span></div>
     <div class="row"><span>Animation GLB</span><span class="num" id="animationState">Chargement…</span></div>
+    <div class="row"><span>Combat</span><span class="num" id="attackStatus">0 coup confirmé</span></div>
     <h3>Inventaire réel</h3>
     <div class="status" id="inventoryText">Bois : 0 · Minerai : 0 · Nourriture : 0</div>
     <h3>Événements</h3>
@@ -134,6 +144,8 @@ ul{list-style:none;padding:0;margin:0}li{font-size:12px;padding:7px 0;border-bot
         <label for="resourceKind">Ressource</label>
         <select id="resourceKind"><option value="wood">Bois</option><option value="ore">Minerai</option><option value="food">Nourriture</option></select>
         <label for="resourceQuantity">Quantité</label><input id="resourceQuantity" type="number" min="1" max="99" step="1" value="1">
+        <label for="unitHealth">Points de vie de l'unité</label>
+        <input id="unitHealth" type="number" min="1" max="200" step="1" value="100">
         <label for="threatLevel">Danger (0–1)</label><input id="threatLevel" type="number" min="0" max="1" step=".1" value="1">
         <div class="checks"><label><input id="blocking" type="checkbox"> Bloquant</label><label><input id="opaque" type="checkbox"> Occultant</label></div>
         <button class="full" id="collectSelected">Ramasser cette ressource</button>
@@ -143,12 +155,14 @@ ul{list-style:none;padding:0;margin:0}li{font-size:12px;padding:7px 0;border-bot
     <div class="group"><h2>Contrat de la dernière décision</h2><pre id="decision">{ "status": "ready" }</pre></div>
   </aside>
 </main>
-<footer class="foot">Prototype déterministe · Déplacement libre et fluide · Ressources et inventaire réels · Clips Mixamo authentiques seulement · <a href="https://github.com/leye0/WarConquer/blob/main/docs/perception-lab.md">Contrat, limites et tests</a></footer>
+<footer class="foot">Prototype déterministe · Marche calibrée sur Mixamo · Combat réel · Inventaire réel · Clips Mixamo authentiques seulement · <a href="https://github.com/leye0/WarConquer/blob/main/docs/perception-lab.md">Contrat, limites et tests</a></footer>
 <script src="https://cdn.babylonjs.com/babylon.js"></script>
 <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
 <script src="scripts/arena-scene.js"></script>
 <script src="scripts/perception-brain.js"></script>
 <script src="scripts/resource-inventory.js"></script>
+<script src="scripts/perception-gait.js"></script>
+<script src="scripts/perception-combat.js"></script>
 <script src="scripts/perception-lab-client.js"></script>
 </body>
 </html>

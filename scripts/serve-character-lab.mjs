@@ -102,9 +102,12 @@ export function inventory() {
       const models = [];
       const add = (file, name, kind, priority, motion = null) => {
         if (existsSync(file) && statSync(file).isFile()) {
+          const motionReport=parseJson(join(dirname(file),"report.json"));
+          const clips=(motionReport?.animation_clips||[])
+            .map(clip=>clip?.name).filter(name=>typeof name==="string");
           models.push({ id: id + "/" + pose + "/" + kind + "/" + models.length,
             name, kind, priority, motion, url: publicPath(file),
-            bytes: statSync(file).size });
+            bytes: statSync(file).size, clips });
         }
       };
       add(join(base, "unrigged.glb"), "01 · Maillage Hunyuan", "mesh", 10);
@@ -173,7 +176,11 @@ const server = createServer((req, res) => {
   }
   if (pathname === "/" || pathname === "/character-lab.html") {
     pathname = "/character-lab.html";
-  } else if (!["/scripts/character-lab-client.js","/scripts/weapon-grip-geometry.js","/scripts/equipment-animation-policy.js","/scripts/arena-scene.js"].includes(pathname) && !pathname.startsWith("/assets/")) {
+  } else if (!["/perception-lab.html","/scripts/perception-brain.js",
+    "/scripts/perception-lab-client.js","/scripts/resource-inventory.js",
+    "/scripts/perception-gait.js","/scripts/perception-combat.js",
+    "/scripts/character-lab-client.js","/scripts/weapon-grip-geometry.js",
+    "/scripts/equipment-animation-policy.js","/scripts/arena-scene.js"].includes(pathname) && !pathname.startsWith("/assets/")) {
     return send(res, 404, "Not found");
   }
   let absolute;
