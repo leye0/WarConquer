@@ -18,6 +18,15 @@ def test_real_glb_projection():
     assert preview[:8] == b"\x89PNG\r\n\x1a\n"
     assert len(views)==4
     assert len({tuple(np.round(v["camera"], 3)) for v in views})==4
+    # One cached tiny-vision answer may put a landmark OUTSIDE the silhouette.
+    # The geometric sign-based solver must still resolve two distinct *real*
+    # head/edge vertices, rather than mounting the blunt poll as the edge.
+    recorded={"view":3,"handle_butt":[.5,.95],"grip_center":[.5,.65],
+        "working_head":[.75,.35],"functional_edge":[.85,.35],
+        "confidence":.9,"explanation":"The sharp side faces right in view 3"}
+    fit=module.lift_landmarks(parts,views,recorded)
+    assert fit["working_head"]["local"] != fit["functional_edge"]["local"]
+    assert fit["functional_edge"]["method"] == "signed-mesh-silhouette-extreme"
 
 
 def test_lift_keeps_signed_functional_edge():

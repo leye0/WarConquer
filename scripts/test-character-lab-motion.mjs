@@ -206,8 +206,8 @@ try {
     s.walk.includes("Marche ET course"),
     "fal UV native texture + genuine idle/walk/run/attack in Babylon",45000);
   console.log("FAL_RIGGED_IDLE_PASS",JSON.stringify(texturedIdle));
-  const equipped=await until(s=>s.weaponGrip==="vision-plan-geometry"&&s.weaponRatio>=1.23&&s.weaponScale>=.13,
-    "3D axe grip guided by real vision landmarks and GLB shaft/head geometry",20000);
+  const equipped=await until(s=>s.weaponGrip==="vision-glb-anatomical-landmarks"&&s.weaponScale>=.13,
+    "3D contact landmarks resolved from the real GLB and Mixamo anatomy",20000);
   // The original item estimate is in centimetres, NOT a prior ratio of 1.10.
   const physical=JSON.parse(readFileSync("assets/experiments/props/marches_hache/trellis-v1/physical-size.json","utf8"));
   assert.equal(equipped.weaponScaleOrigin,"source-design-physical-centimetres",
