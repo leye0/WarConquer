@@ -58,9 +58,9 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 50
     env:
-      UNIT_ID: ${{ inputs.unit || 'marches_hache' }}
+      UNIT_ID: ${{ (github.event_name == 'push' && github.event.head_commit.message == 'run: couronne_archer full pipeline [once]') && 'couronne_archer' || inputs.unit || 'marches_hache' }}
       PIPELINE_STAGE: ${{ inputs.stage || 'all' }}
-      ALLOW_PAID: ${{ inputs.allow_paid || false }}
+      ALLOW_PAID: ${{ (github.event_name == 'push' && github.event.head_commit.message == 'run: couronne_archer full pipeline [once]') && 'true' || inputs.allow_paid || false }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       OPENROUTER_IMAGE_MODEL: ${{ secrets.OPENROUTER_IMAGE_MODEL }}
       FAL_KEY: ${{ secrets.FAL_API_KEY }}
@@ -87,10 +87,10 @@ jobs:
           # all existing GLB links without any paid inference.
           python scripts/unit-pipeline.py run --unit "$UNIT_ID" --stage integrate
       - name: Install only stage dependencies needed by the project
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.head_commit.message == 'run: couronne_archer full pipeline [once]')
         run: python scripts/unit-pipeline.py bootstrap --unit "$UNIT_ID" --stage "$PIPELINE_STAGE"
       - name: Execute locally owned build pipeline (explicit cost gate)
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.head_commit.message == 'run: couronne_archer full pipeline [once]')
         shell: bash
         run: |
           set -euo pipefail
@@ -98,7 +98,7 @@ jobs:
           if [[ "$ALLOW_PAID" == "true" ]]; then args+=(--allow-paid); fi
           python scripts/unit-pipeline.py "${args[@]}"
       - name: Preserve local outputs and paid checkpoints, even after errors
-        if: always() && github.event_name == 'workflow_dispatch'
+        if: always() && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.head_commit.message == 'run: couronne_archer full pipeline [once]'))
         shell: bash
         run: |
           set -euo pipefail
@@ -115,7 +115,7 @@ jobs:
           fi
       - name: Retain intermediate artifacts from the selected unit
         uses: actions/upload-artifact@v4
-        if: always() && github.event_name == 'workflow_dispatch'
+        if: always() && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.head_commit.message == 'run: couronne_archer full pipeline [once]'))
         with:
           name: project-unit-${{ inputs.unit || 'marches_hache' }}
           path: |
