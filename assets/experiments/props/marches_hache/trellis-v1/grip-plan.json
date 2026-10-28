@@ -172,5 +172,15 @@
         }
       }
     }
+  },
+  "mesh_region_review": {
+    "schema": 1,
+    "status": "rejected",
+    "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+    "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
+    "model": "google/gemini-2.5-flash",
+    "bbox_convention": "xyxy_normalized_1000",
+    "review": "assets/experiments/props/marches_hache/trellis-v1/vision-region-review-studio-studio_flash_bbox1.json",
+    "overlay": "assets/experiments/props/marches_hache/trellis-v1/vision-regions-studio-studio_flash_bbox1.png"
   }
 }
