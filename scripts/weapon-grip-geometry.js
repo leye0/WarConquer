@@ -76,6 +76,49 @@
       bladeMethod:"signed-vision-glb-functional-edge"};
   }
 
+  function chooseNonCollidingCarry(vertices,source,gripWorld,workingWorld,awayWorld,
+      targetLength,capsules) {
+    if(!source.carryShaft||!Array.isArray(capsules)||!capsules.length)
+      return {shaft:[0,-1,0],blade:workingWorld,tilt:0,collisionScore:0};
+    const away=unit([awayWorld[0],0,awayWorld[2]]);
+    if(!away)throw Error("No usable anatomical outward direction");
+    const scale=targetLength/source.length;
+    const sourceShaft=source.carryShaft;
+    const headPoints=vertices.filter(p=>dot(sub(p,source.grip),sourceShaft)>.18*source.length);
+    const sample=(headPoints.length?headPoints:vertices);
+    const stride=Math.max(1,Math.ceil(sample.length/850));
+    const distanceToCapsule=(p,c)=>{
+      const v=sub(c.b,c.a),w=sub(p,c.a);
+      const vv=dot(v,v);
+      const t=vv>1e-9?Math.max(0,Math.min(1,dot(w,v)/vv)):0;
+      return norm(sub(p,add(c.a,mul(v,t))));
+    };
+    let best=null;
+    for(const tilt of [0,.1,.2,.35,.5,.7,1.0,1.4]) {
+      const shaft=unit(add([0,-1,0],mul(away,tilt)));
+      let rotation;
+      try{rotation=rotationBetweenFrames(sourceShaft,source.blade,shaft,workingWorld);}
+      catch{continue;}
+      let collisions=0,nearest=Infinity;
+      for(let i=0;i<sample.length;i+=stride){
+        const p=sub(sample[i],source.grip);
+        const point=add(gripWorld,mul([0,1,2].map(j=>
+          p[0]*rotation[j]+p[1]*rotation[3+j]+p[2]*rotation[6+j]),scale));
+        for(const capsule of capsules){
+          const separation=distanceToCapsule(point,capsule)-capsule.radius;
+          nearest=Math.min(nearest,separation);
+          if(separation<0)collisions+=separation*separation;
+        }
+      }
+      // Collisions are expensive; gravity deviation is a small preference.
+      const score=collisions*150+tilt*.06;
+      if(!best||score<best.score)best={shaft,blade:workingWorld,
+        tilt,collisionScore:collisions,nearest,score};
+    }
+    if(!best)throw Error("No nondegenerate carry frame");
+    return best;
+  }
+
   // Fit a contact frame from the actual geometry of a curved/flat rigid object.
   // Unlike a shaft, its grip may be midway between TWO functional ends.
   // This is a geometry class, not a bow/weapon-specific mounting script.
@@ -245,5 +288,6 @@
     return {grip,shaft:signed,blade,length:trueLength,headWidthRatio:spreadRatio,
       gripFractionFromButt:gripFraction,vertexCount:points.length,bladeMethod};
   }
-  return {fitGrip,frameFromLandmarks,rotationBetweenFrames,cross,dot,unit,sub,mul,add,norm};
+  return {fitGrip,frameFromLandmarks,chooseNonCollidingCarry,
+    rotationBetweenFrames,cross,dot,unit,sub,mul,add,norm};
 });

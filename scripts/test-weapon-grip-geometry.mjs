@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 const require=createRequire(import.meta.url);
-const {fitGrip,frameFromLandmarks,rotationBetweenFrames,dot,sub,norm}=require("./weapon-grip-geometry.js");
+const {fitGrip,frameFromLandmarks,chooseNonCollidingCarry,rotationBetweenFrames,dot,sub,norm}=require("./weapon-grip-geometry.js");
 
 // A grip frame must actually point in the requested direction after fitting.
 // The old matrix product reversed these operations, causing 180° flips when
@@ -121,3 +121,19 @@ for(const move of [p=>p,p=>[p[1],-p[2],p[0]]]){
 }
 assert.throws(()=>frameFromLandmarks({grip_center:[0,0,0]},syntheticAxe()),/Missing intrinsic/);
 console.log("PASS: signed contact frames preserve the real sharp edge on rotated GLBs");
+
+// Neutral carry uses a detailed rig body volume, not a named weapon offset.
+// When a heavy object would penetrate the torso, a generic search tilts it
+// outward just enough to clear the character while preserving the hand grip.
+const genericProp=[];
+for(let t=.2;t<=1;t+=.025)for(const x of [-.035,.035])for(const z of [-.025,.025])
+  genericProp.push([x,t,z]);
+const contactSource={grip:[0,0,0],shaft:[0,1,0],blade:[1,0,0],
+  carryShaft:[0,1,0],length:1};
+const torso=[{a:[0,0,0],b:[0,1.8,0],radius:.32}];
+const fit=chooseNonCollidingCarry(genericProp,contactSource,[.22,1.1,0],
+  [1,0,0],[1,0,0],1,torso);
+assert(fit.tilt>0,"The solver must move a long prop away from an intersecting torso");
+assert(fit.shaft[0]>.05&&fit.shaft[1]<0,
+  "The generic solver keeps gravity downward while introducing an outward component");
+console.log("PASS: anatomical body capsule prevents generic carried-prop collision");

@@ -404,6 +404,15 @@
     if(!hand)return null;
     const forearm=find(side+"forearm")||find(side+"lowerarm")||hand.parent;
     const joints={};
+    const trunk={Hips:find("hips"),Chest:find("spine2")||find("spine1")||find("spine"),
+      Neck:find("neck"),LeftShoulder:find("leftshoulder"),
+      RightShoulder:find("rightshoulder")};
+    for(const [part,node] of Object.entries(trunk)){
+      if(!node)continue;
+      node.computeWorldMatrix(true);
+      const p=node.getAbsolutePosition();
+      joints[part]=[p.x,p.y,p.z];
+    }
     for(const handSide of ["left","right"]){
       const prefix=handSide+"hand";
       const related={
@@ -506,7 +515,23 @@
         shaft_direction:gravityCarry?"gravity":spec.head_direction,
         working_face:spec.edge_direction
       });
-      const shaftWorld=new B.Vector3(...contact.shaft);
+      const desiredLength=estimatedLengthCm===null
+        ? 1.9*spec.length_relative_character_height : estimatedLengthCm/100;
+      let carryFit=null;
+      if(gravityCarry && joints.Hips && joints.Chest &&
+          joints.LeftShoulder && joints.RightShoulder){
+        const v=window.WCWeaponGrip;
+        const center=v.add(v.mul(joints.Hips,.45),v.mul(joints.Chest,.55));
+        const away=v.sub(contact.grip,center);
+        const shoulderSpan=v.norm(v.sub(joints.LeftShoulder,joints.RightShoulder));
+        const torsoRadius=Math.max(.17,shoulderSpan*.46);
+        carryFit=v.chooseNonCollidingCarry(points,frame,contact.grip,
+          contact.blade,away,desiredLength,[
+            {a:joints.Hips,b:joints.Chest,radius:torsoRadius},
+            {a:joints.Chest,b:joints.Neck||joints.Chest,radius:torsoRadius*.75}
+          ]);
+      }
+      const shaftWorld=new B.Vector3(...(carryFit?.shaft||contact.shaft));
       const bladeWorld=new B.Vector3(...contact.blade);
       const worldRotation=buildGripRotation(
         gravityCarry?{...frame,shaft:frame.carryShaft}:frame,shaftWorld,bladeWorld);
@@ -518,8 +543,6 @@
       // extends toward the forearm and the cutting edge toward the avatar's front.
       // Character Lab normalizes the warrior to 1.9 scene units; within
       // this scene we use 1 unit = 1 metre. A 115 cm axe is 1.15 units.
-      const desiredLength=estimatedLengthCm===null
-        ? 1.9*spec.length_relative_character_height : estimatedLengthCm/100;
       anchor=new B.TransformNode("wc-auto-grip-"+side+"-hand",state.scene);
       anchor.parent=hand;
       anchor.position.copyFrom(B.Vector3.TransformCoordinates(
@@ -540,6 +563,9 @@
           : " · longueur estimée "+estimatedLengthCm.toFixed(0)+" cm"));
       byId("world").dataset.weaponGrip="vision-glb-anatomical-landmarks";
       byId("world").dataset.weaponCarry=gravityCarry?"mass-below-hand":"annotated-shaft";
+      byId("world").dataset.weaponCarryTilt=carryFit?.tilt?.toFixed(3)||"0";
+      byId("world").dataset.weaponCarryClearance=Number.isFinite(carryFit?.nearest)
+        ? carryFit.nearest.toFixed(3):"";
       byId("world").dataset.weaponGripScale=(desiredLength/1.9).toFixed(3);
       byId("world").dataset.weaponLengthCm=estimatedLengthCm===null
         ? "" : estimatedLengthCm.toFixed(1);
