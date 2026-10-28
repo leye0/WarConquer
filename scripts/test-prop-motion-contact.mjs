@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import {createRequire} from "node:module";
 const require=createRequire(import.meta.url);
-const {solveTwoGrips,armReach,resolveMode}=require("./prop-motion-contact.js");
+const {solveTwoGrips,armReach,twoBoneElbow,resolveMode}=require("./prop-motion-contact.js");
 const v=require("./weapon-grip-geometry.js");
 const close=(a,b,tol=1e-9)=>assert(v.norm(v.sub(a,b))<tol,`${a} != ${b}`);
 const labelled={sourcePrimary:[0,-.5,0],sourceSecondary:[0,.3,0],
@@ -33,6 +33,12 @@ assert(held.residual>.045);
 assert(held.secondaryArmReach.reachDeficit>0);
 assert(armReach([0,0,0],[1,0,0],[2,0,0],[1,1,0]).reachable);
 assert(!armReach([0,0,0],[1,0,0],[2,0,0],[5,0,0]).reachable);
+const ik=twoBoneElbow([0,0,0],[1,1,0],[2,0,0],[1.5,.5,0]);
+assert(Math.abs(v.norm(ik.elbow)-Math.SQRT2)<1e-9);
+assert(Math.abs(v.norm(v.sub(ik.elbow,ik.wrist))-Math.SQRT2)<1e-9);
+assert(ik.elbow[1]>0,"Elbow keeps the observed bend side");
+assert.throws(()=>twoBoneElbow([0,0,0],[1,1,0],[2,0,0],[5,0,0]),/reach/);
+assert.throws(()=>twoBoneElbow([0,0,0],[1,0,0],[2,0,0],[1.5,.5,0]),/bend side/);
 assert.throws(()=>solveTwoGrips({...labelled,
   primaryPalm:[0,0,0],secondaryPalm:[0,1,0],actionForward:[0,1,0],scale:1}),
   /ambiguous/);
