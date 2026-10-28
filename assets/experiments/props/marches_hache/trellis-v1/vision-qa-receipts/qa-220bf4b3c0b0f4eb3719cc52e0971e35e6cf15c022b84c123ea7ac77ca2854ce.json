@@ -1,0 +1,305 @@
+{
+  "schema": 2,
+  "signature": "220bf4b3c0b0f4eb3719cc52e0971e35e6cf15c022b84c123ea7ac77ca2854ce",
+  "pass_id": "primary",
+  "vision_model": "google/gemini-2.5-flash",
+  "raw_review": {
+    "go": false,
+    "confidence": 0.8,
+    "issues": [
+      "The axe is not held by the character in any of the 'carry' poses. It appears to be attached to the character's back or hip, not actively carried.",
+      "In 'use' poses, the axe is still not actively held by the character's hands. It remains attached to the character's body, and the character's hands are empty or in a generic pose."
+    ],
+    "explanation": "The character is not holding the axe in any of the provided images, neither for carrying nor for use. The axe appears to be a static attachment to the character's back or hip, rather than an object actively gripped by the hands. Therefore, none of the hand contact, action feature, or orientation constraints can be met as the object is not being held.",
+    "frames": [
+      {
+        "id": "front",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      },
+      {
+        "id": "side",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      },
+      {
+        "id": "back",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      },
+      {
+        "id": "walk",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      },
+      {
+        "id": "run",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_1",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_2",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_2_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_3",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_5",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_6",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_6_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_7",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      },
+      {
+        "id": "back_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 598,
+            "xmin": 320,
+            "ymax": 700,
+            "xmax": 459
+          }
+        ]
+      },
+      {
+        "id": "front_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 598,
+            "xmin": 320,
+            "ymax": 700,
+            "xmax": 459
+          }
+        ]
+      },
+      {
+        "id": "run_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      },
+      {
+        "id": "side_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 598,
+            "xmin": 320,
+            "ymax": 700,
+            "xmax": 459
+          }
+        ]
+      },
+      {
+        "id": "walk_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": true,
+        "confidence": 0.8,
+        "issues": [
+          "The axe is not held by the character's hands. It appears to be attached to the character's back/hip."
+        ],
+        "regions": []
+      }
+    ]
+  }
+}
