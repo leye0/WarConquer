@@ -88,12 +88,14 @@ def read_request(path: str) -> tuple[dict, Path, Path, Path, Path]:
                 "object_glb", "output_path", "vision_model",
                 "maximum_paid_requests", "automatic_paid_retries"}
     if not ((cfg.get("schema") == 1 and set(cfg) == expected) or
-            (cfg.get("schema") == 2 and set(cfg) == expected | {"interaction_contract"})):
+            (cfg.get("schema") == 2 and set(cfg) == expected | {"interaction_contract"}) or
+            (cfg.get("schema") == 3 and
+             set(cfg) == (expected - {"maximum_paid_requests", "automatic_paid_retries"}) |
+                 {"interaction_contract", "vision_strategy"} and
+             cfg.get("vision_strategy") == "evidence_driven")):
         raise ValueError("Unexpected grip-plan request schema")
-    if cfg["maximum_paid_requests"] != 1 or cfg["automatic_paid_retries"] != 0:
-        raise ValueError("This experiment permits one vision request and zero retries")
     keys = ("object_image", "character_image", "object_glb", "output_path")
-    if cfg["schema"] == 2:
+    if cfg["schema"] in (2, 3):
         keys += ("interaction_contract",)
     for key in keys:
         if not isinstance(cfg[key], str) or cfg[key].startswith("/"):
@@ -368,13 +370,83 @@ def apply_review(request_path: str, review_path: str) -> None:
     print("Updated canonical grip plan using existing visual review:", output.relative_to(ROOT))
 
 
+def promote_semantic_review(request_path: str, review_path: str) -> None:
+    """Replace a rejected historical fit with source-grounded, reviewed geometry.
+
+    The semantic interaction contract supplies the identity, hands and action
+    region. A source-image review supplies each actual image coordinate; mesh
+    anatomy remains unconfirmed until independent GLB vision and pose QA.
+    """
+    cfg, obj, char, glb, output = read_request(request_path)
+    interaction = confirmed_interaction(cfg, obj, char)
+    if interaction is None or not output.is_file() or output.name != "grip-plan.json":
+        raise ValueError("Semantic promotion requires a canonical plan and confirmed vision contract")
+    previous_bytes = output.read_bytes()
+    previous = json.loads(previous_bytes)
+    evidence = json.loads(local(review_path).read_text())
+    source_hashes = {"object_image_sha256": sha(obj),
+                     "character_image_sha256": sha(char),
+                     "prop_glb_sha256": sha(glb)}
+    contract_hash = sha(local(cfg["interaction_contract"]))
+    if (set(evidence) != {"schema", "source_hashes", "legacy_plan_sha256",
+                          "interaction_contract_sha256", "source_observations",
+                          "specifications"} or
+            evidence["schema"] != 1 or
+            evidence["source_hashes"] != source_hashes or
+            evidence["legacy_plan_sha256"] != hashlib.sha256(previous_bytes).hexdigest() or
+            evidence["interaction_contract_sha256"] != contract_hash or
+            previous.get("input_hashes") != source_hashes or
+            not isinstance(evidence["source_observations"], list) or
+            {s.get("source") for s in evidence["source_observations"] if isinstance(s, dict)} !=
+                {"object_image", "character_image"} or
+            any(not isinstance(s, dict) or set(s) != {"source", "observation"} or
+                not isinstance(s["observation"], str) or len(s["observation"].strip()) < 25
+                for s in evidence["source_observations"])):
+        raise ValueError("Grip review lacks exact original plan or both source images")
+    specs = evidence["specifications"]
+    fit = validate(specs)
+    check_grip_consistency(specs, interaction)
+    if not fit["supported_by_current_geometry_fitter"]:
+        raise ValueError("Reviewed semantics cannot be fitted to the source shaft")
+    # Inspect source transparency as a strict negative check; semantics are
+    # supplied by source vision, NEVER assigned by a geometric axis heuristic.
+    from PIL import Image
+    with Image.open(obj) as image:
+        if "A" in image.getbands() and image.getchannel("A").getextrema()[0] != 255:
+            alpha = image.getchannel("A")
+            for key in ("handle_butt", "handle_near_head", "grip_point", "head_center", "action_edge"):
+                x, y = specs[key]
+                if alpha.getpixel((round(x*(alpha.width-1)), round(y*(alpha.height-1)))) < 96:
+                    raise ValueError("Reviewed grip-plan landmark is on transparent background: " + key)
+    result = dict(previous)
+    result["specifications"] = specs
+    result["derived_image_geometry"] = fit
+    result["interaction_provenance"] = {"path": cfg["interaction_contract"],
+                                        "sha256": contract_hash}
+    result["semantic_review_provenance"] = {"path": review_path,
+                                            "sha256": sha(local(review_path)),
+                                            "legacy_plan_sha256": evidence["legacy_plan_sha256"]}
+    result["visual_qa"] = {"status": "pending_real_3d_contact_qa",
+                           "reason": "Historical geometry-extreme fittings invalidated by confirmed visual roles"}
+    # Critically, historical signed-silhouette/extreme mesh points may NOT be
+    # treated as confirmed functional regions. A new GLB vision pass is needed.
+    result.pop("mesh_landmarks", None)
+    result.pop("automatic_orientation_selection", None)
+    output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n")
+    print("Promoted source-reviewed semantic geometry; GLB contacts still pending:",
+          output.relative_to(ROOT))
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--request", default=DEFAULT_REQUEST)
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--apply-review", help="Source-matched in-situ review to merge into the canonical plan")
+    parser.add_argument("--promote-semantic-review", help="Replace a rejected historical plan using confirmed source-image roles")
     args = parser.parse_args()
-    if args.apply_review:
+    if args.promote_semantic_review:
+        promote_semantic_review(args.request, args.promote_semantic_review)
+    elif args.apply_review:
         apply_review(args.request, args.apply_review)
     else:
         run(args.request, args.check)

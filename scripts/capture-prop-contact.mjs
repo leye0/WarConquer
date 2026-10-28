@@ -144,14 +144,27 @@ try{
   await sleep(280);
   if(await js("!document.getElementById('attackButton').disabled")){
     await js("document.getElementById('attackButton').click()");
-    await sleep(190);
-    await checkFrame("action");
-    await capture("action");
-    for(let i=1;i<=5;i++){
-      await sleep(90);
-      await checkFrame("action_mid_"+i);
-      if(i===3)await capture("action_mid");
+    // The real Mixamo group is paused and sampled by exact normalized
+    // animation frames. Neither snapshots nor verdicts depend on wall-clock
+    // timing or an exported video.
+    const actionGroup=await js(`(()=>{const e=BABYLON.EngineStore.LastCreatedEngine;
+      const name=document.getElementById('activeMotionMetric')?.textContent;
+      const g=e?.scenes?.[0]?.animationGroups?.find(x=>x.name===name);
+      if(!g)throw Error('Cannot identify live action animation group');
+      g.pause();return {name,from:g.from,to:g.to};})()`);
+    const frames=[0,.15,.3,.45,.6,.75,.9,1];
+    for(let i=0;i<frames.length;i++){
+      const fraction=frames[i];
+      await js(`(()=>{const e=BABYLON.EngineStore.LastCreatedEngine;
+        const g=e.scenes[0].animationGroups.find(x=>x.name===${JSON.stringify(actionGroup.name)});
+        if(!g)throw Error('Sampled Mixamo animation disappeared');
+        g.goToFrame(g.from+(g.to-g.from)*${fraction});return true})()`);
+      await sleep(180);
+      const name=i===0?"action":i===4?"action_mid":"action_mid_"+i;
+      await checkFrame(name);
+      await capture(name);
     }
+    console.log("CONTACT_ACTION_SAMPLES",JSON.stringify({clip:actionGroup,normalizedFrames:frames}));
   }
   writeFileSync(join(output,"contact-motions.json"),JSON.stringify(motionStates,null,2)+"\n");
   console.log("PASS: real animated humanoid holds requested prop in three browser views");

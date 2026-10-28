@@ -14,6 +14,9 @@ on:
       - 'scripts/test-unit-equipment.py'
       - 'scripts/prop-mesh-landmarks.py'
       - 'scripts/test-prop-mesh-landmarks.py'
+      - 'scripts/verify-prop-visual-qa.py'
+      - 'scripts/test-prop-visual-qa.py'
+      - 'scripts/test-verify-prop-visual-qa.py'
       - '.github/workflows/unit-pipeline.yml'
   push:
     branches: [main]
@@ -102,6 +105,8 @@ jobs:
           python scripts/test-unit-equipment.py
           python scripts/test-prop-interaction-contract.py
           python scripts/test-prop-mesh-landmarks.py
+          python scripts/test-prop-visual-qa.py
+          python scripts/test-verify-prop-visual-qa.py
           node scripts/test-prop-motion-contact.mjs
           python scripts/unit-pipeline.py list
           python scripts/unit-pipeline.py status --unit couronne_archer

@@ -71,11 +71,21 @@ def test_lift_keeps_signed_functional_edge():
     # direction. The 3D model must locate THOSE IDs in its actual GLB views.
     semantic={"grips":[{"id":"lower_handle"},{"id":"upper_handle"}],
         "features":[{"id":"cutting_edge"}]}
+    def region(*coords_list):
+        return [max(0,min(p[0] for p in coords_list)-.1),
+                max(0,min(p[1] for p in coords_list)-.1),
+                min(1,max(p[0] for p in coords_list)+.1),
+                min(1,max(p[1] for p in coords_list)+.1)]
     annotated={**answer,"grips":[
-        {"id":"lower_handle","view":view,"point":coords(grip)},
-        {"id":"upper_handle","view":view,"point":coords(np.array([.25,.035,.025]))}],
+        {"id":"lower_handle","view":view,"point":coords(grip),
+         "region":region(coords(grip)),"evidence":"Visible lower shaft contact region"},
+        {"id":"upper_handle","view":view,"point":coords(np.array([.25,.035,.025])),
+         "region":region(coords(np.array([.25,.035,.025]))),
+         "evidence":"Visible distinct upper shaft grip"}],
         "features":[{"id":"cutting_edge","view":view,
-            "origin":coords(head),"direction_tip":coords(edge)}]}
+            "origin":coords(head),"direction_tip":coords(edge),
+            "region":region(coords(head),coords(edge)),
+            "evidence":"Visible sharp side of working head"}]}
     expected=module.named_schema(semantic)
     assert set(expected["properties"]) == set(annotated)
     lifted=module.lift_named_landmarks(meshes,views,annotated,semantic)
@@ -97,7 +107,9 @@ def test_lift_keeps_signed_functional_edge():
     bad=copy.deepcopy(annotated);bad["features"][0]["direction_tip"]=coords(head)
     refuses(bad,"collapses")
     bad=copy.deepcopy(annotated);bad["grips"][1]["point"]=[.98,.98]
-    refuses(bad,"re-annotate")
+    refuses(bad,"outside its named region")
+    bad=copy.deepcopy(annotated);bad["grips"][0]["region"]=[.1,.1,.1,.1]
+    refuses(bad,"did not bound actual region")
 
 
 if __name__=="__main__":

@@ -10,6 +10,9 @@ on:
       - 'scripts/serve-character-lab.mjs'
       - 'scripts/build-character-lab-pages.mjs'
       - 'scripts/capture-prop-contact.mjs'
+      - 'scripts/prop-mesh-landmarks.py'
+      - 'scripts/verify-prop-visual-qa.py'
+      - 'assets/experiments/props/**/grip-plan.json'
       - '.github/workflows/character-lab-qa.yml'
   push:
     branches: [main]

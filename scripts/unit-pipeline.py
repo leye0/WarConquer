@@ -31,6 +31,7 @@ PAID = frozenset({
     "object_interaction", "object_mesh", "object_size", "object_grip", "object_landmarks"
 })
 DEPENDENCIES = {
+    "object_interaction": ("Pillow==11.3.0",),
     "turnaround": ("Pillow==11.3.0", "numpy==2.2.6", "scipy==1.16.2"),
     "body": ("fal-client==0.14.0",),
     "rig": ("replicate==1.0.7", "Pillow==11.3.0"),
@@ -254,6 +255,7 @@ def state(doc, stage):
                         cfg["object_kind"] != prop["kind"]):
                     raise ValueError("Stale identity, skeleton or source hashes")
                 vision.validate(saved["characterization"], clips, prop["kind"])
+                vision.validate_visible_landmarks(saved["characterization"], obj)
             except (ValueError, OSError, KeyError, TypeError, AttributeError):
                 paths[prop["interaction"]] = "invalid_or_stale_semantics"
     if stage in ("object_grip", "object_landmarks", "integrate"):

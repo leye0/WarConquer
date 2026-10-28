@@ -18,6 +18,7 @@ import io
 import json
 import math
 import os
+import re
 import struct
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -107,7 +108,9 @@ def named_schema(semantic):
         if len(names) != len(set(names)):
             raise ValueError("Duplicate source-confirmed semantic identifier")
         props = {"id": {"type": "string", "enum": names},
-                 "view": {"type": "integer", "enum": [0, 1, 2, 3]}}
+                 "view": {"type": "integer", "enum": [0, 1, 2, 3]},
+                 "region": {"type": "array", "items": {"type": "number"}},
+                 "evidence": {"type": "string"}}
         props.update({field: {"type": "array", "items": {"type": "number"}}
                       for field in point_fields})
         extra[collection] = {"type": "array", "items": {"type": "object",
@@ -239,6 +242,15 @@ def vision_point(point, label):
         raise ValueError("Invalid vision point: " + label)
 
 
+def vision_region(region, label):
+    """A named functional part must have an explicit visible 2D boundary."""
+    if (not isinstance(region, list) or len(region) != 4 or
+            any(isinstance(v,bool) or not isinstance(v,(int,float)) or not math.isfinite(v) or
+                v < 0 or v > 1 for v in region) or
+            region[2]-region[0]<.012 or region[3]-region[1]<.012):
+        raise ValueError("Vision did not bound actual region: " + label)
+
+
 def validate_answer(answer, semantic=None):
     if not isinstance(answer, dict) or set(answer) != set(named_schema(semantic)["properties"]):
         raise ValueError("Vision landmark response has unexpected fields")
@@ -258,7 +270,7 @@ def validate_answer(answer, semantic=None):
             items = answer[collection]
             if (not isinstance(items, list) or len(items) != len(wanted) or
                     any(not isinstance(item, dict) or
-                        set(item) != {"id", "view", *coordinate_fields} or
+                        set(item) != {"id", "view", "region", "evidence", *coordinate_fields} or
                         not isinstance(item["id"], str) or
                         type(item["view"]) is not int or
                         item["view"] not in (0, 1, 2, 3)
@@ -266,8 +278,15 @@ def validate_answer(answer, semantic=None):
                     {item["id"] for item in items} != wanted):
                 raise ValueError("Cannot invent, omit or rename confirmed " + collection)
             for item in items:
+                vision_region(item["region"], collection + "." + item["id"])
+                if not isinstance(item["evidence"], str) or len(item["evidence"].strip())<15:
+                    raise ValueError("Missing visible-function evidence for " + item["id"])
                 for key in coordinate_fields:
                     vision_point(item[key], collection + "." + item["id"] + "." + key)
+                    x,y=item[key]
+                    left,top,right,bottom=item["region"]
+                    if not left<=x<=right or not top<=y<=bottom:
+                        raise ValueError("Vision point lies outside its named region: " + item["id"])
     if not isinstance(answer["explanation"], str):raise ValueError("Missing explanation")
 
 
@@ -287,7 +306,7 @@ def project_labelled_vertex(meshes, view, point):
             nearby.append((float(distances[i]), -float(depth[i]), mesh, int(i)))
     nearby.sort(key=lambda entry: (entry[0], entry[1]))
     distance, _, mesh, index = nearby[0]
-    if distance > VIEW_SIZE * .085:
+    if distance > VIEW_SIZE * .035:
         raise ValueError("Vision landmark lies outside the GLB: re-annotate")
     return {"local": [round(float(x), 7) for x in mesh["local"][index]],
             "mesh": mesh["mesh"], "primitive": mesh["primitive"],
@@ -347,7 +366,41 @@ def lift_named_landmarks(meshes, views, answer, semantic):
     return result
 
 
-def run(plan_path: Path, check=False):
+def annotated_view_image(source, answer):
+    """Make the model's actual claimed semantic regions inspectable as PNG."""
+    picture=Image.open(io.BytesIO(source)).convert("RGB")
+    draw=ImageDraw.Draw(picture)
+    for kind,color,points in (("grips",(20,115,230),("point",)),
+                              ("features",(223,45,67),("origin","direction_tip"))):
+        for item in answer.get(kind,[]):
+            if not isinstance(item,dict) or item.get("view") not in (0,1,2,3):continue
+            view=item["view"]
+            ox,oy=(view%2)*VIEW_SIZE,(view//2)*VIEW_SIZE
+            region=item.get("region",[])
+            if isinstance(region,list) and len(region)==4:
+                box=[ox+region[0]*VIEW_SIZE,oy+region[1]*VIEW_SIZE,
+                     ox+region[2]*VIEW_SIZE,oy+region[3]*VIEW_SIZE]
+                draw.rectangle(box,outline=color,width=3)
+                draw.text((box[0],max(40,box[1]-18)),item.get("id","?"),fill=color)
+            for name in points:
+                point=item.get(name,[])
+                if isinstance(point,list) and len(point)==2:
+                    x,y=ox+point[0]*VIEW_SIZE,oy+point[1]*VIEW_SIZE
+                    draw.ellipse((x-5,y-5,x+5,y+5),fill=color,outline=(255,255,255),width=2)
+            if kind=="features" and all(isinstance(item.get(k),list) and
+                    len(item[k])==2 for k in points):
+                a,b=(item[k] for k in points)
+                draw.line((ox+a[0]*VIEW_SIZE,oy+a[1]*VIEW_SIZE,
+                           ox+b[0]*VIEW_SIZE,oy+b[1]*VIEW_SIZE),fill=color,width=3)
+    out=io.BytesIO();picture.save(out,format="PNG")
+    return out.getvalue()
+
+
+def run(plan_path: Path, check=False, pass_id="primary", model=MODEL):
+    if not re.fullmatch(r"[a-z][a-z0-9_]{0,48}",pass_id):
+        raise ValueError("Vision pass ID must identify one immutable analysis")
+    if not re.fullmatch(r"[a-zA-Z0-9_./:-]{3,120}",model):
+        raise ValueError("Invalid OpenRouter spatial vision model")
     if not plan_path.is_file() or not plan_path.resolve().is_relative_to(ROOT):
         raise ValueError("A canonical repository grip plan is required")
     plan = json.loads(plan_path.read_text())
@@ -364,7 +417,7 @@ def run(plan_path: Path, check=False):
         (previous.get("interaction_sha256") == interaction_hash and
          set(previous.get("grips", {})) == {g["id"] for g in semantic["grips"]} and
          set(previous.get("features", {})) == {f["id"] for f in semantic["features"]}))
-    if previous.get("glb_sha256") == digest and complete_named:
+    if previous.get("glb_sha256") == digest and complete_named and pass_id=="primary":
         print("3D functional landmarks already present; zero paid requests")
         return
     if check:
@@ -372,12 +425,19 @@ def run(plan_path: Path, check=False):
         return
     meshes = glb_geometry(glb)
     render, views = make_views(meshes)
-    receipt = plan_path.with_name("grip-landmarks-response.json")
+    receipt_dir=plan_path.parent/"vision-landmark-receipts"
+    signature=hashlib.sha256(json.dumps({"glb":digest,
+        "interaction":interaction_hash,"pass_id":pass_id,"model":model,
+        "schema":named_schema(semantic),"prompt":PROMPT},
+        sort_keys=True).encode()).hexdigest()
+    receipt=receipt_dir/("landmarks-"+signature+".json")
     if receipt.exists():
         cached = json.loads(receipt.read_text())
         if (cached.get("glb_sha256") != digest or
-                cached.get("interaction_sha256") != interaction_hash):
-            raise ValueError("Cached paid vision answer has no matching role contract; no retry")
+                cached.get("interaction_sha256") != interaction_hash or
+                cached.get("pass_signature") != signature or
+                "raw_landmarks" not in cached):
+            raise ValueError("Prior spatial vision pass is pending/invalid; no blind paid retry")
         answer = cached["raw_landmarks"]
     else:
         key = os.environ.get("OPENROUTER_API_KEY", "").strip()
@@ -400,18 +460,27 @@ def run(plan_path: Path, check=False):
                 "and EACH functional direction on the ACTUAL GLB. You may choose "
                 "a DIFFERENT VIEW for each grip or functional feature; the origin "
                 "and tip of one direction share a view. Use ONLY the supplied IDs. "
+                "For EVERY named role, first DRAW a tight region as normalized "
+                "[xmin,ymin,xmax,ymax] in that panel, then choose physical "
+                "point(s) INSIDE that region and describe visible evidence. "
+                "The region must bound the REAL part, not the whole object or background. "
                 "If a handhold, working region or direction is not truly visible "
                 "on the 3D object, lower confidence. Never infer which end or "
                 "surface is functional by length or width. " +
                 json.dumps({key: semantic[key] for key in ("object_kind", "grips", "features", "modes")},
                     ensure_ascii=False)})
-        payload = {"model": MODEL, "temperature": 0, "max_tokens": 2400 if semantic else 520,
+        payload = {"model": model, "temperature": 0, "max_tokens": 2400 if semantic else 520,
             "provider": {"require_parameters": True},
             "response_format": {"type": "json_schema", "json_schema": {
                 "name": "glb_prop_landmarks", "strict": True,
                 "schema": named_schema(semantic)}},
             "messages": [{"role": "system", "content": PROMPT},
                 {"role": "user", "content": parts}]}
+        receipt_dir.mkdir(parents=True,exist_ok=True)
+        receipt.write_text(json.dumps({"schema":2,"pass_signature":signature,
+            "glb_sha256":digest,"interaction_sha256":interaction_hash,
+            "pass_id":pass_id,"model":model,
+            "status":"submission-outcome-unknown"},indent=2)+"\n")
         request = Request(ENDPOINT, data=json.dumps(payload).encode(), method="POST",
             headers={"Authorization": "Bearer "+key, "Content-Type": "application/json",
                      "HTTP-Referer": "https://github.com/leye0/WarConquer",
@@ -419,13 +488,16 @@ def run(plan_path: Path, check=False):
         with urlopen(request, timeout=150) as response:
             data = json.loads(response.read(160000))
         answer = json.loads((data.get("choices") or [{}])[0]["message"]["content"])
-        receipt.write_text(json.dumps({"schema":1, "glb_sha256": digest,
+        receipt.write_text(json.dumps({"schema":2, "glb_sha256": digest,
             "interaction_sha256": interaction_hash,
-            "model": MODEL, "raw_landmarks":answer}, indent=2)+"\n")
+            "pass_signature":signature,"pass_id":pass_id,
+            "model":model, "raw_landmarks":answer}, indent=2)+"\n")
+    preview=plan_path.with_name("vision-landmarks-"+pass_id+".png")
+    preview.write_bytes(annotated_view_image(render,answer))
     landmarks = lift_landmarks(meshes, views, answer, semantic)
     named = lift_named_landmarks(meshes, views, answer, semantic) if semantic else {}
     plan["mesh_landmarks"] = {"schema":1,"glb_sha256":digest,
-        "model": MODEL,"view":answer["view"],"confidence":answer["confidence"],
+        "model":model,"view":answer["view"],"confidence":answer["confidence"],
         "points":landmarks,"explanation":answer["explanation"],
         **({"interaction_sha256": interaction_hash, **named} if semantic else {})}
     plan_path.write_text(json.dumps(plan, ensure_ascii=False, indent=2)+"\n")
@@ -436,5 +508,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plan", required=True)
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--pass-id",default="primary",
+        help="Distinct source-matched OpenRouter spatial analysis; no one-call limit")
+    parser.add_argument("--model",default=MODEL)
     args = parser.parse_args()
-    run((ROOT/args.plan).resolve(), args.check)
+    run((ROOT/args.plan).resolve(), args.check,args.pass_id,args.model)

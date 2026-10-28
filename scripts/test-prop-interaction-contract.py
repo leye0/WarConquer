@@ -75,4 +75,36 @@ reject(lambda p: p.update(object_kind="bow"), "Mixamo")
 reject(lambda p: p.update(object_kind="sword"), "Mixamo")
 reject(lambda p: p.update(object_kind="hammer"), "Mixamo")
 
+source = root / "assets/concepts/marches/objects/hache_arme.png"
+if source.is_file():
+    # The first paid answer put the lower grip and cutting direction in fully
+    # transparent pixels. No geometric fallback may silently repair them.
+    source_grounded = copy.deepcopy(valid)
+    source_grounded["grips"][0]["point"] = [.31, .79]
+    source_grounded["grips"][1]["point"] = [.48, .41]
+    source_grounded["features"][0]["origin"] = [.67, .30]
+    source_grounded["features"][0]["direction_tip"] = [.73, .28]
+    module.validate_visible_landmarks(source_grounded, source)
+    for collection, index, field, outside in (
+            ("grips", 0, "point", [.15, .85]),
+            ("features", 0, "direction_tip", [.88, .28])):
+        invalid = copy.deepcopy(source_grounded)
+        invalid[collection][index][field] = outside
+        try:
+            module.validate_visible_landmarks(invalid, source)
+        except ValueError as error:
+            assert "outside the source object" in str(error)
+        else:
+            raise AssertionError("Accepted visually empty coordinates")
+
+pilot = root / "assets/experiments/props/marches_hache/trellis-v1"
+receipt, review = pilot / "interaction-response.json", pilot / "interaction-review.json"
+if receipt.is_file() and review.is_file() and source.is_file():
+    _, obj, _, _, _, _, hashes = module.read_request(
+        "assets/experiments/props/marches_hache/trellis-v1/interaction-request.json")
+    answer, provenance = module.reviewed_response(
+        review, json.loads(receipt.read_text()), hashes, obj, clips, "axe")
+    assert answer["modes"][0]["hands"] == answer["modes"][1]["hands"] == 2
+    assert provenance["paid_response_sha256"] == module.digest(receipt)
+
 print("PASS: generic per-phase semantic roles, two hands and Mixamo candidate evidence")

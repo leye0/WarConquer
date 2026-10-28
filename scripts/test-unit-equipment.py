@@ -69,13 +69,17 @@ with tempfile.TemporaryDirectory(prefix="wc-equipment-offline-") as location:
         physical=json.loads((root/prop["physical_size_request"]).read_text())
         assert physical["generation_request"]==prop["source_request"]
         semantic=json.loads((root/prop["grip_request"]).read_text())
-        assert semantic["schema"]==2
+        assert semantic["schema"]==3
+        assert semantic["vision_strategy"]=="evidence_driven"
+        assert "maximum_paid_requests" not in semantic
         assert semantic["object_glb"]==prop["glb"]
         assert semantic["interaction_contract"]==prop["interaction"]
         interaction=json.loads((root/prop["interaction_request"]).read_text())
         assert interaction["object_image"]==obj
         assert interaction["motion_library"]=="data/motion-library.json"
-        assert interaction["maximum_paid_requests"]==1
+        assert interaction["schema"]==2
+        assert interaction["vision_strategy"]=="evidence_driven"
+        assert "maximum_paid_requests" not in interaction
 
 # Frame grip near the center is valid regardless of object_kind (geometry,
 # not a handcrafted transform for a named weapon).

@@ -1,11 +1,11 @@
 {
-  "schema": 1,
-  "experiment": "marches-axe-grip-plan-v2",
+  "schema": 3,
+  "experiment": "marches_hache-axe-grip",
   "object_image": "assets/concepts/marches/objects/hache_arme.png",
   "character_image": "assets/concepts/marches/units/hache.png",
   "object_glb": "assets/experiments/props/marches_hache/trellis-v1/axe.glb",
+  "interaction_contract": "assets/experiments/props/marches_hache/trellis-v1/interaction-contract.json",
   "output_path": "assets/experiments/props/marches_hache/trellis-v1/grip-plan.json",
   "vision_model": "google/gemini-2.5-flash-lite",
-  "maximum_paid_requests": 1,
-  "automatic_paid_retries": 0
+  "vision_strategy": "evidence_driven"
 }

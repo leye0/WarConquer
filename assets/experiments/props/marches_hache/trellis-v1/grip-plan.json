@@ -16,128 +16,56 @@
     "object_kind": "axe",
     "grip_geometry": "shaft",
     "hold_mode": "two_hands",
-    "dominant_hand": "either",
+    "dominant_hand": "right",
     "handle_butt": [
-      0.85,
-      0.92
+      0.28,
+      0.84
     ],
     "handle_near_head": [
-      0.4,
-      0.3
+      0.55,
+      0.27
     ],
     "grip_point": [
-      0.6,
-      0.75
+      0.31,
+      0.79
     ],
     "head_center": [
-      0.3,
-      0.2
+      0.65,
+      0.25
     ],
     "action_edge": [
-      0.25,
-      0.2
+      0.73,
+      0.28
     ],
-    "head_direction": "toward_elbow",
+    "head_direction": "forward",
     "edge_direction": "outward",
     "length_relative_character_height": 1.1,
     "palm_from_wrist": 0.5,
     "confidence": 0.9,
-    "explanation": "The axe is a two-handed weapon with a long wooden shaft. The character in Image 2 is holding the axe with both hands, with the primary grip point being roughly in the middle of the shaft. The axe head extends away from the character's body, and the cutting edge faces outward."
+    "explanation": "Reviewed on both full-resolution source images: right palm grips lower leather shaft, left palm grips exposed upper wood. The metal head and visibly sharpened blade are separate from the handholds. Body-relative orientation is provisional until actual Mixamo and independent 3D vision QA."
   },
   "derived_image_geometry": {
-    "grip_fraction_from_butt": 0.45,
-    "image_deviation": 0.10247,
+    "grip_fraction_from_butt": 0.09201,
+    "image_deviation": 0.00571,
     "supported_by_current_geometry_fitter": true
   },
   "paid_vision_requests": 1,
   "automatic_paid_retries": 0,
   "visual_qa": {
-    "status": "rejected",
-    "signature": "310ae6f8ac91a15eb94f4b573b5607aa3bec7013bf28c2861e5760f586b6e7ce",
-    "confidence": 0.9,
-    "issues": [
-      "The axe head is oriented incorrectly during the walk and run animations, facing into the character's body instead of away from it.",
-      "In the action and action_mid animations, the axe handle appears to detach from the character's hand, and the axe head is not held in a plausible manner for an attack."
-    ],
-    "reason": "The prop is not consistently gripped by the character across all animations. Specifically, the passive carry (walk/run) has the axe head oriented incorrectly, and the active animations (action/action_mid) show the prop detaching from the hand and being held in an implausible way.",
-    "vision_model": "google/gemini-2.5-flash-lite",
-    "checked_views": [
-      "front",
-      "side",
-      "back",
-      "walk",
-      "run",
-      "action",
-      "action_mid"
-    ]
+    "status": "pending_real_3d_contact_qa",
+    "reason": "Historical geometry-extreme fittings invalidated by confirmed visual roles"
   },
   "source_provenance": {
     "generation_request": "axe-image-request.json",
     "generation_brief_sha256": "7292454751dbea7110a1817f371e5da086f18d3d0b7f578a4f10af92b259680c"
   },
-  "mesh_landmarks": {
-    "schema": 1,
-    "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
-    "model": "google/gemini-2.5-flash-lite",
-    "view": 3,
-    "confidence": 0.9,
-    "points": {
-      "handle_butt": {
-        "local": [
-          0.4292412,
-          -0.4594516,
-          -0.0069416
-        ],
-        "mesh": 0,
-        "primitive": 0,
-        "error_px": 0.4,
-        "method": "vision-nearest-surface"
-      },
-      "grip_center": {
-        "local": [
-          0.1562247,
-          -0.075538,
-          0.032603
-        ],
-        "mesh": 0,
-        "primitive": 0,
-        "error_px": 1.5,
-        "method": "vision-nearest-surface"
-      },
-      "working_head": {
-        "local": [
-          -0.1590333,
-          0.3418079,
-          0.0007457
-        ],
-        "mesh": 0,
-        "primitive": 0,
-        "error_px": 125.8,
-        "method": "3d-working-head-centroid"
-      },
-      "functional_edge": {
-        "local": [
-          -0.3916307,
-          0.114126,
-          -0.000328
-        ],
-        "mesh": 0,
-        "primitive": 0,
-        "error_px": 72.1,
-        "method": "signed-mesh-silhouette-extreme"
-      }
-    },
-    "explanation": "View 3 clearly shows the axe head and handle. The functional edge is the sharp side of the axe head, and the handle butt is the bottom end of the handle. The grip center is the middle of the handle where a user would hold it."
+  "interaction_provenance": {
+    "path": "assets/experiments/props/marches_hache/trellis-v1/interaction-contract.json",
+    "sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb"
   },
-  "automatic_orientation_selection": {
-    "method": "real-3d-vision-candidate-search",
-    "previous_direction": "forward",
-    "selected_direction": "outward",
-    "candidates": [
-      "forward",
-      "backward",
-      "outward",
-      "inward"
-    ]
+  "semantic_review_provenance": {
+    "path": "assets/experiments/props/marches_hache/trellis-v1/grip-semantic-review.json",
+    "sha256": "5b2834c44acea9c72e753f4bd7d3fb68b6b7902453b147320580c901674327b2",
+    "legacy_plan_sha256": "783f636124d8855878da3e47c95cdda5ca6c25c0bafdf83ac6da3d60e3fc766a"
   }
 }

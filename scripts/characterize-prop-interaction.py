@@ -127,16 +127,18 @@ def image(path):
 
 def read_request(relative):
     cfg = json.loads(local(relative).read_text())
-    keys = {"schema", "object_id", "object_kind", "object_image", "character_image",
-            "generation_request", "motion_library", "output_path", "vision_model",
-            "maximum_paid_requests", "automatic_paid_retries"}
-    if (set(cfg) != keys or cfg["schema"] != 1 or
+    base = {"schema", "object_id", "object_kind", "object_image", "character_image",
+            "generation_request", "motion_library", "output_path", "vision_model"}
+    legacy = base | {"maximum_paid_requests", "automatic_paid_retries"}
+    iterative = base | {"vision_strategy"}
+    if (not ((cfg.get("schema") == 1 and set(cfg) == legacy) or
+             (cfg.get("schema") == 2 and set(cfg) == iterative and
+              cfg.get("vision_strategy") == "evidence_driven")) or
             not isinstance(cfg["object_id"], str) or not IDENT.fullmatch(cfg["object_id"]) or
             not isinstance(cfg["object_kind"], str) or not IDENT.fullmatch(cfg["object_kind"])):
         raise ValueError("Invalid interaction request schema")
-    if (cfg["vision_model"] != MODEL or cfg["maximum_paid_requests"] != 1 or
-            cfg["automatic_paid_retries"] != 0):
-        raise ValueError("Unapproved paid characterization budget")
+    if cfg["vision_model"] != MODEL:
+        raise ValueError("Unrecognized primary vision model; use an explicit review pass")
     obj = local(cfg["object_image"])
     char = local(cfg["character_image"])
     source = local(cfg["generation_request"])
@@ -253,6 +255,75 @@ def validate(answer, clips, expected_kind=None):
     return answer
 
 
+def validate_visible_landmarks(answer, object_image):
+    """Reject image coordinates on transparent background, never guess a replacement.
+
+    Transparency is direct pixel evidence, not a heuristic for assigning
+    semantic roles. For opaque source photos this test is deliberately neutral.
+    """
+    from PIL import Image
+
+    with Image.open(object_image) as source:
+        if "A" not in source.getbands():
+            return
+        alpha = source.getchannel("A")
+        if alpha.getextrema()[0] == 255:
+            return
+        width, height = alpha.size
+
+        def visible(point):
+            x, y = round(point[0] * (width - 1)), round(point[1] * (height - 1))
+            # Allow only a narrow antialiasing/annotation tolerance (<0.6% of
+            # the image), never snap a labelled role onto a distant silhouette.
+            dx, dy = max(1, round(width * .005)), max(1, round(height * .005))
+            region = alpha.crop((max(0, x-dx), max(0, y-dy),
+                                 min(width, x+dx+1), min(height, y+dy+1)))
+            return region.getextrema()[1] >= 96
+
+        for grip in answer["grips"]:
+            if not visible(grip["point"]):
+                raise ValueError("Vision grip falls outside the source object: " + grip["id"])
+        for feature in answer["features"]:
+            for field in ("origin", "direction_tip"):
+                if not visible(feature[field]):
+                    raise ValueError("Vision functional feature falls outside the source object: " +
+                                     feature["id"] + "." + field)
+
+
+def reviewed_response(review_path, receipt, hashes, obj, clips, expected_kind):
+    """Promote an explicit image-grounded review without altering paid evidence."""
+    reviewed = json.loads(review_path.read_text())
+    raw = receipt["raw_characterization"]
+    observations = reviewed.get("source_observations")
+    resolutions = reviewed.get("resolved_uncertainties")
+    if (set(reviewed) != {"schema", "source_hashes", "paid_response_sha256",
+                         "review_method", "source_observations", "resolved_uncertainties",
+                         "characterization"} or
+            reviewed["schema"] != 1 or reviewed["source_hashes"] != hashes or
+            reviewed["paid_response_sha256"] != digest(review_path.with_name("interaction-response.json")) or
+            reviewed["review_method"] != "independent_source_image_inspection" or
+            not isinstance(observations, list) or len(observations) < 2 or
+            {item.get("source") for item in observations if isinstance(item, dict)} !=
+                {"object_image", "character_image"} or
+            any(not isinstance(item, dict) or set(item) != {"source", "observation"} or
+                not isinstance(item["observation"], str) or len(item["observation"].strip()) < 25
+                for item in observations) or
+            not isinstance(resolutions, list) or
+            len(resolutions) != len(raw.get("uncertainties", [])) or
+            [item.get("original") for item in resolutions if isinstance(item, dict)] !=
+                raw.get("uncertainties", []) or
+            any(not isinstance(item, dict) or set(item) != {"original", "resolution"} or
+                not isinstance(item["resolution"], str) or len(item["resolution"].strip()) < 30
+                for item in resolutions)):
+        raise ValueError("Semantic review has no exact paid receipt and two-image evidence")
+    answer = validate(reviewed["characterization"], clips, expected_kind)
+    validate_visible_landmarks(answer, obj)
+    return answer, {"path": str(review_path.relative_to(ROOT)),
+                    "sha256": digest(review_path),
+                    "paid_response_sha256": digest(review_path.with_name("interaction-response.json")),
+                    "method": reviewed["review_method"]}
+
+
 def run(relative, check=False):
     cfg, obj, char, brief, clips, output, hashes = read_request(relative)
     if output.is_file():
@@ -260,6 +331,7 @@ def run(relative, check=False):
         if record.get("source_hashes") != hashes or record.get("schema") != 1:
             raise ValueError("Interaction contract is stale; do not reuse")
         validate(record["characterization"], clips, cfg["object_kind"])
+        validate_visible_landmarks(record["characterization"], obj)
         print("PASS: existing three-source semantic contract; no paid call")
         return
     if check:
@@ -302,14 +374,24 @@ def run(relative, check=False):
         receipt.write_text(json.dumps({"schema": 1, "source_hashes": hashes,
             "raw_characterization": answer, "paid_requests": 1,
             "automatic_paid_retries": 0}, ensure_ascii=False, indent=2) + "\n")
-    validate(answer, clips, cfg["object_kind"])
+    review_path = output.with_name("interaction-review.json")
+    review_provenance = None
+    if review_path.is_file():
+        if not receipt.is_file():
+            raise ValueError("Review cannot replace a missing paid source response")
+        answer, review_provenance = reviewed_response(
+            review_path, json.loads(receipt.read_text()), hashes, obj, clips, cfg["object_kind"])
+    else:
+        validate(answer, clips, cfg["object_kind"])
+        validate_visible_landmarks(answer, obj)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps({"schema": 1, "object_id": cfg["object_id"],
         "source_hashes": hashes, "vision_model": MODEL,
         "characterization": answer,
         "expected_joint_anchors": JOINT_ANCHORS,
         "semantic_status": "confirmed",
-        "mixamo_pose_status": "pending_real_joint_validation"},
+        "mixamo_pose_status": "pending_real_joint_validation",
+        **({"review_provenance": review_provenance} if review_provenance else {})},
         ensure_ascii=False, indent=2) + "\n")
     print("PASS: semantically confirmed interaction; Mixamo joint contact still pending")
 
