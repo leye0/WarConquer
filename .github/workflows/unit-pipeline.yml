@@ -6,6 +6,11 @@ on:
     paths:
       - 'data/units/**'
       - 'scripts/unit-pipeline.py'
+      - 'scripts/unit-equipment.py'
+      - 'scripts/build-prop-trellis.py'
+      - 'scripts/build-unit-3d.py'
+      - 'scripts/plan-prop-attachment.py'
+      - 'scripts/test-unit-equipment.py'
       - 'scripts/test-unit-pipeline.py'
       - 'scripts/serve-character-lab.mjs'
       - 'scripts/build-character-lab-pages.mjs'
@@ -26,6 +31,7 @@ on:
         options:
           - all
           - source
+          - equipment_identify
           - turnaround
           - body
           - rig
@@ -69,6 +75,7 @@ jobs:
         run: |
           python -m py_compile scripts/unit-pipeline.py scripts/test-unit-pipeline.py
           python scripts/test-unit-pipeline.py
+          python scripts/test-unit-equipment.py
           python scripts/unit-pipeline.py list
           python scripts/unit-pipeline.py status --unit couronne_archer
           python scripts/unit-pipeline.py run --unit couronne_archer --stage source
@@ -95,7 +102,9 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A assets/experiments/ assets/concepts/ 2>/dev/null || true
+          # Model receipts and generated requests under data/units are equally
+          # important: losing them could duplicate paid predictions.
+          git add -A assets/experiments/ assets/concepts/ data/units/ 2>/dev/null || true
           if ! git diff --cached --quiet; then
             git commit -m "assets: save selected unit pipeline outputs and API receipts"
             git fetch origin main

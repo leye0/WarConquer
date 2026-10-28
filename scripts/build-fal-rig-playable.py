@@ -32,14 +32,8 @@ def set_unit(unit):
     global BASE, MOTION, INPUT, RIGGED, PLAYABLE, CHECKPOINT, REPORT, REQUEST, ACTIVE_UNIT
     if unit == "marches_hache":
         return
-    from pathlib import Path
-    import json
-    if not isinstance(unit,str) or not unit or any(c not in "abcdefghijklmnopqrstuvwxyz0123456789_" for c in unit):
-        raise ValueError("Invalid unit")
-    manifest_path=ROOT / "data/units" / (unit+".json")
-    doc=json.loads(manifest_path.read_text(encoding="utf8"))
-    if doc.get("id")!=unit or doc.get("schema")!=1 or doc.get("adapter")!="manifest_v1":
-        raise ValueError("Unsupported rig unit manifest")
+    module = support("wc_unit_pipeline", "scripts/unit-pipeline.py")
+    doc = module.manifest(unit)
     src=(ROOT/doc["body"]["glb"]).resolve()
     out=(ROOT/doc["body"]["rigged_glb"]).resolve()
     playable=(ROOT/doc["body"]["playable_glb"]).resolve()
@@ -75,6 +69,15 @@ def save(path, data):
     temporary.replace(path)
 
 def approval():
+    if ACTIVE_UNIT != "marches_hache" and not REQUEST.exists():
+        if not INPUT.is_file():
+            raise ValueError("Selected unit has no textured source GLB")
+        save(REQUEST, {
+            "schema": 1, "unit": ACTIVE_UNIT,
+            "source": str(INPUT.relative_to(ROOT)), "source_sha256": sha(INPUT),
+            "rig_model": MODEL, "maximum_new_paid_rig_predictions": 1,
+            "require_textured_output": True, "motion_source": "archived_mixamo_fbx"
+        })
     cfg = json.loads(REQUEST.read_text(encoding="utf-8"))
     if ACTIVE_UNIT != "marches_hache":
         exact = {

@@ -24,11 +24,56 @@
     return values[Math.floor((values.length-1)*.9)];
   };
 
-  function fitGrip(points, gripFraction, category="axe") {
+  // Fit a contact frame from the actual geometry of a curved/flat rigid object.
+  // Unlike a shaft, its grip may be midway between TWO functional ends.
+  // This is a geometry class, not a bow/weapon-specific mounting script.
+  function fitFrame(points, gripFraction) {
+    const center=centroid(points);
+    const cov=[0,0,0,0,0,0,0,0,0];
+    for(const p of points){
+      const v=sub(p,center);
+      for(let i=0;i<3;i++)for(let j=0;j<3;j++)cov[i*3+j]+=v[i]*v[j];
+    }
+    let axis=[1,0,0];
+    for(let k=0;k<50;k++){
+      const next=unit([dot(cov.slice(0,3),axis),dot(cov.slice(3,6),axis),dot(cov.slice(6,9),axis)]);
+      if(!next)throw Error("Degenerate frame covariance");
+      axis=next;
+    }
+    // Stable principal axis sign, independent from model coordinate handedness.
+    const dominant=axis.map(Math.abs).indexOf(Math.max(...axis.map(Math.abs)));
+    if(axis[dominant]<0)axis=mul(axis,-1);
+    const positions=points.map(p=>dot(sub(p,center),axis));
+    const lo=Math.min(...positions),hi=Math.max(...positions),length=hi-lo;
+    if(length<.001)throw Error("Degenerate frame length");
+    const slice=points.filter((p,i)=>Math.abs((positions[i]-lo)/length-gripFraction)<.055);
+    if(slice.length<8)throw Error("No frame geometry near the visual handhold");
+    const grip=centroid(slice);
+    const base=Math.abs(axis[0])<.8?[1,0,0]:[0,1,0];
+    let transverse=unit(sub(base,mul(axis,dot(base,axis))));
+    for(let k=0;k<48;k++){
+      const raw=[dot(cov.slice(0,3),transverse),dot(cov.slice(3,6),transverse),dot(cov.slice(6,9),transverse)];
+      const next=unit(sub(raw,mul(axis,dot(raw,axis))));
+      if(!next)throw Error("Frame transverse direction not identifiable");
+      transverse=next;
+    }
+    const normal=unit(cross(axis,transverse));
+    const variance=v=>points.reduce((sum,p)=>{const n=dot(sub(p,center),v);return sum+n*n;},0);
+    if(variance(transverse)/Math.max(1e-8,variance(normal))<1.15)
+      throw Error("Frame plane ambiguous; image/GLB review required");
+    return {grip,shaft:axis,blade:transverse,length,headWidthRatio:1,
+      gripFractionFromButt:gripFraction,vertexCount:points.length,
+      bladeMethod:"generic-frame-pca"};
+  }
+
+  function fitGrip(points, gripFraction, geometry="shaft") {
     if (!Array.isArray(points) || points.length<60 || points.some(p=>
       !Array.isArray(p) || p.length!==3 || p.some(x=>!Number.isFinite(x))))
       throw Error("Not enough valid GLB vertex positions to infer the handle");
-    if (!(gripFraction>.03 && gripFraction<.65)) throw Error("Invalid vision grip fraction");
+    if (!(gripFraction>.03 && gripFraction<.75)) throw Error("Invalid vision grip fraction");
+    if(geometry==="frame")return fitFrame(points,gripFraction);
+    if(geometry!=="shaft" && geometry!=="axe")
+      throw Error("Unsupported geometric contact class");
     const center=centroid(points);
     const bounds=[0,1,2].map(i=>[
       Math.min(...points.map(p=>p[i])),Math.max(...points.map(p=>p[i]))
@@ -68,8 +113,8 @@
     const nearMin=endWidth("min"),nearMax=endWidth("max");
     const headAtMax=nearMax>=nearMin;
     const spreadRatio=Math.max(nearMax,nearMin)/Math.max(.000001,Math.min(nearMax,nearMin));
-    if (category==="axe" && spreadRatio<1.23)
-      throw Error("Axe head not distinguishable from handle in 3D; manual review required");
+    if (spreadRatio<1.23)
+      throw Error("Handle and functional head not distinguishable in 3D; review required");
     const coarseShaft=headAtMax ? axis : mul(axis,-1);
     const coarseDistance=projection.map(t=>headAtMax?t-pMin:pMax-t);
     // The blade skews global PCA. Refit the *handle itself* before locating

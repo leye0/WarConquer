@@ -51,14 +51,11 @@ def local(rel):
  return p
 
 def manifest(unit):
- if not unit or not all(c.islower() or c.isdigit() or c=="_" for c in unit):
-  raise ValueError("Invalid unit ID")
- path=local("data/units/"+unit+".json")
- data=json.loads(path.read_text())
- if data.get("id")!=unit or data.get("schema")!=1:raise ValueError("Unit id/schema mismatch")
+ spec=importlib.util.spec_from_file_location("wc_unit_pipeline",ROOT/"scripts/unit-pipeline.py")
+ module=importlib.util.module_from_spec(spec)
+ spec.loader.exec_module(module)
+ data=module.manifest(unit)
  if set(data["source"]["views"])!=set(VIEWS):raise ValueError("Four physical views required")
- if data["body"]["glb"].endswith("/marches_hache/tpose-v2/fal-textured.glb") and unit!="marches_hache":
-  raise ValueError("Cross-unit GLB output forbidden")
  return data
 
 def sha(path):
@@ -102,8 +99,8 @@ def turnaround(data,paid):
   if rec.is_file():
    raise RuntimeError("Request already recorded for "+view+"; no paid resubmission. Review "+str(rec))
   if not paid:raise RuntimeError("Missing "+view+"; pass --allow-paid")
-  if os.environ.get("OPENROUTER_IMAGE_MODEL")!="meta/muse-image":
-   raise RuntimeError("Expected configured meta/muse-image; no paid request sent")
+  if os.environ.get("OPENROUTER_IMAGE_MODEL","meta/muse-image")!="meta/muse-image":
+   raise RuntimeError("Only meta/muse-image is supported for the turnaround")
   if not os.environ.get("OPENROUTER_API_KEY"):raise RuntimeError("OPENROUTER_API_KEY missing")
   prompt=POSE+" "+CAMERAS[view]
   refs=[helper.reference_payload(original.read_bytes())[0]]
@@ -150,6 +147,8 @@ def body(data,paid):
   print("Existing textured GLB",dest.relative_to(ROOT),meta)
   return
  if not paid:raise RuntimeError("Missing 3D mesh: pass --allow-paid")
+ if not os.environ.get("FAL_KEY") and os.environ.get("FAL_API_KEY"):
+  os.environ["FAL_KEY"]=os.environ["FAL_API_KEY"]
  if not os.environ.get("FAL_KEY"):raise RuntimeError("FAL_KEY missing")
  src={v:local(data["source"]["views"][v]) for v in ("front","back","left")}
  refs={v:image_qa(path) for v,path in src.items()}

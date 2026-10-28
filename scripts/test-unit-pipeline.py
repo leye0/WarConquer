@@ -5,8 +5,10 @@ import importlib.util
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from unittest.mock import patch
+from types import SimpleNamespace
 
 root=Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location("wc_unit_pipeline",root/"scripts/unit-pipeline.py")
@@ -22,6 +24,7 @@ archer=pipeline.manifest("couronne_archer")
 assert archer["id"]=="couronne_archer"
 assert archer["equipment"][0]["kind"]=="bow"
 assert archer["adapter"]=="manifest_v1"
+assert "equipment_identify" in pipeline.STAGES
 assert pipeline.state(archer,"source")["ready"],"Archer original concept exists"
 assert pipeline.state(archer,"turnaround")["ready"],"Four archer views must exist after real pilot"
 assert pipeline.state(archer,"body")["ready"],"Archer fal GLB must be independently generated"
@@ -52,9 +55,24 @@ except pipeline.PipelineError:pass
 else:raise AssertionError("Traversal allowed")
 bad=dict(m)
 bad["id"]="not_marches_hache"
-try:pipeline.ensure_adapter(bad)
-except pipeline.PipelineError:pass
-else:raise AssertionError("Unadapted new unit may not use hardwired generators")
+assert pipeline.execute.__code__.co_names.count("ensure_adapter")==0, "No weapon-specific adapter gate"
+
+# A newly created unit does not need precomputed paths, a 3D generator
+# adapter or an equipment-specific script. The source seed can be minimal.
+with tempfile.TemporaryDirectory(prefix="wc-unit-minimal-") as location:
+    temp=Path(location)
+    units=temp/"data/units"
+    units.mkdir(parents=True)
+    (units/"new_unit.json").write_text(json.dumps({"schema":1,"id":"new_unit",
+        "name":"Nouvelle unité","source":{"character_image":"assets/concepts/couronne/units/new.png"},
+        "equipment":[{"id":"object","kind":"other"}]}))
+    with patch.object(pipeline,"ROOT",temp),patch.object(pipeline,"UNITS",units),patch.object(
+            pipeline,"equipment_tools",return_value=SimpleNamespace(descriptors=lambda unit:[])):
+        generated=pipeline.manifest("new_unit")
+        assert generated["adapter"]=="manifest_v1"
+        assert generated["source"]["views"]["front"].endswith("/new_unit/tpose-v1/front.png")
+        assert generated["body"]["glb"].endswith("/new_unit/tpose-v1/fal-textured.glb")
+        assert generated["equipment"][0]["glb"]=="assets/experiments/props/new_unit/object/mesh.glb"
 
 # Missing outputs require explicit authorization; do not even invoke Python scripts.
 missing={"ready":False,"files":{"missing.glb":"missing"}}
