@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "unit": "couronne_archer",
+  "model": "fal-ai/hunyuan3d/v2/multi-view",
+  "request_id": "01a17ff1-c93b-7480-b08e-193db71785ed",
+  "source_sha256": {
+    "front": "0d13db9e6958d3f157c412925a0fa3d24c88ecf8874cd855828f22e00bd8b3d0",
+    "back": "a664b108da19c7a27d43473a6617d17f61326526e60746dd9127712c6b54801e",
+    "left": "9161fa77e7f1a655edbc7347a792b949e51b664023b66b2252edf0a761218789"
+  },
+  "status": "downloaded",
+  "estimated_cost_usd": 0.48
+}
