@@ -519,11 +519,13 @@
         ? 1.9*spec.length_relative_character_height : estimatedLengthCm/100;
       let carryFit=null;
       let bodyCapsules=[];
+      let outwardWorld=null;
       if(gravityCarry && joints.Hips && joints.Chest &&
           joints.LeftShoulder && joints.RightShoulder){
         const v=window.WCWeaponGrip;
         const center=v.add(v.mul(joints.Hips,.45),v.mul(joints.Chest,.55));
         const away=v.sub(contact.grip,center);
+        outwardWorld=away;
         const shoulderSpan=v.norm(v.sub(joints.LeftShoulder,joints.RightShoulder));
         const torsoRadius=Math.max(.17,shoulderSpan*.46);
         bodyCapsules=[
@@ -556,13 +558,36 @@
       offset.position=new B.Vector3(...frame.grip).negate();
       const roots=[...prop.meshes,...prop.transformNodes].filter(node=>!node.parent);
       for(const node of roots)node.parent=offset;
-      // Verify the fitted transform against the *real* Babylon world matrices
-      // rather than trusting the idealized pre-parenting prediction.
-      anchor.computeWorldMatrix(true);
-      offset.computeWorldMatrix(true);
-      const mountedPoints=importedPropPoints(prop.meshes||[]);
-      const actualClearance=bodyCapsules.length
-        ? window.WCWeaponGrip.capsuleClearance(mountedPoints,bodyCapsules):NaN;
+      // A source-frame prediction is not necessarily identical to Babylon's
+      // final parent/skin/model matrices. Resolve the physical fit using the
+      // actual mounted mesh and the *same* generic anatomical constraints.
+      const gripFrame=gravityCarry?{...frame,shaft:frame.carryShaft}:frame;
+      let actualClearance=NaN;
+      if(bodyCapsules.length&&outwardWorld){
+        const v=window.WCWeaponGrip;
+        const margin=bodyCapsules[0].radius*.8;
+        const candidates=v.gravityCarryCandidates(contact.blade,outwardWorld);
+        let best=null;
+        for(const candidate of candidates){
+          const q=buildGripRotation(gripFrame,
+            new B.Vector3(...candidate.shaft),bladeWorld);
+          anchor.rotationQuaternion=B.Quaternion.Inverse(parentRotation).multiply(q);
+          anchor.computeWorldMatrix(true);
+          offset.computeWorldMatrix(true);
+          const actual=v.capsuleClearance(importedPropPoints(prop.meshes||[]),bodyCapsules);
+          const deficit=Math.max(0,margin-actual);
+          const score=deficit*deficit*100+candidate.tilt*.012;
+          if(!best||score<best.score)best={...candidate,actual,score};
+        }
+        if(best){
+          actualClearance=best.actual;
+          carryFit={...carryFit,shaft:best.shaft,tilt:best.tilt};
+          const q=buildGripRotation(gripFrame,new B.Vector3(...best.shaft),bladeWorld);
+          anchor.rotationQuaternion=B.Quaternion.Inverse(parentRotation).multiply(q);
+          anchor.computeWorldMatrix(true);
+          offset.computeWorldMatrix(true);
+        }
+      }
       state.weaponImport=prop;
       state.weaponAnchor=anchor;
       text("weaponMetric","Prise anatomique auto · vision sur GLB · main "+side+

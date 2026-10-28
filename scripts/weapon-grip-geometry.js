@@ -87,12 +87,18 @@
     return nearest;
   }
 
+  function gravityCarryCandidates(workingWorld,awayWorld){
+    const away=unit([awayWorld[0],0,awayWorld[2]]);
+    if(!away)throw Error("No usable anatomical outward direction");
+    return [0,.1,.2,.35,.5,.7,1,1.4,1.9,2.5].map(tilt=>({
+      shaft:unit(add([0,-1,0],mul(away,tilt))),blade:workingWorld,tilt
+    }));
+  }
+
   function chooseNonCollidingCarry(vertices,source,gripWorld,workingWorld,awayWorld,
       targetLength,capsules) {
     if(!source.carryShaft||!Array.isArray(capsules)||!capsules.length)
       return {shaft:[0,-1,0],blade:workingWorld,tilt:0,collisionScore:0};
-    const away=unit([awayWorld[0],0,awayWorld[2]]);
-    if(!away)throw Error("No usable anatomical outward direction");
     const scale=targetLength/source.length;
     const sourceShaft=source.carryShaft;
     // The shaft, butt and fittings can also cross the body. Assess the whole
@@ -100,8 +106,7 @@
     const sample=vertices;
     const stride=Math.max(1,Math.ceil(sample.length/850));
     let best=null;
-    for(const tilt of [0,.1,.2,.35,.5,.7,1.0,1.4]) {
-      const shaft=unit(add([0,-1,0],mul(away,tilt)));
+    for(const {shaft,tilt} of gravityCarryCandidates(workingWorld,awayWorld)) {
       let rotation;
       try{rotation=rotationBetweenFrames(sourceShaft,source.blade,shaft,workingWorld);}
       catch{continue;}
@@ -295,5 +300,6 @@
       gripFractionFromButt:gripFraction,vertexCount:points.length,bladeMethod};
   }
   return {fitGrip,frameFromLandmarks,chooseNonCollidingCarry,capsuleClearance,
+    gravityCarryCandidates,
     rotationBetweenFrames,cross,dot,unit,sub,mul,add,norm};
 });
