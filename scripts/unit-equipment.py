@@ -191,7 +191,19 @@ def prepare_requests(doc, prop):
     """Materialize reproducible requests from a vision description, never overwrite edits."""
     description = prop.get("description")
     if not description:
-        raise ValueError("No source-grounded equipment description for " + prop["id"])
+        # Historical units may already have an original, hand-reviewed
+        # generation brief instead of an equipment-analysis receipt. Reuse
+        # that SOURCE evidence; do not hallucinate a description or charge a
+        # new identification call merely to backfill metadata.
+        original = safe(prop["source_request"])
+        if original.is_file():
+            old = json.loads(original.read_text(encoding="utf8"))
+            if (old.get("output") == prop["source_image"] and
+                    doc["source"]["character_image"] in old.get("references", []) and
+                    isinstance(old.get("prompt"), str) and old["prompt"].strip()):
+                description = old["prompt"]
+        if not description:
+            raise ValueError("No source-grounded equipment description for " + prop["id"])
     image = doc["source"]["character_image"]
     source_req = {"prompt": "Reconstruct exactly ONE separate removable equipment object from "
                   "the supplied original character image. Preserve the original object's design, "
