@@ -1,5 +1,13 @@
 # Contrat de manipulation : objet × personnage × animation
 
+> **Vocabulaire élargi (proposition v2, non encore implémentée) :**
+> [affordances, états, contacts, axes, contraintes et 26 cas d'objets](../plans/held-object-affordance-contract.md).
+> Un objet peut imposer des contraintes non réductibles à une prise et à une direction :
+> par exemple `keep_upright` pour un pot ouvert rempli en transport, remplacé
+> par `controlled_tilt` pendant le versement. Les états non visibles doivent
+> être confirmés par le jeu/brief, jamais inventés par la vision.
+
+
 Le placement d'un objet tenu est une **interaction à trois sources** et non
 une recherche de la partie la plus longue d'un maillage.
 
