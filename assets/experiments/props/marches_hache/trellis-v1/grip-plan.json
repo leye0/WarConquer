@@ -68,5 +68,59 @@
   "source_provenance": {
     "generation_request": "axe-image-request.json",
     "generation_brief_sha256": "7292454751dbea7110a1817f371e5da086f18d3d0b7f578a4f10af92b259680c"
+  },
+  "mesh_landmarks": {
+    "schema": 1,
+    "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+    "model": "google/gemini-2.5-flash-lite",
+    "view": 3,
+    "confidence": 0.9,
+    "points": {
+      "handle_butt": {
+        "local": [
+          0.4292412,
+          -0.4594516,
+          -0.0069416
+        ],
+        "mesh": 0,
+        "primitive": 0,
+        "error_px": 0.4,
+        "method": "vision-nearest-surface"
+      },
+      "grip_center": {
+        "local": [
+          0.1562247,
+          -0.075538,
+          0.032603
+        ],
+        "mesh": 0,
+        "primitive": 0,
+        "error_px": 1.5,
+        "method": "vision-nearest-surface"
+      },
+      "working_head": {
+        "local": [
+          -0.1590333,
+          0.3418079,
+          0.0007457
+        ],
+        "mesh": 0,
+        "primitive": 0,
+        "error_px": 125.8,
+        "method": "3d-working-head-centroid"
+      },
+      "functional_edge": {
+        "local": [
+          -0.3916307,
+          0.114126,
+          -0.000328
+        ],
+        "mesh": 0,
+        "primitive": 0,
+        "error_px": 72.1,
+        "method": "signed-mesh-silhouette-extreme"
+      }
+    },
+    "explanation": "View 3 clearly shows the axe head and handle. The functional edge is the sharp side of the axe head, and the handle butt is the bottom end of the handle. The grip center is the middle of the handle where a user would hold it."
   }
 }
