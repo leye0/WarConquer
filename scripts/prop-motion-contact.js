@@ -102,6 +102,41 @@
       effectiveShoulder};
   }
 
+  function reachablePrimaryGripTarget({sourcePrimary,sourceSecondary,scale,
+      primaryPalm,primaryShoulder,primaryElbow,primaryWrist,
+      primaryPalmOffset=[0,0,0],secondaryShoulder,secondaryElbow,
+      secondaryWrist,secondaryPalmOffset=[0,0,0],margin=.03}){
+    // During a strike Mixamo can move the leading palm OUTSIDE the volume
+    // where a rigid two-grip object can be reached by the opposite arm.
+    // In that situation, changing the prop rotation cannot solve contact.
+    // Project the FIRST palm toward the opposite shoulder by the minimum
+    // distance needed to make the pair of real-arm reach spheres intersect.
+    // The primary arm must itself be able to reach that projected position.
+    for(const [name,p] of Object.entries({sourcePrimary,sourceSecondary,
+        primaryPalm,primaryShoulder,primaryElbow,primaryWrist,
+        primaryPalmOffset,secondaryShoulder,secondaryElbow,secondaryWrist,
+        secondaryPalmOffset}))requirePoint(p,name);
+    if(!Number.isFinite(scale)||scale<=0||!Number.isFinite(margin)||margin<0)
+      throw Error("Invalid source grips or two-arm anatomical margin");
+    const spacing=v.norm(v.sub(sourceSecondary,sourcePrimary))*scale;
+    if(spacing<1e-5)throw Error("Two confirmed vision grips must be distinct");
+    const secondaryReach=armReach(secondaryShoulder,secondaryElbow,
+      secondaryWrist,secondaryWrist);
+    const center=plus(secondaryShoulder,secondaryPalmOffset);
+    const direction=v.sub(primaryPalm,center),distance=v.norm(direction);
+    const limit=secondaryReach.max+spacing-margin;
+    if(limit<=0)throw Error("Two-hand source spacing exceeds anatomical reach");
+    const adjusted=distance>limit;
+    const target=adjusted?plus(center,v.mul(direction,limit/distance)):
+      [...primaryPalm];
+    const wristTarget=v.sub(target,primaryPalmOffset);
+    const primaryReach=armReach(primaryShoulder,primaryElbow,
+      primaryWrist,wristTarget);
+    if(!primaryReach.reachable && primaryReach.reachDeficit>.025)
+      throw Error("Both vision grips are physically incompatible with both actual arms");
+    return {target,adjusted,spacing,primaryReach,secondaryReach};
+  }
+
   function solveTwoGrips({sourcePrimary,sourceSecondary,featureOrigin,featureTip,
       primaryPalm,secondaryPalm,actionForward,scale,secondaryArm=null}){
     for(const [name,p] of Object.entries({sourcePrimary,sourceSecondary,
@@ -160,5 +195,6 @@
     return mode;
   }
   return {solveTwoGrips,armReach,twoBoneElbow,reachableSecondaryGripTarget,
+    reachablePrimaryGripTarget,
     rowTransform,resolveMode};
 });

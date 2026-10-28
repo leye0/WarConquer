@@ -964,9 +964,9 @@
           if(!useMode||!interaction||!limb)throw Error("Mode d'action non caractérisé");
           const sideUse=useMode.primary_hand;
           const jointData=findGripAnatomy(imported,sideUse)?.joints;
-          const handFrame=window.WCRigContact.palmFrame(jointData,sideUse,spec.palm_from_wrist);
+          let handFrame=window.WCRigContact.palmFrame(jointData,sideUse,spec.palm_from_wrist);
           const body=window.WCRigContact.bodyFrame(jointData);
-          const actionForward=window.WCRigContact.resolveDirection(
+          let actionForward=window.WCRigContact.resolveDirection(
             useMode.action_direction,handFrame,body,sideUse);
           const primarySource=meshPoints.namedGrips[useMode.primary_grip];
           const feature=meshPoints.namedFeatures[useMode.functional_feature];
@@ -989,11 +989,34 @@
           let targetShaft;
           if(useMode.hands===2){
             const sec=findGripAnatomy(imported,useMode.secondary_hand);
+            const prim=findGripAnatomy(imported,sideUse);
             secondaryHand=window.WCRigContact.palmFrame(
               sec.joints,useMode.secondary_hand,spec.palm_from_wrist);
             const secondarySource=meshPoints.namedGrips[useMode.secondary_grip];
             if(!secondarySource)throw Error("Seconde prise absente du vrai maillage");
             const observedWrist=sec.hand.getAbsolutePosition().asArray();
+            const primaryWrist=prim.hand.getAbsolutePosition().asArray();
+            const constrainedPrimary=limb.reachablePrimaryGripTarget({
+              sourcePrimary:primarySource,sourceSecondary:secondarySource,
+              scale,primaryPalm:handFrame.grip,
+              primaryShoulder:prim.upperarm.getAbsolutePosition().asArray(),
+              primaryElbow:prim.forearm.getAbsolutePosition().asArray(),
+              primaryWrist,
+              primaryPalmOffset:v.sub(handFrame.grip,primaryWrist),
+              secondaryShoulder:sec.upperarm.getAbsolutePosition().asArray(),
+              secondaryElbow:sec.forearm.getAbsolutePosition().asArray(),
+              secondaryWrist:observedWrist,
+              secondaryPalmOffset:v.sub(secondaryHand.grip,observedWrist)
+            });
+            if(constrainedPrimary.adjusted){
+              const moved=temporarySecondaryIK(imported,sideUse,
+                constrainedPrimary.target,spec.palm_from_wrist);
+              pendingIkUndo=moved.undo;
+              handFrame=window.WCRigContact.palmFrame(
+                findGripAnatomy(imported,sideUse).joints,sideUse,spec.palm_from_wrist);
+              actionForward=window.WCRigContact.resolveDirection(
+                useMode.action_direction,handFrame,body,sideUse);
+            }
             // A Mixamo strike frequently spreads the palms farther apart
             // than the labelled grips on the real object. The hand animation
             // is a desired direction, not a second fixed object anchor.
@@ -1049,7 +1072,8 @@
             }else{
               const adjusted=temporarySecondaryIK(imported,useMode.secondary_hand,
                 requiredPalm,spec.palm_from_wrist);
-              pendingIkUndo=adjusted.undo;
+              const undoFirst=pendingIkUndo;
+              pendingIkUndo=()=>{adjusted.undo();undoFirst?.();};
               secondaryError=adjusted.error;
               ikReachable=adjusted.reach.reachable;
             }

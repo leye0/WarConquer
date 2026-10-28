@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {createRequire} from "node:module";
 const require=createRequire(import.meta.url);
 const {solveTwoGrips,armReach,twoBoneElbow,reachableSecondaryGripTarget,
+  reachablePrimaryGripTarget,
   resolveMode}=require("./prop-motion-contact.js");
 const v=require("./weapon-grip-geometry.js");
 const close=(a,b,tol=1e-9)=>assert(v.norm(v.sub(a,b))<tol,`${a} != ${b}`);
@@ -54,6 +55,24 @@ assert(!natural.reachAdjusted,"Already reachable real Mixamo contacts are preser
 close(natural.target,[.8,0,0]);
 assert.throws(()=>reachableSecondaryGripTarget({...grasp,shoulder:[5,0,0],
   elbow:[5,.4,0],wrist:[5.4,.4,0]}),/cannot satisfy/);
+const bothArms={sourcePrimary:[0,0,0],sourceSecondary:[.3,0,0],scale:1,
+  primaryPalm:[1.1,0,0],primaryShoulder:[0,0,0],
+  primaryElbow:[.3,.2,0],primaryWrist:[.6,0,0],
+  primaryPalmOffset:[.5,0,0],
+  secondaryShoulder:[0,0,0],secondaryElbow:[-.3,.2,0],
+  secondaryWrist:[-.6,0,0]};
+const both=reachablePrimaryGripTarget(bothArms);
+assert(both.adjusted,"Leading Mixamo palm must move when the other real arm cannot reach");
+assert(both.target[0]<bothArms.primaryPalm[0]);
+assert(v.norm(v.sub(both.target,bothArms.secondaryShoulder))<=
+  both.secondaryReach.max+both.spacing-.03+1e-9);
+assert(both.primaryReach.reachable,"The leading arm must reach its corrected grip");
+const bothNatural=reachablePrimaryGripTarget({...bothArms,primaryPalm:[.8,0,0]});
+assert(!bothNatural.adjusted,"Keep valid Mixamo primary palm motion intact");
+close(bothNatural.target,[.8,0,0]);
+assert.throws(()=>reachablePrimaryGripTarget({...bothArms,
+  secondaryShoulder:[-4,0,0],secondaryElbow:[-4.3,.2,0],
+  secondaryWrist:[-4.6,0,0]}),/physically incompatible/);
 assert.throws(()=>solveTwoGrips({...labelled,
   primaryPalm:[0,0,0],secondaryPalm:[0,1,0],actionForward:[0,1,0],scale:1}),
   /ambiguous/);
