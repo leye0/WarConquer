@@ -491,21 +491,33 @@
       node.computeWorldMatrix(true);
     };
     try{
-      const limb=window.WCPropMotionContact;
-      const s=at(rig.upperarm),e=at(rig.forearm),w=at(rig.hand);
-      const palm=window.WCRigContact.palmFrame(rig.joints,side,palmFraction).grip;
-      const desiredW=w.map((x,i)=>x+wantedPalm[i]-palm[i]);
-      const expected=limb.twoBoneElbow(s,e,w,desiredW);
-      turn(rig.upperarm,e.map((x,i)=>x-s[i]),
-        expected.elbow.map((x,i)=>x-s[i]));
-      const eAfter=at(rig.forearm),wAfter=at(rig.hand);
-      turn(rig.forearm,wAfter.map((x,i)=>x-eAfter[i]),
-        desiredW.map((x,i)=>x-eAfter[i]));
+      const limb=window.WCPropMotionContact,v=window.WCWeaponGrip;
+      let lastReach=null;
+      // Rotating shoulder/elbow changes the wrist's WORLD-SPACE palm offset.
+      // A single wrist solve incorrectly treats that offset as constant and
+      // left a real 54 mm error. Re-measure the animated anatomical palm
+      // after EACH constrained two-bone solve; no invented bone length/pose.
+      for(let iteration=0;iteration<6;iteration++){
+        const current=findGripAnatomy(imported,side);
+        const s=at(rig.upperarm),e=at(rig.forearm),w=at(rig.hand);
+        const palm=window.WCRigContact.palmFrame(
+          current.joints,side,palmFraction).grip;
+        const error=v.norm(v.sub(palm,wantedPalm));
+        if(error<=.045)return {undo,error,reach:lastReach||{reachable:true}};
+        const desiredW=v.add(w,v.sub(wantedPalm,palm));
+        const expected=limb.twoBoneElbow(s,e,w,desiredW);
+        lastReach=expected.reach;
+        turn(rig.upperarm,e.map((x,i)=>x-s[i]),
+          expected.elbow.map((x,i)=>x-s[i]));
+        const eAfter=at(rig.forearm),wAfter=at(rig.hand);
+        turn(rig.forearm,wAfter.map((x,i)=>x-eAfter[i]),
+          desiredW.map((x,i)=>x-eAfter[i]));
+      }
       const achieved=window.WCRigContact.palmFrame(
         findGripAnatomy(imported,side).joints,side,palmFraction).grip;
-      const error=window.WCWeaponGrip.norm(window.WCWeaponGrip.sub(achieved,wantedPalm));
-      if(error>.045)throw Error("IK secondaire inexacte : "+error.toFixed(3)+" m");
-      return {undo,error,reach:expected.reach};
+      const error=v.norm(v.sub(achieved,wantedPalm));
+      if(error>.045)throw Error("IK secondaire inexacte après correction anatomique : "+error.toFixed(3)+" m");
+      return {undo,error,reach:lastReach};
     }catch(error){undo();throw error;}
   }
 
@@ -752,11 +764,13 @@
       state.weaponImport=prop;
       state.weaponAnchor=anchor;
       let lastActionPose=null;
+      let lastCarryPose=null;
       // Browser QA can inspect the actual animated geometry at arbitrary
       // motion frames, not only the pose cached at import time.
       window.WCPropContactDiagnostic=()=>{
         if(anchor.isDisposed()||state.weaponAnchor!==anchor)return null;
         if(interaction && state.attacking && lastActionPose)return {...lastActionPose};
+        if(interaction && !state.attacking && lastCarryPose)return {...lastCarryPose};
         const v=window.WCWeaponGrip;
         const next=findGripAnatomy(imported,side);
         const nextContact=window.WCRigContact.contactFrame(next.joints,{
@@ -813,6 +827,31 @@
         const v=window.WCWeaponGrip;
         let previousAction=false;
         let pendingIkUndo=null;
+        const enforceCarrySecondaryContact=()=>{
+          if(!interaction||carryMode?.hands!==2){lastCarryPose=null;return;}
+          const marks=importedPropLandmarks(prop.meshes||[],vision);
+          const target=marks.namedGrips?.[carryMode.secondary_grip];
+          if(!target)throw Error("Prise secondaire de transport absente du vrai GLB");
+          try{
+            const adjusted=temporarySecondaryIK(imported,carryMode.secondary_hand,
+              target,spec.palm_from_wrist);
+            pendingIkUndo=adjusted.undo;
+            // The joints are restored AFTER this frame has been rendered.
+            // Cache NUMERICAL evidence measured from the same exact joints
+            // that produced the screenshot, not the restored Mixamo pose.
+            lastCarryPose=null;
+            const snapshot=window.WCPropContactDiagnostic();
+            if(!snapshot)throw Error("Pose de transport non mesurable");
+            lastCarryPose={...snapshot,
+              secondaryGripError:Number(adjusted.error.toFixed(3)),
+              ikReachable:adjusted.reach?.reachable===true};
+          }catch(error){
+            lastCarryPose={mode:state.moving?"moving":"idle",semanticStatus:"rejected",
+              reason:String(error.message||error),expectedHands:2,
+              secondaryGripError:Infinity,gripError:Infinity};
+            throw error;
+          }
+        };
         const afterObserver=state.scene.onAfterRenderObservable.add(()=>{
           if(pendingIkUndo){pendingIkUndo();pendingIkUndo=null;}
           if(anchor.isDisposed()||state.weaponAnchor!==anchor)
@@ -950,6 +989,7 @@
             anchor.setParent(hand,true);
             anchor.rotationQuaternion=rigidActionRotation.clone();
             lastActionPose=null;
+            lastCarryPose=null;
           }
           previousAction=false;
           try{
@@ -973,7 +1013,10 @@
             const outwardSide=side==="right"?nextFrame.right:v.mul(nextFrame.right,-1);
             const currentFaceAway=v.dot(currentEdge,outwardSide);
             if(currentMass[1]-palm.grip[1]<-.03 &&
-              currentClearance>.065 && currentFaceAway>-.08)return;
+              currentClearance>.065 && currentFaceAway>-.08){
+              enforceCarrySecondaryContact();
+              return;
+            }
             const handScale=new B.Vector3(),handRotation=new B.Quaternion();
             hand.computeWorldMatrix(true);
             hand.getWorldMatrix().decompose(handScale,handRotation);
@@ -1019,6 +1062,7 @@
               byId("world").dataset.weaponLiveEdgeAway=best.edgeOut.toFixed(3);
               byId("world").dataset.weaponLiveClearance=best.clearance.toFixed(3);
             }
+            enforceCarrySecondaryContact();
           }catch(error){
             byId("world").dataset.weaponContactUpdateError=String(error.message||error);
           }
