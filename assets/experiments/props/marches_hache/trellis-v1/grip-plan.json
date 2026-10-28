@@ -52,15 +52,11 @@
   "paid_vision_requests": 1,
   "automatic_paid_retries": 0,
   "visual_qa": {
-    "status": "rejected",
-    "signature": "3f11a1551590ef183a9dc60a3591fffba4901d27ec35a6779ff3fcaa04e92648",
+    "status": "approved",
+    "signature": "a12fd9e33a832a8d28a392009e708c279c4e8d8ff7b223d7b91a27149be619ac",
     "confidence": 1.0,
-    "issues": [
-      "The axe head is clipping through the character's back in the side and back views.",
-      "The handle is not gripped by the character's hand in the front view, it appears to be floating.",
-      "The axe head is facing towards the character's back in the side and back views, which is a safety concern."
-    ],
-    "reason": "The prop is not attached correctly. The axe head is clipping through the character's back, the handle is not gripped by the character's hand, and the axe head is facing the wrong direction, posing a safety risk.",
+    "issues": [],
+    "reason": "The character is holding the axe correctly, with the heavy end hanging naturally below the gripping hand. The blade faces away from the body, posing no risk to the holder. The scale of the axe appears plausible in relation to the character.",
     "vision_model": "google/gemini-2.5-flash-lite",
     "checked_views": [
       "front",
