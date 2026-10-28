@@ -33,11 +33,12 @@ Les résultats déjà présents sont réutilisés. Le pipeline vérifie l'en-tê
 |---|---|---|
 | source | Illustration initiale avec objet | Entrée de référence |
 | equipment_identify | Équipements et descriptions fondées sur la fiche originale | Modèle vision, une réponse mémorisée |
+| object_source | Illustration isolée de chaque équipement identifié | Muse, appel payant si manquant |
+| object_interaction | **Confirmation initiale** objet/personnage/Mixamo : fonction, direction active, une ou deux prises selon transport/utilisation | Vision Flash-Lite, une réponse mémorisée, validation de la pose Mixamo différée |
 | turnaround | Face, dos, gauche, droite | Muse, appel payant si manquant |
 | body | GLB texturé | fal.ai, appel payant si manquant |
 | rig | GLB avec squelette | Uthana, appel payant si manquant |
 | animations | GLB jouable avec Mixamo | Conversion / retargeting local |
-| object_source | Illustration isolée de chaque équipement identifié | Muse, appel payant si manquant |
 | object_mesh | GLB indépendant de chaque équipement | TRELLIS, appel payant si manquant |
 | object_size | Estimation de la longueur en cm | Gemini 2.5 Flash-Lite, appel payant si manquant |
 | object_grip | Main, prise et orientation | Vision Flash-Lite, appel payant si manquant |
@@ -48,12 +49,15 @@ Les résultats déjà présents sont réutilisés. Le pipeline vérifie l'en-tê
 python scripts/unit-pipeline.py run --unit marches_hache --stage integrate
 python scripts/unit-pipeline.py run --unit couronne_archer --stage equipment_identify --dry-run
 python scripts/unit-pipeline.py run --unit marches_hache --stage object_size --dry-run
+python scripts/unit-pipeline.py run --unit marches_hache --stage object_interaction --dry-run
 python scripts/unit-pipeline.py bootstrap --unit marches_hache --stage object_size
 python scripts/unit-pipeline.py run --unit marches_hache --stage object_size --allow-paid
 python scripts/unit-pipeline.py run --unit marches_hache --stage object_landmarks --allow-paid
 ~~~
 
 Les étapes potentiellement payantes sont bloquées par défaut lorsqu'un résultat manque. L'option --allow-paid doit être fournie explicitement. Les résultats et reçus sont conservés pour éviter les soumissions répétées, y compris les résultats dont l'issue est incertaine. Une requête incertaine bloque la reprise automatique plutôt que de doubler le coût. Le pipeline réutilise les artéfacts existants quand ils sont présents et valides.
+
+`object_interaction` s'exécute **avant la génération du corps 3D et du GLB de l'objet**. Le modèle reçoit le brief source, le concept de l'objet, le personnage, les chaînes anatomiques normalisées des mains et les rôles des véritables fichiers Mixamo connus. Il fournit des régions de prise et des surfaces fonctionnelles nommées, avec un mode de transport et un ou plusieurs modes d'utilisation. Un geste absent ou incompatible et une incertitude sémantique bloquent cette nouvelle étape ; aucune extrapolation de longueur/largeur ne peut combler le trou. Même l'appel direct `--stage body`, `rig`, `object_mesh`, `object_grip` ou `integrate` refuse de produire un nouveau résultat avant confirmation. Le plan de montage hérite des prises confirmées et ne peut pas les redécider ; son ancienne propriété `hold_mode` désigne seulement le montage du mode de transport. Le catalogue Mixamo confirme seulement les **candidats** : l'accord anatomique sur les vraies frames reste explicitement à mesurer plus tard. Voir [contrat de manipulation](prop-interaction-contract.md).
 
 Les credentials restent exclusivement dans des variables d'environnement : OPENROUTER_API_KEY, OPENROUTER_IMAGE_MODEL, FAL_KEY ou FAL_API_KEY, REPLICATE_API_TOKEN. Aucun secret dans la fiche JSON. La commande bootstrap prépare les dépendances de l'étape sélectionnée seulement si des fichiers sont manquants.
 
@@ -83,6 +87,7 @@ Cette migration conserve les gros GLB et PNG historiques à leur emplacement : p
 
 - scripts/test-unit-pipeline.py : sélection, contrôles de fichiers, absence de dépenses implicites.
 - scripts/test-prop-mesh-landmarks.py : rendu des vrais GLB et projection signée vision → sommets.
+- scripts/test-prop-interaction-contract.py : rôles sémantiques, modalités de prise et rôle Mixamo sans heuristique de forme.
 - scripts/test-rig-contact-landmarks.mjs : transfert d'une prise entre deux squelettes non identiques.
 - scripts/test-verify-prop-visual-qa.py : vérification du contrat de verdict vision GO/NO-GO.
 - scripts/unit-pipeline.py : assemblage et vérification du catalogue Character Lab.
