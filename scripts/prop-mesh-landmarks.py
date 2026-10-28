@@ -61,6 +61,63 @@ PROMPT = (
 )
 
 
+def confirmed_interaction(plan_path: Path, plan: dict):
+    """Resolve exact semantic IDs; a GLB annotator cannot invent its own roles."""
+    provenance = plan.get("interaction_provenance")
+    if not provenance:
+        return None, None  # Explicit historical compatibility, no invented second grip.
+    if not isinstance(provenance, dict):
+        raise ValueError("Malformed interaction provenance")
+    rel = provenance.get("path", "")
+    if not isinstance(rel, str) or not rel or rel.startswith("/"):
+        raise ValueError("Unsafe interaction provenance path")
+    contract_path = (ROOT / rel).resolve()
+    if (not contract_path.is_relative_to(ROOT) or
+            not contract_path.is_relative_to(ROOT) or not contract_path.is_file()):
+        raise ValueError("Missing authoritative interaction contract")
+    content = contract_path.read_bytes()
+    fingerprint = hashlib.sha256(content).hexdigest()
+    contract = json.loads(content)
+    image_path = ROOT / plan["inputs"]["object_image"]
+    if (fingerprint != provenance.get("sha256") or
+            contract.get("schema") != 1 or
+            contract.get("semantic_status") != "confirmed" or
+            contract.get("mixamo_pose_status") != "pending_real_joint_validation" or
+            contract.get("source_hashes", {}).get("object_image") !=
+                hashlib.sha256(image_path.read_bytes()).hexdigest()):
+        raise ValueError("Unconfirmed or stale object/character/Mixamo roles")
+    sem = contract.get("characterization", {})
+    grips, features = sem.get("grips"), sem.get("features")
+    if (not isinstance(grips, list) or not grips or
+            not isinstance(features, list) or not features or
+            any(not isinstance(item, dict) or not isinstance(item.get("id"), str)
+                for item in grips + features)):
+        raise ValueError("Missing vision-confirmed named grip or action features")
+    return sem, fingerprint
+
+
+def named_schema(semantic):
+    """Only the already confirmed IDs can be annotated on actual mesh views."""
+    if semantic is None:
+        return SCHEMA
+    extra = {}
+    for collection, point_fields in (("grips", ("point",)),
+                                     ("features", ("origin", "direction_tip"))):
+        names = [item["id"] for item in semantic[collection]]
+        if len(names) != len(set(names)):
+            raise ValueError("Duplicate source-confirmed semantic identifier")
+        props = {"id": {"type": "string", "enum": names},
+                 "view": {"type": "integer", "enum": [0, 1, 2, 3]}}
+        props.update({field: {"type": "array", "items": {"type": "number"}}
+                      for field in point_fields})
+        extra[collection] = {"type": "array", "items": {"type": "object",
+            "additionalProperties": False, "properties": props,
+            "required": list(props)}}
+    return {"type": "object", "additionalProperties": False,
+            "properties": {**SCHEMA["properties"], **extra},
+            "required": [*SCHEMA["required"], *extra]}
+
+
 def glb_geometry(path: Path):
     """Return GLB world-space coordinates and their raw mesh-local counterparts."""
     raw = path.read_bytes()
@@ -175,58 +232,82 @@ def image_part(data: bytes):
         "data:image/png;base64,"+base64.b64encode(data).decode("ascii")}}
 
 
-def validate_answer(answer):
-    if not isinstance(answer, dict) or set(answer) != set(SCHEMA["properties"]):
+def vision_point(point, label):
+    if not isinstance(point, list) or len(point) != 2 or any(
+            isinstance(v, bool) or not isinstance(v, (int, float)) or
+            not math.isfinite(v) or not .01 <= v <= .99 for v in point):
+        raise ValueError("Invalid vision point: " + label)
+
+
+def validate_answer(answer, semantic=None):
+    if not isinstance(answer, dict) or set(answer) != set(named_schema(semantic)["properties"]):
         raise ValueError("Vision landmark response has unexpected fields")
-    if answer["view"] not in (0, 1, 2, 3):raise ValueError("Invalid view")
-    if not isinstance(answer["confidence"], (float, int)) or answer["confidence"] < .72:
+    if type(answer["view"]) is not int or answer["view"] not in (0, 1, 2, 3):
+        raise ValueError("Invalid view")
+    if (isinstance(answer["confidence"], bool) or
+            not isinstance(answer["confidence"], (float, int)) or
+            not math.isfinite(answer["confidence"]) or answer["confidence"] < .72 or
+            answer["confidence"] > 1):
         raise ValueError("Functional edge insufficiently visible to annotate")
     for name in LANDMARKS:
-        p = answer[name]
-        if not isinstance(p, list) or len(p) != 2 or any(
-            isinstance(v, bool) or not isinstance(v, (int, float)) or
-            not math.isfinite(v) or not .01 <= v <= .99 for v in p):
-            raise ValueError("Invalid vision point: "+name)
+        vision_point(answer[name], name)
+    if semantic is not None:
+        for collection, coordinate_fields in (("grips", ("point",)),
+                                             ("features", ("origin", "direction_tip"))):
+            wanted = {item["id"] for item in semantic[collection]}
+            items = answer[collection]
+            if (not isinstance(items, list) or len(items) != len(wanted) or
+                    any(not isinstance(item, dict) or
+                        set(item) != {"id", "view", *coordinate_fields} or
+                        not isinstance(item["id"], str) or
+                        type(item["view"]) is not int or
+                        item["view"] not in (0, 1, 2, 3)
+                        for item in items) or
+                    {item["id"] for item in items} != wanted):
+                raise ValueError("Cannot invent, omit or rename confirmed " + collection)
+            for item in items:
+                for key in coordinate_fields:
+                    vision_point(item[key], collection + "." + item["id"] + "." + key)
     if not isinstance(answer["explanation"], str):raise ValueError("Missing explanation")
 
 
-def lift_landmarks(meshes, views, answer):
+def project_labelled_vertex(meshes, view, point):
+    """Lift ONLY a supplied 2D vision point; never select a functional extremity."""
+    pixel = np.array(point) * VIEW_SIZE
+    nearby = []
+    for mesh in meshes:
+        world = mesh["world"]
+        projection = np.column_stack([(world-view["center"]) @ view["right"],
+            (world-view["center"]) @ view["up"]]) * view["scale"]
+        pixels = np.column_stack([VIEW_SIZE/2+projection[:, 0],
+                                  VIEW_SIZE/2-projection[:, 1]])
+        distances = np.linalg.norm(pixels-pixel, axis=1)
+        depth = (world-view["center"]) @ view["camera"]
+        for i in np.argsort(distances)[:4]:
+            nearby.append((float(distances[i]), -float(depth[i]), mesh, int(i)))
+    nearby.sort(key=lambda entry: (entry[0], entry[1]))
+    distance, _, mesh, index = nearby[0]
+    if distance > VIEW_SIZE * .085:
+        raise ValueError("Vision landmark lies outside the GLB: re-annotate")
+    return {"local": [round(float(x), 7) for x in mesh["local"][index]],
+            "mesh": mesh["mesh"], "primitive": mesh["primitive"],
+            "error_px": round(distance, 1), "method": "vision-nearest-surface"}
+
+
+def lift_landmarks(meshes, views, answer, semantic=None):
     """Lift vision-labelled roles onto the real GLB, without semantic guesses.
 
     Geometry may project a confirmed point to a surface, but must not invent
     which extremity is a working head or which silhouette is functional.
     """
-    validate_answer(answer)
-    v = views[answer["view"]]
-    candidates = []
-    for m in meshes:
-        world = m["world"]
-        projection = np.column_stack([(world-v["center"])@v["right"],
-            (world-v["center"])@v["up"]]) * v["scale"]
-        pixels = np.column_stack([VIEW_SIZE/2+projection[:, 0], VIEW_SIZE/2-projection[:, 1]])
-        depth = (world-v["center"])@v["camera"]
-        candidates.append((m, pixels, depth))
+    validate_answer(answer, semantic)
     result = {}
-    def record(mesh, idx, distance, method):
-        return {"local": [round(float(x), 7) for x in mesh["local"][idx]],
-                "mesh": mesh["mesh"], "primitive": mesh["primitive"],
-                "error_px": round(float(distance), 1), "method": method}
-    def nearest_surface(pixel):
-        nearby = []
-        for m, projected, depth in candidates:
-            delta = np.linalg.norm(projected-pixel, axis=1)
-            for idx in np.argsort(delta)[:4]:
-                nearby.append((float(delta[idx]),-float(depth[idx]),m,int(idx)))
-        nearby.sort(key=lambda entry:(entry[0],entry[1]))
-        distance, _, mesh, index = nearby[0]
-        return mesh, index, distance
     # Every semantic role comes from vision, not a mesh length or width rule.
     for name in LANDMARKS:
-        target = np.array(answer[name])*VIEW_SIZE
-        mesh, idx, distance = nearest_surface(target)
-        if distance > VIEW_SIZE*.085:
-            raise ValueError(f"Vision landmark {name} lies outside the GLB: re-annotate")
-        result[name] = record(mesh,idx,distance,"vision-nearest-surface")
+        try:
+            result[name] = project_labelled_vertex(meshes, views[answer["view"]], answer[name])
+        except ValueError as error:
+            raise ValueError(f"Vision landmark {name} lies outside the GLB: re-annotate") from error
     def pos(name):
         item = result[name]
         for m in meshes:
@@ -250,6 +331,22 @@ def lift_landmarks(meshes, views, answer):
     return result
 
 
+def lift_named_landmarks(meshes, views, answer, semantic):
+    """Physically locate EVERY source-named handhold and action direction."""
+    validate_answer(answer, semantic)
+    result = {"grips": {}, "features": {}}
+    for grip in answer["grips"]:
+        result["grips"][grip["id"]] = project_labelled_vertex(
+            meshes, views[grip["view"]], grip["point"])
+    for feature in answer["features"]:
+        origin = project_labelled_vertex(meshes, views[feature["view"]], feature["origin"])
+        tip = project_labelled_vertex(meshes, views[feature["view"]], feature["direction_tip"])
+        if origin["mesh"] == tip["mesh"] and origin["local"] == tip["local"]:
+            raise ValueError("Functional direction collapses on the 3D object: re-annotate")
+        result["features"][feature["id"]] = {"origin": origin, "direction_tip": tip}
+    return result
+
+
 def run(plan_path: Path, check=False):
     if not plan_path.is_file() or not plan_path.resolve().is_relative_to(ROOT):
         raise ValueError("A canonical repository grip plan is required")
@@ -261,7 +358,13 @@ def run(plan_path: Path, check=False):
     digest = hashlib.sha256(glb.read_bytes()).hexdigest()
     if digest != plan["input_hashes"]["prop_glb_sha256"]:
         raise ValueError("GLB changed: regenerate the canonical grip plan")
-    if plan.get("mesh_landmarks",{}).get("glb_sha256") == digest:
+    semantic, interaction_hash = confirmed_interaction(plan_path, plan)
+    previous = plan.get("mesh_landmarks", {})
+    complete_named = (semantic is None or
+        (previous.get("interaction_sha256") == interaction_hash and
+         set(previous.get("grips", {})) == {g["id"] for g in semantic["grips"]} and
+         set(previous.get("features", {})) == {f["id"] for f in semantic["features"]}))
+    if previous.get("glb_sha256") == digest and complete_named:
         print("3D functional landmarks already present; zero paid requests")
         return
     if check:
@@ -272,8 +375,9 @@ def run(plan_path: Path, check=False):
     receipt = plan_path.with_name("grip-landmarks-response.json")
     if receipt.exists():
         cached = json.loads(receipt.read_text())
-        if cached.get("glb_sha256") != digest:
-            raise ValueError("Cached vision answer belongs to a different GLB")
+        if (cached.get("glb_sha256") != digest or
+                cached.get("interaction_sha256") != interaction_hash):
+            raise ValueError("Cached paid vision answer has no matching role contract; no retry")
         answer = cached["raw_landmarks"]
     else:
         key = os.environ.get("OPENROUTER_API_KEY", "").strip()
@@ -284,16 +388,30 @@ def run(plan_path: Path, check=False):
         original.thumbnail((720, 720))
         original = ImageOps.contain(original, (720, 720))
         original_bytes = io.BytesIO(); original.save(original_bytes, format="PNG")
-        payload = {"model": MODEL, "temperature": 0, "max_tokens": 520,
+        parts = [
+            {"type": "text", "text": "IMAGE 1: generated 3D GLB, four labeled views"},
+            image_part(render),
+            {"type": "text", "text": "IMAGE 2: reference concept for functional edge only"},
+            image_part(original_bytes.getvalue()),
+        ]
+        if semantic is not None:
+            parts.append({"type": "text", "text":
+                "AUTHORITATIVE VISUAL CHARACTERIZATION: annotate EACH named grip "
+                "and EACH functional direction on the ACTUAL GLB. You may choose "
+                "a DIFFERENT VIEW for each grip or functional feature; the origin "
+                "and tip of one direction share a view. Use ONLY the supplied IDs. "
+                "If a handhold, working region or direction is not truly visible "
+                "on the 3D object, lower confidence. Never infer which end or "
+                "surface is functional by length or width. " +
+                json.dumps({key: semantic[key] for key in ("object_kind", "grips", "features", "modes")},
+                    ensure_ascii=False)})
+        payload = {"model": MODEL, "temperature": 0, "max_tokens": 2400 if semantic else 520,
             "provider": {"require_parameters": True},
             "response_format": {"type": "json_schema", "json_schema": {
-                "name": "glb_prop_landmarks", "strict": True, "schema": SCHEMA}},
+                "name": "glb_prop_landmarks", "strict": True,
+                "schema": named_schema(semantic)}},
             "messages": [{"role": "system", "content": PROMPT},
-                {"role": "user", "content": [
-                    {"type": "text", "text": "IMAGE 1: generated 3D GLB, four labeled views"},
-                    image_part(render),
-                    {"type": "text", "text": "IMAGE 2: reference concept for functional edge only"},
-                    image_part(original_bytes.getvalue())]}]}
+                {"role": "user", "content": parts}]}
         request = Request(ENDPOINT, data=json.dumps(payload).encode(), method="POST",
             headers={"Authorization": "Bearer "+key, "Content-Type": "application/json",
                      "HTTP-Referer": "https://github.com/leye0/WarConquer",
@@ -302,11 +420,14 @@ def run(plan_path: Path, check=False):
             data = json.loads(response.read(160000))
         answer = json.loads((data.get("choices") or [{}])[0]["message"]["content"])
         receipt.write_text(json.dumps({"schema":1, "glb_sha256": digest,
+            "interaction_sha256": interaction_hash,
             "model": MODEL, "raw_landmarks":answer}, indent=2)+"\n")
-    landmarks = lift_landmarks(meshes, views, answer)
+    landmarks = lift_landmarks(meshes, views, answer, semantic)
+    named = lift_named_landmarks(meshes, views, answer, semantic) if semantic else {}
     plan["mesh_landmarks"] = {"schema":1,"glb_sha256":digest,
         "model": MODEL,"view":answer["view"],"confidence":answer["confidence"],
-        "points":landmarks,"explanation":answer["explanation"]}
+        "points":landmarks,"explanation":answer["explanation"],
+        **({"interaction_sha256": interaction_hash, **named} if semantic else {})}
     plan_path.write_text(json.dumps(plan, ensure_ascii=False, indent=2)+"\n")
     print("Saved reusable 3D grip/contact landmark contract:", plan_path.relative_to(ROOT))
 
