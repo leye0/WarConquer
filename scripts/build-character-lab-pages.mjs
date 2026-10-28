@@ -48,7 +48,10 @@ const catalog = inventory();
 assert(catalog.characters.length > 0, "Cannot publish an empty Character Lab");
 const assets = new Set();
 for (const character of catalog.characters) {
-  assert(character.models.length > 0, "No models for " + character.id);
+  // A selected unit may exist only as an original 2D concept while its own
+  // 3D pipeline is pending. Never substitute another unit's GLB.
+  assert(character.models.length > 0 || character.buildStatus === "source_only",
+    "Unit without models must be explicitly marked source_only: " + character.id);
   for (const model of character.models) assets.add(repositoryAssetPath(model.url));
   for (const url of Object.values(character.views)) assets.add(repositoryAssetPath(url));
   if (character.original) assets.add(repositoryAssetPath(character.original));
