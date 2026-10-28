@@ -140,7 +140,7 @@
     for(const c of names.values()){
       const option=document.createElement("option");
       option.value=c.id;
-      option.textContent=c.name+(c.models.length?" · 3D jouable":" · concept 2D");
+      option.textContent=c.name+(c.models.some(m=>m.kind==="playable")?" · 3D animé":(c.models.length?" · maillage 3D":" · concept 2D"));
       unitSelect.append(option);
     }
     // A URL can select a specific unit for mobile testing or sharing.
@@ -169,13 +169,20 @@
         byId("world").closest(".playbox").dataset.unitState="ready";
         byId("world").dataset.unitId=c.id;
         byId("world").dataset.unitBuildStatus="playable";
-        text("unitBuildStatus","Modèle 3D disponible · prêt à tester");
+        text("unitBuildStatus",model.kind==="mesh"
+          ? "Maillage 3D disponible · squelette et animations à produire"
+          : "Modèle 3D disponible · prêt à tester");
         text("unitName", c.name);
-        text("unitCaption",originalUnitCaption);
-        text("attackShortcutLabel","Hache");
+        text("unitCaption",c.id==="couronne_archer"
+          ? (model.kind==="mesh"
+            ? "Voici le véritable corps 3D généré depuis la fiche originale de l’archer. Le rig, le modèle de l’arc et les animations de tir sont encore à produire."
+            : "Archer de la Couronne : modèle 3D généré depuis sa propre fiche.")
+          : originalUnitCaption);
+        text("attackShortcutLabel",c.id==="couronne_archer"?"Tir à l’arc (en préparation)":"Hache");
         text("sceneUnitLabel",c.name+" · camp d’essai");
         document.querySelectorAll('[data-command="attack"]').forEach(btn=>
-          btn.textContent=btn.classList.contains("touch-action")?"⚔ Hache":"Espace");
+          btn.textContent=btn.classList.contains("touch-action")
+            ? (c.id==="couronne_archer"?"🏹 Arc":"⚔ Hache") : "Espace");
         text("meshMetric", (c.metrics.faces || "—") + " triangles");
         text("jointMetric", model.kind === "mesh" ? "0 os · sans rig" : (c.metrics.joints || "—") + " os");
         renderSources();
