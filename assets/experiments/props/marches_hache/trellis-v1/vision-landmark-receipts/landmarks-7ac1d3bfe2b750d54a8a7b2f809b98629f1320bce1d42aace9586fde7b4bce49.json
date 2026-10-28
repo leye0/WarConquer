@@ -1,0 +1,82 @@
+{
+  "schema": 2,
+  "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+  "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
+  "pass_signature": "7ac1d3bfe2b750d54a8a7b2f809b98629f1320bce1d42aace9586fde7b4bce49",
+  "pass_id": "primary",
+  "model": "google/gemini-2.5-flash-lite",
+  "raw_landmarks": {
+    "view": 3,
+    "handle_butt": [
+      0.5,
+      0.81
+    ],
+    "grip_center": [
+      0.48,
+      0.41
+    ],
+    "working_head": [
+      0.73,
+      0.28
+    ],
+    "functional_edge": [
+      0.73,
+      0.28
+    ],
+    "confidence": 0.8,
+    "explanation": "View 3 clearly shows the entire axe, including the handle and the working head with its functional edge. The grip points are well-defined on the handle, and the working head's edge is distinct.",
+    "grips": [
+      {
+        "id": "grip_lower_haft",
+        "view": 3,
+        "region": [
+          0.38,
+          0.73,
+          0.62,
+          0.89
+        ],
+        "evidence": "The lower part of the handle, wrapped in leather, is clearly visible in View 3 and corresponds to the lower grip area.",
+        "point": [
+          0.5,
+          0.81
+        ]
+      },
+      {
+        "id": "grip_upper_haft",
+        "view": 3,
+        "region": [
+          0.38,
+          0.35,
+          0.62,
+          0.47
+        ],
+        "evidence": "The upper section of the wooden handle, just below the axe head, is visible in View 3 and represents the upper grip area.",
+        "point": [
+          0.48,
+          0.41
+        ]
+      }
+    ],
+    "features": [
+      {
+        "id": "axe_head",
+        "view": 3,
+        "region": [
+          0.63,
+          0.18,
+          0.85,
+          0.38
+        ],
+        "evidence": "The metal axe head is clearly visible in View 3, with its sharp, curved outer edge being the functional part.",
+        "origin": [
+          0.73,
+          0.28
+        ],
+        "direction_tip": [
+          0.73,
+          0.28
+        ]
+      }
+    ]
+  }
+}
