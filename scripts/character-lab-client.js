@@ -551,7 +551,11 @@
       anchor.parent=hand;
       anchor.position.copyFrom(B.Vector3.TransformCoordinates(
         new B.Vector3(...contact.grip),B.Matrix.Invert(hand.getWorldMatrix())));
-      anchor.rotationQuaternion=B.Quaternion.Inverse(parentRotation).multiply(worldRotation);
+      // Babylon composes child rotations as local * parent, so undoing the
+      // hand's world rotation is desiredWorld * inverse(parentWorld).
+      // Reversing this product produces a plausible but physically incorrect
+      // orientation for any rotated humanoid hand.
+      anchor.rotationQuaternion=worldRotation.multiply(B.Quaternion.Inverse(parentRotation));
       anchor.scaling.setAll(desiredLength/(frame.length*unitScale));
       const offset=new B.TransformNode("wc-weapon-local-grip-origin",state.scene);
       offset.parent=anchor;
@@ -574,7 +578,7 @@
         for(const candidate of candidates){
           const q=buildGripRotation(gripFrame,
             new B.Vector3(...candidate.shaft),bladeWorld);
-          anchor.rotationQuaternion=B.Quaternion.Inverse(parentRotation).multiply(q);
+          anchor.rotationQuaternion=q.multiply(B.Quaternion.Inverse(parentRotation));
           anchor.computeWorldMatrix(true);
           offset.computeWorldMatrix(true);
           const mounted=importedPropPoints(prop.meshes||[]);
@@ -600,7 +604,7 @@
           actualWorkingFace=best.face;
           carryFit={...carryFit,shaft:best.shaft,tilt:best.tilt};
           const q=buildGripRotation(gripFrame,new B.Vector3(...best.shaft),bladeWorld);
-          anchor.rotationQuaternion=B.Quaternion.Inverse(parentRotation).multiply(q);
+          anchor.rotationQuaternion=q.multiply(B.Quaternion.Inverse(parentRotation));
           anchor.computeWorldMatrix(true);
           offset.computeWorldMatrix(true);
         }
