@@ -163,7 +163,7 @@
       idle:/(^|[_ -])(idle|rest)([_ -]|$)/i,
       walk:/(^|[_ -])(walk|walking)([_ -]|$)/i,
       run:/(^|[_ -])(run|running)([_ -]|$)/i,
-      attack:/(^|[_ -])(attack|axe|chop|melee|strike|swing)([_ -]|$)/i,
+      attack:meleeClipPattern,
       collect:/(^|[_ -])(pick.?up|pickup|collect|gather)([_ -]|$)/i
     };
     return groups.find(g=>patterns[name].test(g.name))||null;
@@ -448,10 +448,11 @@
     document.querySelector('[data-order="attack"]').disabled=true;
     updateGait();
   }
+  const meleeClipPattern=/(^|[_ -])(attack|axe|chop|melee|strike|swing)([_ -]|$)/i;
   function modelScore(model){
     const clips=(model.clips||[]).map(name=>name.toLowerCase());
     const has=pattern=>clips.some(c=>pattern.test(c));
-    return (has(/attack|axe|chop|melee|strike|swing/)?100:0)+
+    return (has(meleeClipPattern)?100:0)+
       (has(/walk|marche/)?10:0)+(has(/run|course/)?10:0)+
       (model.priority||0)/100;
   }
@@ -544,7 +545,7 @@
         const entry=state.modelOptions[i];
         const opt=document.createElement("option");
         opt.value=String(i);
-        const attack=(entry.model.clips||[]).some(c=>/attack|chop|axe|melee|swing/i.test(c));
+        const attack=(entry.model.clips||[]).some(c=>meleeClipPattern.test(c));
         opt.textContent=entry.character.name+(attack?" · ⚔":" · sans attaque");
         select.append(opt);
       }
