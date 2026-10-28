@@ -77,12 +77,19 @@ async function closeView(name){
   // A whole-page image makes the shaft/hand contacts a few pixels wide.
   // Give vision a genuine HIGHER-SAMPLING Babylon camera projection and the
   // actual 3D canvas crop, not an AI-upscaled or invented annotation.
-  await js(`(()=>{const e=BABYLON.EngineStore.LastCreatedEngine;
-    const c=e.scenes[0].activeCamera;c.lowerRadiusLimit=1.7;
-    c.radius=2.45;return true})()`);
+  const saved=await js(`(()=>{const e=BABYLON.EngineStore.LastCreatedEngine;
+    const c=e.scenes[0].activeCamera;
+    const focus=window.WCPropContactFocus?.();
+    if(!focus||focus.length!==3)throw Error('No real GLB grip focus');
+    const saved={target:c.getTarget().asArray(),radius:c.radius};
+    c.lowerRadiusLimit=1.7;
+    c.setTarget(BABYLON.Vector3.FromArray(focus));
+    c.radius=2.45;return saved})()`);
   await capture(name,{worldOnly:true});
   await js(`(()=>{const e=BABYLON.EngineStore.LastCreatedEngine;
-    e.scenes[0].activeCamera.radius=4.5;return true})()`);
+    const c=e.scenes[0].activeCamera;
+    c.setTarget(BABYLON.Vector3.FromArray(${JSON.stringify(saved.target)}));
+    c.radius=${saved.radius};return true})()`);
 }
 try{
   socket=new WebSocket(await debuggerSocket());

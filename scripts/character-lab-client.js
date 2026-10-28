@@ -805,6 +805,18 @@
       state.weaponAnchor=anchor;
       let lastActionPose=null;
       let lastCarryPose=null;
+      // Exact world-space subject for vision closeups, taken from the REAL
+      // mounted textured GLB (never a guessed camera target or a 2D overlay).
+      window.WCPropContactFocus=()=>{
+        if(anchor.isDisposed()||state.weaponAnchor!==anchor)return null;
+        const marks=importedPropLandmarks(prop.meshes||[],vision);
+        const mode=state.attacking?useMode:carryMode;
+        const first=mode?marks.namedGrips?.[mode.primary_grip]:marks.grip_center;
+        const second=mode?.hands===2?
+          marks.namedGrips?.[mode.secondary_grip]:first;
+        if(!first||!second)return null;
+        return v.mul(v.add(first,second),.5);
+      };
       // Browser QA can inspect the actual animated geometry at arbitrary
       // motion frames, not only the pose cached at import time.
       window.WCPropContactDiagnostic=()=>{
@@ -875,7 +887,8 @@
           try{
             const adjusted=temporarySecondaryIK(imported,carryMode.secondary_hand,
               target,spec.palm_from_wrist);
-            pendingIkUndo=adjusted.undo;
+            const undoPrimary=pendingIkUndo;
+            pendingIkUndo=()=>{adjusted.undo();undoPrimary?.();};
             // The joints are restored AFTER this frame has been rendered.
             // Cache NUMERICAL evidence measured from the same exact joints
             // that produced the screenshot, not the restored Mixamo pose.
@@ -905,17 +918,9 @@
           if(!secondaryRig?.upperarm||!secondaryRig.forearm||!secondaryRig.hand)
             throw Error("Chaîne Mixamo secondaire manquante");
           const observedWrist=secondaryRig.hand.getAbsolutePosition().asArray();
-          const constrained=window.WCPropMotionContact.reachableSecondaryGripTarget({
-            sourcePrimary:sourceGrip,
-            sourceSecondary:meshPoints.namedGrips[carryMode.secondary_grip],
-            scale:desiredLength/frame.length,
-            primaryPalm:primaryPalm.grip,
-            secondaryPalm:secondaryPalm.grip,
-            shoulder:secondaryRig.upperarm.getAbsolutePosition().asArray(),
-            elbow:secondaryRig.forearm.getAbsolutePosition().asArray(),
-            wrist:observedWrist,
-            palmOffset:v.sub(secondaryPalm.grip,observedWrist)
-          });
+          const primaryRig=findGripAnatomy(imported,side);
+          const primaryWrist=primaryRig.hand.getAbsolutePosition().asArray();
+          const originalPalmOffset=v.sub(primaryPalm.grip,primaryWrist);
           const target=window.WCRigContact.contactFrame(jointData,{
             hand:side,palm_fraction:spec.palm_from_wrist,
             shaft_direction:spec.head_direction,working_face:spec.edge_direction
@@ -936,30 +941,56 @@
           const capsules=[{a:jointData.Hips,b:jointData.Chest,radius},
             {a:jointData.Chest,b:jointData.Neck||jointData.Chest,
               radius:radius*.75}];
-          const away=v.sub(primaryPalm.grip,torsoCenter);
-          const natural=v.sub(constrained.target,primaryPalm.grip);
-          const possibleDirections=[];
-          const addDirection=p=>{
-            const direction=v.unit(p);
-            if(direction&&!possibleDirections.some(q=>v.dot(q,direction)>.995))
-              possibleDirections.push(direction);
-          };
-          for(const direction of [natural,away,body.forward,
-              v.mul(body.forward,-1),body.right,v.mul(body.right,-1),
-              body.up,v.mul(body.up,-1)])addDirection(direction);
-          for(const basis of [away,body.forward,v.mul(body.forward,-1),
-              body.right,v.mul(body.right,-1)]){
-            addDirection(v.add(natural,basis));
-            addDirection(v.add(away,basis));
+          const fromTorso=v.sub(primaryPalm.grip,torsoCenter);
+          const primaryPositions=[primaryPalm.grip];
+          const primaryOffsets=[fromTorso,body.forward,
+            v.mul(body.forward,-1),v.add(fromTorso,body.forward),
+            v.add(fromTorso,v.mul(body.forward,-1)),body.up];
+          for(const direction of primaryOffsets){
+            const unit=v.unit(direction);
+            if(!unit)continue;
+            for(const distance of [.14,.28])
+              primaryPositions.push(v.add(primaryPalm.grip,v.mul(unit,distance)));
           }
           const shaftLength=v.norm(sourceBetween)*desiredLength/frame.length;
           const jointShoulder=secondaryRig.upperarm.getAbsolutePosition().asArray();
           const jointElbow=secondaryRig.forearm.getAbsolutePosition().asArray();
           const offsetPalm=v.sub(secondaryPalm.grip,observedWrist);
           let best=null;
-          for(const direction of possibleDirections){
-            const intendedSecondary=v.add(primaryPalm.grip,
-              v.mul(direction,shaftLength));
+          for(const candidatePalm of primaryPositions){
+            const primaryReach=window.WCPropMotionContact.armReach(
+              primaryRig.upperarm.getAbsolutePosition().asArray(),
+              primaryRig.forearm.getAbsolutePosition().asArray(),
+              primaryWrist,v.sub(candidatePalm,originalPalmOffset));
+            if(!primaryReach.reachable||
+                primaryReach.distance>primaryReach.max-.012)continue;
+            let constrained;
+            try{constrained=window.WCPropMotionContact.reachableSecondaryGripTarget({
+              sourcePrimary:sourceGrip,
+              sourceSecondary:meshPoints.namedGrips[carryMode.secondary_grip],
+              scale:desiredLength/frame.length,
+              primaryPalm:candidatePalm,
+              secondaryPalm:secondaryPalm.grip,
+              shoulder:jointShoulder,elbow:jointElbow,
+              wrist:observedWrist,palmOffset:offsetPalm
+            });}catch{continue;}
+            const away=v.sub(candidatePalm,torsoCenter);
+            const natural=v.sub(constrained.target,candidatePalm);
+            const possibleDirections=[];
+            const addDirection=p=>{
+              const direction=v.unit(p);
+              if(direction&&!possibleDirections.some(q=>v.dot(q,direction)>.995))
+                possibleDirections.push(direction);
+            };
+            for(const direction of [natural,away,body.forward,
+                v.mul(body.forward,-1),body.right,v.mul(body.right,-1),
+                body.up,v.mul(body.up,-1)])addDirection(direction);
+            for(const basis of [away,body.forward,v.mul(body.forward,-1),
+                body.right,v.mul(body.right,-1)])
+              addDirection(v.add(natural,basis));
+            anchor.position=B.Vector3.FromArray(candidatePalm);
+            for(const direction of possibleDirections){
+            const intendedSecondary=v.add(candidatePalm,v.mul(direction,shaftLength));
             const targetWrist=v.sub(intendedSecondary,offsetPalm);
             const reach=window.WCPropMotionContact.armReach(
               jointShoulder,jointElbow,observedWrist,targetWrist);
@@ -973,7 +1004,7 @@
               anchor.computeWorldMatrix(true);offset.computeWorldMatrix(true);
               const marks=importedPropLandmarks(prop.meshes||[],vision);
               const mainError=v.norm(v.sub(
-                marks.namedGrips[carryMode.primary_grip],primaryPalm.grip));
+                marks.namedGrips[carryMode.primary_grip],candidatePalm));
               const secondaryError=v.norm(v.sub(
                 marks.namedGrips[carryMode.secondary_grip],intendedSecondary));
               const edge=v.unit(v.sub(marks.functional_edge,marks.working_head));
@@ -986,16 +1017,27 @@
                 intendedSecondary,secondaryPalm.grip));
               const score=penetration*2000+
                 Math.max(0,.03-clearance)*8+
-                naturalDeviation*.5+Math.max(0,.6-face)*5+
+                naturalDeviation*.5+
+                v.norm(v.sub(candidatePalm,primaryPalm.grip))*.9+
+                Math.max(0,.6-face)*5+
                 mainError*100+secondaryError*40;
               if(!best||score<best.score)best={q:q.clone(),mainError,
-                secondaryError,clearance,face,score};
+                primaryTarget:candidatePalm,secondaryError,clearance,face,score};
+            }
             }
           }
           if(!best||best.clearance<-.015)
             throw Error("Deux prises Mixamo : aucune orientation anatomiquement " +
               "atteignable ne laisse le vrai GLB hors du torse : "+
               JSON.stringify({clearance:best?.clearance,face:best?.face}));
+          if(v.norm(v.sub(best.primaryTarget,primaryPalm.grip))>.045){
+            const moved=temporarySecondaryIK(imported,side,
+              best.primaryTarget,spec.palm_from_wrist);
+            pendingIkUndo=moved.undo;
+          }
+          const actualPalm=window.WCRigContact.palmFrame(
+            findGripAnatomy(imported,side).joints,side,spec.palm_from_wrist);
+          anchor.position=B.Vector3.FromArray(actualPalm.grip);
           anchor.rotationQuaternion=best.q;
           anchor.computeWorldMatrix(true);offset.computeWorldMatrix(true);
           const exactClearance=v.capsuleClearance(
@@ -1005,7 +1047,8 @@
               (-exactClearance).toFixed(3)+" m après optimisation");
           enforceCarrySecondaryContact();
           byId("world").dataset.weaponContactMode="vision-two-palm-live-carry";
-          byId("world").dataset.weaponCarryReachAdjusted=String(constrained.reachAdjusted);
+          byId("world").dataset.weaponCarryReachAdjusted=String(
+            v.norm(v.sub(best.primaryTarget,primaryPalm.grip))>.045);
         };
         const afterObserver=state.scene.onAfterRenderObservable.add(()=>{
           if(pendingIkUndo){pendingIkUndo();pendingIkUndo=null;}
