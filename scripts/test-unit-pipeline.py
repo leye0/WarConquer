@@ -25,12 +25,12 @@ assert archer["adapter"]=="manifest_v1"
 assert pipeline.state(archer,"source")["ready"],"Archer original concept exists"
 assert pipeline.state(archer,"turnaround")["ready"],"Four archer views must exist after real pilot"
 assert pipeline.state(archer,"body")["ready"],"Archer fal GLB must be independently generated"
-assert not pipeline.state(archer,"rig")["ready"],"An unrigged mesh must not count as rigged"
+assert "/couronne_archer/" in pipeline.assets_for(archer,"rig")[0], "Archer cannot reuse the Marches rig"
 assert pipeline.main(["run","--unit","couronne_archer","--stage","source"])==0
 assert pipeline.main(["run","--unit","couronne_archer","--stage","all","--dry-run"])==0
 assert pipeline.main(["run","--unit","couronne_archer","--stage","body","--dry-run"])==0
 assert pipeline.main(["run","--unit","couronne_archer","--stage","rig","--dry-run"])==0
-with patch.object(pipeline,"execute") as execute:
+with patch.object(pipeline,"state",return_value={"ready":False,"files":{"missing-rig.glb":"missing"}}),patch.object(pipeline,"execute") as execute:
  try:pipeline.main(["run","--unit","couronne_archer","--stage","rig"])
  except pipeline.PipelineError as e:assert "--allow-paid" in str(e)
  else:raise AssertionError("3D paid generation without consent")
