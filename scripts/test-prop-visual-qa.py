@@ -13,7 +13,7 @@ names=["front","walk","action","action_mid_1","action_mid_2"]
 def positive(name):
     return {"id":name,"hands_contact":True,
         "action_feature_correct":True,"orientation_constraints_met":True,
-        "collision_free":True,"confidence":.95,"issues":[]}
+        "collision_free":True,"confidence":.95,"issues":[],"regions":[]}
 good={"go":True,"confidence":.94,"issues":[],
     "explanation":"Both hands and action features are source-confirmed in all sampled frames.",
     "frames":[positive(name) for name in names]}
