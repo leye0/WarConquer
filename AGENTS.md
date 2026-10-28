@@ -20,3 +20,9 @@ vision landmarks or Mixamo pose QA, follow the non-negotiable plan in
 or declaring a result ready. Verify actual deterministic pose renderings and
 both numerical hand-contact errors and independent vision judgments; passing
 unit tests alone does not establish correct attachment.
+
+The canonical vocabulary for held-object semantics, contents and physical
+constraints is [plans/held-object-affordance-contract.md](plans/held-object-affordance-contract.md).
+It is a proposed v2 contract, NOT proof of runtime support. Do not infer object
+contents or physics rules from an image, and do not claim a mode is verified
+unless its state-dependent constraints and contacts pass rendered-pose QA.
