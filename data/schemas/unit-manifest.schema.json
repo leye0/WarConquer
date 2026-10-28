@@ -2,18 +2,15 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/leye0/WarConquer/blob/main/data/schemas/unit-manifest.schema.json",
   "title": "WarConquer 3D unit production manifest",
-  "description": "One original character concept, optional equipment and 3D assembly pipeline; execution adapters are versioned separately.",
+  "description": "Minimal seed: ID, name and original image. Views, 3D paths, equipment and build reports are derived automatically.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema",
     "id",
-    "title",
-    "adapter",
-    "source",
-    "body",
-    "equipment"
+    "source"
   ],
+  "anyOf": [ {"required": ["name"]}, {"required": ["title"]} ],
   "properties": {
     "schema": {
       "const": 1
@@ -23,6 +20,10 @@
       "pattern": "^[a-z][a-z0-9_]*$"
     },
     "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
       "type": "string",
       "minLength": 1
     },
@@ -37,9 +38,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "character_image",
-        "turnaround_request",
-        "views"
+        "character_image"
       ],
       "properties": {
         "character_image": {
@@ -100,21 +99,12 @@
     },
     "equipment": {
       "type": "array",
-      "minItems": 1,
       "items": {
         "type": "object",
         "additionalProperties": false,
         "required": [
           "id",
-          "kind",
-          "source_image",
-          "source_request",
-          "glb",
-          "trellis_request",
-          "physical_size_request",
-          "physical_size",
-          "grip_request",
-          "grip"
+          "kind"
         ],
         "properties": {
           "id": {
@@ -122,6 +112,9 @@
             "pattern": "^[a-z][a-z0-9_]*$"
           },
           "kind": {
+            "type": "string"
+          },
+          "description": {
             "type": "string"
           },
           "source_image": {

@@ -24,6 +24,7 @@ for(const [kind,entry] of Object.entries(profiles)){
   assert.equal(resolve({object_kind:kind},[]).kind,kind);
 }
 const bow=resolve({object_kind:"bow"},["Bow_Shoot_Mixamo"],["arrow_release"]);
-assert(!bow.ready,"IK and a 3D bow adapter must still be implemented");
+assert(bow.ready,"A rigid bow is attachable with one hand; a real shot only requires a compatible clip/event");
+assert.equal(bow.needsSecondaryHandIK,false);
 assert.equal(bow.motion,"Bow_Shoot_Mixamo");
 console.log("PASS: 12 equipment categories, strict animation matching, no imaginary bow shooting");

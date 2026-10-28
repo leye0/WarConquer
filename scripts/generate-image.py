@@ -114,6 +114,11 @@ def generate(job):
     replacing = target.exists()
     if replacing and not job.get('replace_existing', False):
         return dict(output=job['output'], status='skipped-existing')
+    # For a newly isolated unit prop, an ambiguous POST outcome must never
+    # trigger another billable Muse request on the next pipeline invocation.
+    checkpoint = target.with_suffix('.paid-request.json') if job.get('reference_role') == 'identity' else None
+    if checkpoint and checkpoint.exists():
+        raise RuntimeError('Previous Muse equipment request has an unresolved outcome; do not automatically resubmit')
     refs, hashes = [], {}
     for value in job['references']:
         p = safe_path(value)
@@ -122,7 +127,16 @@ def generate(job):
         refs.append({'type': 'image_url', 'image_url': {'url': 'data:image/png;base64,' + base64.b64encode(raw).decode()}})
     if not refs:
         raise ValueError('At least one reference is required for visual consistency')
-    job = dict(job, prompt=job['prompt'] + '\nCRITICAL FRAMING: show the ENTIRE isolated subject, 15 percent empty margin on all four sides, about 65 percent of square canvas occupied. Preserve the exact SUBJECT SHAPE specified above, use references for PAINTING STYLE only and do NOT imitate their geometry. No atmospheric haze. Background must be uniform white if alpha unavailable.')
+    reference_instruction = ('Use the original unit reference to reconstruct the SAME visible object: preserve its exact identity, silhouette, colors and material details. Never reproduce the surrounding character.'
+       if job.get('reference_role') == 'identity' else
+       'Use references for PAINTING STYLE only and do NOT imitate their geometry.')
+    job = dict(job, prompt=job['prompt'] + '\nCRITICAL FRAMING: show the ENTIRE isolated subject, 15 percent empty margin on all four sides, about 65 percent of square canvas occupied. Preserve the exact SUBJECT SHAPE specified above. ' + reference_instruction + ' No atmospheric haze. Background must be uniform white if alpha unavailable.')
+    if checkpoint:
+        checkpoint.parent.mkdir(parents=True, exist_ok=True)
+        checkpoint.write_text(json.dumps({'schema':1,'status':'requested-outcome-unknown',
+          'model':os.environ['OPENROUTER_IMAGE_MODEL'],
+          'prompt_sha256':hashlib.sha256(job['prompt'].encode()).hexdigest(),
+          'reference_sha256':hashes,'automatic_paid_retries':0},indent=2)+'\n')
     result = api(dict(model=os.environ['OPENROUTER_IMAGE_MODEL'], prompt=job['prompt'], input_references=refs, n=1, output_format='png', background='transparent', aspect_ratio='1:1'))
     raw = base64.b64decode(result['data'][0]['b64_json'], validate=True)
     im = Image.open(io.BytesIO(raw)).convert('RGBA')
@@ -165,6 +179,10 @@ def generate(job):
     im.save(target)
     meta = dict(job, replaced_previous=replacing, status='generated-awaiting-visual-review', model=os.environ['OPENROUTER_IMAGE_MODEL'], reference_sha256=hashes, background_removed=removed, framing_adjustment={'scale':round(scale,5),'margin':margin,'original_bbox':list(fg),'final_bbox':list(new_box),'source_edge_contact':source_edge_contact}, size=list(im.size), transparent_fraction=transparent, sha256=hashlib.sha256(target.read_bytes()).hexdigest(), usage=result.get('usage', {}))
     target.with_suffix('.json').write_text(json.dumps(meta, indent=2, ensure_ascii=False) + '\n')
+    if checkpoint:
+        checkpoint.write_text(json.dumps({'schema':1,'status':'generated-review-needed',
+          'model':os.environ['OPENROUTER_IMAGE_MODEL'],'output':job['output'],
+          'sha256':meta['sha256'],'automatic_paid_retries':0},indent=2)+'\n')
     return meta
 
 def main():
@@ -174,7 +192,10 @@ def main():
     args = parser.parse_args()
     request = json.loads((ROOT / args.request).read_text()) if not os.environ.get('IMAGE_PROMPT') else dict(prompt=os.environ['IMAGE_PROMPT'], output=os.environ['IMAGE_OUTPUT'], references=json.loads(os.environ['IMAGE_REFERENCES']))
     if 'prompt' in request:
-        jobs = [dict(request, prompt=STYLE + '\nSubject: ' + request['prompt'])]
+        style = (STYLE.replace('References show OTHER subjects: do not reproduce their identity, equipment or add them to the image.',
+          'The reference is the ORIGINAL character carrying the SAME object: reproduce the object faithfully, but never reproduce the character.')
+          if request.get('reference_role') == 'identity' else STYLE)
+        jobs = [dict(request, prompt=style + '\nSubject: ' + request['prompt'])]
     else:
         jobs = [dict(r, replace_existing=r['output'] in request.get('replace_existing', [])) for r in catalog() if r['output'] in request['targets']]
         if len(jobs) != len(set(request['targets'])):

@@ -1,18 +1,15 @@
 #!/usr/bin/env python3
-"""WarConquer unit build entry point — works without GitHub Actions.
+"""Manifest-driven unit build: the same pipeline locally and in GitHub Actions.
 
-Select a unit by data/units/<unit>.json, audit its inputs and outputs, and
-run the existing repository tools in a reproducible order. GitHub Actions is
-a thin optional wrapper; it never defines pipeline decisions.
-
-The original Marches toolchain still contains hard-coded paths. A generic
-manifest-driven turnaround and textured-body builder is now available for
-additional units; rigging and weapon-specific stages remain staged adapters.
-No step may silently substitute another unit's assets.
+A unit needs only an ID, a name and an original image. The vision stage
+describes removable equipment; the remaining paths and requests are derived
+from the unit identity. All paid operations are gated, cached and resumable.
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -25,11 +22,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 UNITS = ROOT / "data" / "units"
 STAGES = (
-    "source", "turnaround", "body", "rig", "animations",
+    "source", "equipment_identify", "turnaround", "body", "rig", "animations",
     "object_source", "object_mesh", "object_size", "object_grip", "integrate"
 )
 PAID = frozenset({
-    "turnaround", "body", "rig", "object_source",
+    "equipment_identify", "turnaround", "body", "rig", "object_source",
     "object_mesh", "object_size", "object_grip"
 })
 DEPENDENCIES = {
@@ -42,6 +39,7 @@ DEPENDENCIES = {
 }
 STAGE_DESCRIPTION = {
     "source": "Fiche 2D originale (entrée fournie)",
+    "equipment_identify": "Identification et description des équipements sur la fiche",
     "turnaround": "4 vues cohérentes du personnage",
     "body": "Personnage fal.ai texturé",
     "rig": "Squelette Uthana",
@@ -55,6 +53,12 @@ STAGE_DESCRIPTION = {
 
 class PipelineError(Exception):
     pass
+
+def equipment_tools():
+    spec = importlib.util.spec_from_file_location("wc_unit_equipment", ROOT / "scripts/unit-equipment.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 def safe_path(rel):
     if not isinstance(rel, str) or not rel or "\\" in rel or rel.startswith("/"):
@@ -76,11 +80,58 @@ def manifest(unit):
     doc = json.loads(file.read_text(encoding="utf-8"))
     if doc.get("schema") != 1 or doc.get("id") != unit:
         raise PipelineError("Invalid or mismatched unit schema: " + str(file))
-    if not isinstance(doc.get("source"), dict) or not isinstance(doc.get("body"), dict):
-        raise PipelineError("Missing source/body descriptor")
-    if not isinstance(doc.get("equipment"), list) or not doc["equipment"]:
-        raise PipelineError("A unit must declare at least one equipment record for this adapter")
-    if len({p.get("id") for p in doc["equipment"]}) != len(doc["equipment"]):
+    if not (doc.get("title") or doc.get("name")) or not isinstance(doc.get("source"), dict):
+        raise PipelineError("An ID, name and source image are required")
+    doc["title"] = doc.get("title") or doc["name"]
+    src = doc["source"]
+    if not src.get("character_image"):
+        raise PipelineError("Missing original concept image")
+    doc.setdefault("adapter", "manifest_v1")
+    pose = "tpose-v1"
+    source_base = f"assets/experiments/rig-source-turnaround/{unit}/{pose}"
+    src.setdefault("turnaround_request", f"data/units/{unit}/turnaround-request.json")
+    src.setdefault("views", {v: f"{source_base}/{v}.png" for v in ("front", "back", "left", "right")})
+    if set(src["views"]) != {"front", "back", "left", "right"}:
+        raise PipelineError("Four orthographic views are required")
+    mesh_base = f"assets/experiments/rig-ready-3d/{unit}/{pose}"
+    motion_base = mesh_base + "/motion/fal-mixamo-v1"
+    body = doc.setdefault("body", {})
+    for key, default in {"glb": mesh_base + "/fal-textured.glb",
+       "rigged_glb": motion_base + "/fal-rigged.glb",
+       "playable_glb": motion_base + "/warconquer-textured-playable.glb",
+       "animations": "data/motion-library.json"}.items():
+        body.setdefault(key, default)
+    declared = doc.get("equipment", [])
+    if not isinstance(declared, list):
+        raise PipelineError("Equipment must be an array when provided")
+    discovered = equipment_tools().descriptors(unit)
+    if not declared and discovered:
+        declared = discovered
+    by_id = {p["id"]: p for p in discovered}
+    normalized = []
+    for initial in declared:
+        if not isinstance(initial, dict) or not re.fullmatch(r"[a-z][a-z0-9_]*", initial.get("id", "")):
+            raise PipelineError("Invalid equipment ID")
+        prop = dict(initial)
+        if prop["id"] in by_id:
+            prop.setdefault("kind", by_id[prop["id"]]["kind"])
+            prop.setdefault("description", by_id[prop["id"]]["description"])
+        if not prop.get("kind"):
+            raise PipelineError("Equipment kind missing")
+        faction = src["character_image"].split("/")[2] if src["character_image"].startswith("assets/concepts/") else unit
+        prop.setdefault("source_image", f"assets/concepts/{faction}/objects/{unit}_{prop['id']}.png")
+        prop.setdefault("source_request", f"data/units/{unit}/{prop['id']}-image-request.json")
+        prop.setdefault("glb", f"assets/experiments/props/{unit}/{prop['id']}/mesh.glb")
+        prop.setdefault("trellis_request", f"data/units/{unit}/{prop['id']}-trellis-request.json")
+        pbase = str(Path(prop["glb"]).parent)
+        for key, default in {"physical_size_request":pbase+"/physical-size-request.json",
+           "physical_size":pbase+"/physical-size.json",
+           "grip_request":pbase+"/grip-request.json",
+           "grip":pbase+"/grip-plan.json"}.items():
+            prop.setdefault(key, default)
+        normalized.append(prop)
+    doc["equipment"] = normalized
+    if len({p["id"] for p in normalized}) != len(normalized):
         raise PipelineError("Duplicate equipment IDs")
     values = [
         doc["source"].get("character_image"), doc["source"].get("turnaround_request"),
@@ -99,12 +150,20 @@ def manifest(unit):
         raise PipelineError("Manifest missing one or more required paths")
     for v in values:
         safe_path(v)
+    # Unit-scoped generated assets must never alias another character.
+    for key in ("glb", "rigged_glb", "playable_glb"):
+        if not safe_path(body[key]).is_relative_to(ROOT / "assets/experiments/rig-ready-3d" / unit):
+            raise PipelineError("Cross-unit body path: " + body[key])
+    for prop in normalized:
+        if not safe_path(prop["glb"]).is_relative_to(ROOT / "assets/experiments/props" / unit):
+            raise PipelineError("Cross-unit equipment GLB: " + prop["glb"])
     return doc
 
 def assets_for(doc, stage):
     s, b, props = doc["source"], doc["body"], doc["equipment"]
     mapping = {
         "source": [s["character_image"]],
+        "equipment_identify": [f"data/units/{doc['id']}/equipment-analysis.json"],
         "turnaround": list(s["views"].values()),
         "body": [b["glb"]],
         "rig": [b["rigged_glb"]],
@@ -120,6 +179,13 @@ def assets_for(doc, stage):
             *(p["grip"] for p in props)
         ],
     }
+    if stage == "equipment_identify" and not safe_path(mapping[stage][0]).exists():
+        # A previously generated equipment image and its original brief supply
+        # equivalent identity and description without another vision call.
+        if props and all(safe_path(p["source_request"]).is_file() for p in props):
+            return [p["source_request"] for p in props]
+    if not props and stage.startswith("object_"):
+        return [f"data/units/{doc['id']}/equipment-analysis.json"]
     return mapping[stage]
 
 def inspect(rel):
@@ -164,78 +230,56 @@ def run_cmd(*args, env=None):
 def py(name, *args, env=None):
     run_cmd(sys.executable, "scripts/" + name, *args, env=env)
 
-def ensure_adapter(doc):
-    if doc.get("id") != "marches_hache" or doc.get("adapter") != "legacy_marches_hache":
-        raise PipelineError(
-            "This unit can be selected and inspected, but paid/3D generators "
-            "still use Marches-specific file paths. Implement a parameterized "
-            "generator adapter before running this unit; never silently "
-            "build Marches assets for another unit."
-        )
-    if len(doc["equipment"]) != 1 or doc["equipment"][0]["id"] != "axe":
-        raise PipelineError("The current generator adapter only supports the Marches axe")
-
 def execute(doc, stage):
-    # Generic Muse and fal.ai body construction are selected by the unit
-    # manifest, not by a GitHub Actions workflow.
-    if doc.get("adapter") == "manifest_v1":
-        if stage in ("turnaround","body"):
-            py("build-unit-3d.py","--unit",doc["id"],"--stage",stage,"--allow-paid")
-            return
-        if stage == "rig":
-            for part in ("validate","rig-submit","rig-collect"):
-                py("build-fal-rig-playable.py","--unit",doc["id"],"--stage",part)
-            return
-        if stage == "animations":
-            if not state(doc,"rig")["ready"]:
-                raise PipelineError("Cannot retarget animations without a rigged unit-specific GLB")
-            with tempfile.TemporaryDirectory(prefix="wc-mixamo-") as tmp:
-                env=os.environ.copy()
-                env["WARCONQUER_STANDARD_IDLE"]="1"
-                env["WARCONQUER_IDLE_VARIANTS"]="1"
-                py("convert-mixamo-fbx.py","download",tmp,env=env)
-                py("convert-mixamo-fbx.py","convert",tmp,env=env)
-                env["MIXAMO_CONVERTED_DIR"]=tmp
-                py("build-fal-rig-playable.py","--unit",doc["id"],"--stage","animate",env=env)
-            return
-    if stage != "source":
-        ensure_adapter(doc)
-    prop = doc["equipment"][0]
     if stage == "source":
         if not state(doc, "source")["ready"]:
             raise PipelineError("Create the original unit illustration before the 3D pipeline")
+    elif stage == "equipment_identify":
+        equipment_tools().describe(doc["id"], paid=True)
     elif stage == "turnaround":
-        py("generate-rig-profiles-v2.py")
+        py("build-unit-3d.py", "--unit", doc["id"], "--stage", "turnaround", "--allow-paid")
     elif stage == "body":
         env = os.environ.copy()
         if not env.get("FAL_KEY") and env.get("FAL_API_KEY"):
             env["FAL_KEY"] = env["FAL_API_KEY"]
-        py("generate-fal-textured-pilot.py", env=env)
+        py("build-unit-3d.py", "--unit", doc["id"], "--stage", "body", "--allow-paid", env=env)
     elif stage == "rig":
-        py("build-fal-rig-playable.py", "--stage", "validate")
-        py("build-fal-rig-playable.py", "--stage", "rig-submit")
-        py("build-fal-rig-playable.py", "--stage", "rig-collect")
+        for part in ("validate", "rig-submit", "rig-collect"):
+            py("build-fal-rig-playable.py", "--unit", doc["id"], "--stage", part)
     elif stage == "animations":
         if not state(doc, "rig")["ready"]:
             raise PipelineError("Rig must be present before animation retargeting")
         with tempfile.TemporaryDirectory(prefix="wc-mixamo-") as tmp:
-            py("convert-mixamo-fbx.py", "download", tmp)
-            py("convert-mixamo-fbx.py", "convert", tmp)
             env = os.environ.copy()
-            env["MIXAMO_CONVERTED_DIR"] = tmp
             env["WARCONQUER_STANDARD_IDLE"] = "1"
             env["WARCONQUER_IDLE_VARIANTS"] = "1"
-            py("build-fal-rig-playable.py", "--stage", "animate", env=env)
+            py("convert-mixamo-fbx.py", "download", tmp, env=env)
+            py("convert-mixamo-fbx.py", "convert", tmp, env=env)
+            env["MIXAMO_CONVERTED_DIR"] = tmp
+            py("build-fal-rig-playable.py", "--unit", doc["id"], "--stage", "animate", env=env)
     elif stage == "object_source":
-        py("generate-image.py", "--request", prop["source_request"])
+        for prop in doc["equipment"]:
+            if state({**doc,"equipment":[prop]},stage)["ready"]:continue
+            equipment_tools().prepare_requests(doc, prop)
+            env = os.environ.copy()
+            env["OPENROUTER_IMAGE_MODEL"] = "meta/muse-image"
+            py("generate-image.py", "--request", prop["source_request"], env=env)
     elif stage == "object_mesh":
-        py("build-trellis-axe.py", "--stage", "validate")
-        py("build-trellis-axe.py", "--stage", "submit")
-        py("build-trellis-axe.py", "--stage", "collect")
+        for prop in doc["equipment"]:
+            if state({**doc,"equipment":[prop]},stage)["ready"]:continue
+            equipment_tools().prepare_requests(doc, prop)
+            for part in ("validate", "submit", "collect"):
+                py("build-prop-trellis.py", "--request", prop["trellis_request"], "--stage", part)
     elif stage == "object_size":
-        py("estimate-prop-physical-size.py", "--request", prop["physical_size_request"])
+        for prop in doc["equipment"]:
+            if state({**doc,"equipment":[prop]},stage)["ready"]:continue
+            equipment_tools().prepare_requests(doc, prop)
+            py("estimate-prop-physical-size.py", "--request", prop["physical_size_request"])
     elif stage == "object_grip":
-        py("plan-prop-attachment.py", "--request", prop["grip_request"])
+        for prop in doc["equipment"]:
+            if state({**doc,"equipment":[prop]},stage)["ready"]:continue
+            equipment_tools().prepare_requests(doc, prop)
+            py("plan-prop-attachment.py", "--request", prop["grip_request"])
     elif stage == "integrate":
         with tempfile.TemporaryDirectory(prefix="wc-character-pages-") as sandbox:
             target = str(Path(sandbox) / "pages")
@@ -246,11 +290,26 @@ def execute(doc, stage):
             character = next((c for c in catalog["characters"] if c.get("id") == doc["id"]), None)
             if not character:
                 raise PipelineError("Character Lab catalog has not registered this unit")
-            if not character.get("props") or not character.get("models"):
-                raise PipelineError("Catalog missing this character's equipment or models")
+            if not character.get("models"):
+                raise PipelineError("Catalog missing this character's models")
             linked = character["props"]
-            if not all(p.get("physicalSize") for p in linked):
+            if len(linked) != len(doc["equipment"]) or not all(p.get("physicalSize") for p in linked):
                 raise PipelineError("Catalog did not include source-derived physical centimetres")
+            summary = {"schema": 1, "unit": doc["id"], "name": doc["title"],
+                       "source_image": doc["source"]["character_image"],
+                       "views": doc["source"]["views"], "body": doc["body"],
+                       "equipment": doc["equipment"],
+                       "stages": {s: state(doc, s) for s in STAGES if s != "integrate"},
+                       "catalog": {"buildStatus": character["buildStatus"],
+                                   "modelCount": len(character["models"]),
+                                   "equipmentCount": len(linked)}}
+            artifacts = {path for s in STAGES if s != "integrate"
+                         for path in assets_for(doc, s) if inspect(path) == "ready"}
+            summary["artifacts_sha256"] = {
+                path: hashlib.sha256(safe_path(path).read_bytes()).hexdigest()
+                for path in sorted(artifacts)}
+            output = safe_path(f"assets/experiments/units/{doc['id']}/manifest.json")
+            equipment_tools().save(output, summary)
             print("PASS: generated local 3D arena bundle for", doc["id"])
     else:
         raise PipelineError("Unknown stage " + stage)
@@ -304,28 +363,20 @@ def main(argv=None):
                             print("   ", status, p)
         return 0
     if opts.command == "bootstrap":
-        if not opts.dry_run:
-            for stage in stages:
-                if state(doc,stage)["ready"]:continue
-                if stage == "source":continue
-                if doc.get("adapter") == "manifest_v1" and stage in ("turnaround","body","rig","animations"):
-                    continue
-                ensure_adapter(doc)
         bootstrap(doc, stages, opts.dry_run)
         return 0
     if opts.command == "run":
         for stage in stages:
+            doc = manifest(opts.unit)  # equipment may have been discovered in the previous stage
             current = state(doc, stage)
             if stage != "integrate" and current["ready"]:
                 print("SKIP", stage, "(existing, validated outputs)", flush=True)
                 continue
-            if (stage != "source" and doc.get("adapter") != "legacy_marches_hache"
-                and not (doc.get("adapter") == "manifest_v1" and stage in ("turnaround","body","rig","animations"))):
+            if stage.startswith("object_") and not state(doc,"equipment_identify")["ready"]:
                 if opts.dry_run:
-                    print("ADAPTER REQUIRED", stage, "(unit-specific generator not yet implemented)")
+                    print("WAIT FOR equipment_identify:",stage)
                     continue
-                raise PipelineError("Missing parameterized 3D adapter for " + doc["id"] +
-                                    " at stage " + stage + "; refusing to build the wrong unit")
+                raise PipelineError("Identify equipment from the source image first; run --stage equipment_identify --allow-paid")
             if stage in PAID and not opts.allow_paid:
                 if opts.dry_run:
                     print("WOULD REQUIRE --allow-paid:", stage)

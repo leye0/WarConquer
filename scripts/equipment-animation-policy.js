@@ -30,7 +30,9 @@
     bow:{family:"ranged",mount:"left_hand",grip:"frame",action:"bow_shot",
       queries:["bow aim","draw bow string","release arrow","archer idle"],
       patterns:["^Bow_(Aim|DrawAndRelease|Shoot)(_|$)","^Archery_Shoot(_|$)"],
-      needsSecondaryHandIK:true,requiresEvent:"arrow_release",geometryReady:false},
+      // Rigid bow mounting needs only one hand. String, drawing arm and arrow
+      // release are optional later interaction layers, never mount blockers.
+      needsSecondaryHandIK:false,requiresEvent:"arrow_release",geometryReady:true},
     crossbow:{family:"ranged",mount:"hand",grip:"body",action:"crossbow_shot",
       queries:["crossbow aim and shoot","crossbow reload"],
       patterns:["^Crossbow_(Shoot|Fire)(_|$)"],

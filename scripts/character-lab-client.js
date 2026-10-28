@@ -408,9 +408,9 @@
       const spec=vision?.specifications;
       const gripFraction=vision?.derived_image_geometry?.grip_fraction_from_butt;
       const side=spec?.dominant_hand==="left"?"left":"right";
-      if(![2,3].includes(vision.schema)||spec?.grip_geometry!=="shaft"||
-        spec.hold_mode==="unsupported")throw Error("Plan visuel non compatible avec une prise sur manche");
-      if(!Number.isFinite(gripFraction)||gripFraction<=.03||gripFraction>=.65||
+      if(![2,3].includes(vision.schema)||!["shaft","frame"].includes(spec?.grip_geometry)||
+        spec.hold_mode==="unsupported")throw Error("Plan de prise géométrique non résolu");
+      if(!Number.isFinite(gripFraction)||gripFraction<=.03||gripFraction>=.75||
         !Number.isFinite(spec.length_relative_character_height)||
         spec.length_relative_character_height<.13||spec.length_relative_character_height>1.85||
         !Number.isFinite(spec.palm_from_wrist)||spec.palm_from_wrist<0||spec.palm_from_wrist>1)
@@ -441,7 +441,7 @@
       }
       const points=importedPropPoints(prop.meshes||[]);
       const frame=window.WCWeaponGrip.fitGrip(points,gripFraction,
-        spec.object_kind);
+        spec.grip_geometry);
       const {hand,forearm,middle}=anatomy;
       hand.computeWorldMatrix(true);
       const handPosition=hand.getAbsolutePosition();
@@ -515,7 +515,8 @@
       byId("world").dataset.weaponScaleOrigin=estimatedLengthCm!==null
         ? "source-design-physical-centimetres"
         : (vision.schema===3 ? "provenance-and-character-image" : "legacy-vision-only");
-      byId("world").dataset.weaponGripHeadRatio=frame.headWidthRatio.toFixed(3);
+      byId("world").dataset.weaponGripHeadRatio=Number.isFinite(frame.headWidthRatio)
+        ? frame.headWidthRatio.toFixed(3):"";
       // Enforce genuine equipment-specific motions once the prop is fitted.
       // A bow must never inherit a generic axe animation by default.
       const policy=window.WCEquipmentActions?.resolve(spec,state.animGroups);

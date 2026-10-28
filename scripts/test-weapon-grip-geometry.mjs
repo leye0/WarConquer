@@ -60,3 +60,18 @@ for(let i=0;i<120;i++)for(let j=0;j<10;j++){
 }
 assert.throws(()=>fitGrip(plain,.19,"axe"),/head not distinguishable/, "a staff cannot masquerade as an axe");
 assert.throws(()=>fitGrip(syntheticAxe(),.92,"axe"),/Invalid vision/);
+
+// A curved rigid frame can attach at its central grip without a bow-specific
+// mesh transform, string simulation or secondary-hand IK.
+const frame=[];
+for(let i=0;i<=100;i++)for(let j=0;j<24;j++){
+  const y=-1+2*i/100,a=j*Math.PI*2/24;
+  frame.push([.35*(1-y*y)+.025*Math.cos(a),y,.025*Math.sin(a)]);
+}
+for(const transform of [p=>p,p=>[p[1],-p[2],p[0]]]){
+  const grip=fitGrip(frame.map(transform),.5,"frame");
+  assert.equal(grip.bladeMethod,"generic-frame-pca");
+  assert(norm(sub(grip.grip,transform([.35,0,0])))<.15);
+  assert(Math.abs(dot(grip.shaft,transform([0,1,0])))>.85);
+}
+console.log("PASS generic curved frame one-hand grip");

@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "unit": "marches_hache",
+  "name": "Guerrier des Marches à la hache",
+  "source_image": "assets/concepts/marches/units/hache.png",
+  "views": {
+    "front": "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/front.png",
+    "back": "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/back.png",
+    "left": "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/left.png",
+    "right": "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/right.png"
+  },
+  "body": {
+    "glb": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-textured.glb",
+    "rigged_glb": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/fal-rigged.glb",
+    "playable_glb": "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/warconquer-textured-playable.glb",
+    "animations": "data/motion-library.json"
+  },
+  "equipment": [
+    {
+      "id": "axe",
+      "kind": "axe",
+      "source_image": "assets/concepts/marches/objects/hache_arme.png",
+      "source_request": "axe-image-request.json",
+      "glb": "assets/experiments/props/marches_hache/trellis-v1/axe.glb",
+      "trellis_request": "trellis-axe-request.json",
+      "physical_size_request": "assets/experiments/props/marches_hache/trellis-v1/physical-size-request.json",
+      "physical_size": "assets/experiments/props/marches_hache/trellis-v1/physical-size.json",
+      "grip_request": "assets/experiments/props/marches_hache/trellis-v1/grip-request.json",
+      "grip": "assets/experiments/props/marches_hache/trellis-v1/grip-plan.json"
+    }
+  ],
+  "stages": {
+    "source": {
+      "stage": "source",
+      "description": "Fiche 2D originale (entrée fournie)",
+      "ready": true,
+      "paid_if_missing": false,
+      "files": {
+        "assets/concepts/marches/units/hache.png": "ready"
+      }
+    },
+    "equipment_identify": {
+      "stage": "equipment_identify",
+      "description": "Identification et description des équipements sur la fiche",
+      "ready": true,
+      "paid_if_missing": true,
+      "files": {
+        "axe-image-request.json": "ready"
+      }
+    },
+    "turnaround": {
+      "stage": "turnaround",
+      "description": "4 vues cohérentes du personnage",
+      "ready": true,
+      "paid_if_missing": true,
+      "files": {
+        "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/front.png": "ready",
+        "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/back.png": "ready",
+        "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/left.png": "ready",
+        "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/right.png": "ready"
+      }
+    },
+    "body": {
+      "stage": "body",
+      "description": "Personnage fal.ai texturé",
+      "ready": true,
+      "paid_if_missing": true,
+      "files": {
+        "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-textured.glb": "ready"
+      }
+    },
+    "rig": {
+      "stage": "rig",
+      "description": "Squelette Uthana",
+      "ready": true,
+      "paid_if_missing": true,
+      "files": {
+        "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/fal-rigged.glb": "ready"
+      }
+    },
+    "animations": {
+      "stage": "animations",
+      "description": "Mouvements Mixamo transférés",
+      "ready": true,
+      "paid_if_missing": false,
+      "files": {
+        "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/warconquer-textured-playable.glb": "ready"
+      }
+    },
+    "object_source": {
+      "stage": "object_source",
+      "description": "Illustration isolée de chaque objet",
+      "ready": true,
+      "paid_if_missing": true,
+      "files": {
+        "assets/concepts/marches/objects/hache_arme.png": "ready"
+      }
+    },
+    "object_mesh": {
+      "stage": "object_mesh",
+      "description": "GLB indépendant TRELLIS",
+      "ready": true,
+      "paid_if_missing": true,
+      "files": {
+        "assets/experiments/props/marches_hache/trellis-v1/axe.glb": "ready"
+      }
+    },
+    "object_size": {
+      "stage": "object_size",
+      "description": "Estimation de longueur physique en cm",
+      "ready": true,
+      "paid_if_missing": true,
+      "files": {
+        "assets/experiments/props/marches_hache/trellis-v1/physical-size.json": "ready"
+      }
+    },
+    "object_grip": {
+      "stage": "object_grip",
+      "description": "Prise / orientation sémantique de l'objet",
+      "ready": true,
+      "paid_if_missing": true,
+      "files": {
+        "assets/experiments/props/marches_hache/trellis-v1/grip-plan.json": "ready"
+      }
+    }
+  },
+  "catalog": {
+    "buildStatus": "playable",
+    "modelCount": 7,
+    "equipmentCount": 1
+  },
+  "artifacts_sha256": {
+    "assets/concepts/marches/objects/hache_arme.png": "061c18599da536c363ffa8bb10f648405d31c240f027c3867a46541d2b0d79bc",
+    "assets/concepts/marches/units/hache.png": "40596135f14365c2a77258cd34fe8285c2968fc791816023fbe37cdb197982c7",
+    "assets/experiments/props/marches_hache/trellis-v1/axe.glb": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+    "assets/experiments/props/marches_hache/trellis-v1/grip-plan.json": "6b3b202f4c9af78779b12f183a894ef60551b3b95f26410ad47cc673b56ae162",
+    "assets/experiments/props/marches_hache/trellis-v1/physical-size.json": "0db1438ac039fb34a70edf1519b9623616fd2eeaa7442f633d01699ee0df750f",
+    "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/fal-textured.glb": "6f297890dc42f25640049b63a4c55ca12494bee62f37a590eb57573e68c8afb2",
+    "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/fal-rigged.glb": "a5b0475c35327cfb0ba5fc94deb9c720c2a9b4c90f59430be1bf7e6064efc975",
+    "assets/experiments/rig-ready-3d/marches_hache/tpose-v2/motion/fal-mixamo-v1/warconquer-textured-playable.glb": "bd292a88d17b0022a7e6b01ee36ae330912b37abd2309cf8368bf9ab7bef47f6",
+    "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/back.png": "c7d3a260fd9fddcdf8da5cb8551bedb971452fcff6abda8308dfbd1fb193dce3",
+    "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/front.png": "ddaf1862304adc05d01157bda8caae57b8a549ade83ce70e3ace9638a8997d87",
+    "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/left.png": "f29d996d5c071fea6f73168f4a9718e6fb2c0318569fd2c73fdc65389bd4e367",
+    "assets/experiments/rig-source-turnaround/marches_hache/tpose-v2/right.png": "74d9d0d09e91413afa11f0bc45c540a986dec189cb3f7db80c54800066d348b2",
+    "axe-image-request.json": "7292454751dbea7110a1817f371e5da086f18d3d0b7f578a4f10af92b259680c"
+  }
+}

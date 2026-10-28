@@ -21,8 +21,8 @@ ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_REQUEST = "assets/experiments/props/marches_hache/trellis-v1/grip-request.json"
 POINT = {"type": "array", "items": {"type": "number"}}
 PROPS = {
-    "object_kind": {"type": "string", "enum": ["axe", "sword", "spear", "staff", "hammer", "shield", "tool", "other"]},
-    "grip_geometry": {"type": "string", "enum": ["shaft", "flat_handle", "body", "unsupported"]},
+    "object_kind": {"type": "string", "enum": ["axe", "bow", "crossbow", "dagger", "sword", "spear", "staff", "wand", "hammer", "shield", "tool", "other"]},
+    "grip_geometry": {"type": "string", "enum": ["shaft", "frame", "flat_handle", "body", "unsupported"]},
     "hold_mode": {"type": "string", "enum": ["one_hand", "two_hands", "unsupported"]},
     "dominant_hand": {"type": "string", "enum": ["right", "left", "either"]},
     "handle_butt": POINT,
@@ -43,19 +43,23 @@ PROMPT = (
     "You are a technical prop rigger for an isometric 3D game. IMAGE 1 is an isolated "
     "weapon or object; IMAGE 2 is the intended character. Analyze BOTH images and "
     "produce a GENERAL REUSABLE ATTACHMENT SPECIFICATION for an animated character. "
-    "Object landmarks must use normalized [x,y] coords of IMAGE 1. The butt is the "
-    "end of the handle furthest from its working head. The upper handle endpoint "
-    "is the handle's intersection with the head, not the edge. The grip_point "
+    "Object landmarks must use normalized [x,y] coords of IMAGE 1. For elongated shaft "
+    "objects, handle_butt is the end of the handle away from the working head, and "
+    "handle_near_head is the handle-head intersection. For a curved FRAME such as a "
+    "bow, these two landmarks are the two endpoints of the object's long axis, "
+    "and grip_point is the central handhold along the frame. The grip_point "
     "is the center of the character's palm gripping that handle (not the blade). "
     "Decide whether one or two hands are anatomically natural, which hand is primary, "
     "how the head extends relative to the hand in a neutral standing pose, which "
-    "direction the cutting/working edge faces relative to the walking character "
+    "direction the cutting/working edge or functional front face of a frame faces relative to the walking character "
     "(forward, backward, inward toward torso, or outward from torso). Estimate the "
     "object length divided by the CHARACTER HEIGHT, accounting for the visual style. "
     "Estimate palm position as 0 at the wrist joint and 1 at the finger knuckles. "
     "Return specs and confidence. If handle cannot be identified, set unsupported "
     "instead of inventing points. DO NOT infer raw GLB axis or Euler coordinates: "
-    "the 3D pipeline computes actual axes from imported vertices. For shaft grip, "
+    "the 3D pipeline computes actual axes from imported vertices. A bow can be "
+    "attached rigidly to ONE hand; drawing the string is a separate animation and "
+    "is NOT required here. For shaft grip, "
     "ensure grip_point is located ON the straight line segment from handle_butt to "
     "handle_near_head and in the lower 15-60% of that segment; do not pick "
     "a point on the original character image."
@@ -127,7 +131,7 @@ def validate(raw: dict) -> dict:
             raise ValueError("Bad landmark " + field)
     if not isinstance(raw["explanation"], str) or not 8 <= len(raw["explanation"]) <= 800:
         raise ValueError("Missing concise semantic justification")
-    if raw["grip_geometry"] != "shaft" or raw["hold_mode"] == "unsupported":
+    if raw["grip_geometry"] not in ("shaft", "frame") or raw["hold_mode"] == "unsupported":
         return {"grip_fraction_from_butt": None, "image_deviation": None,
                 "supported_by_current_geometry_fitter": False}
     start, end, grip = (raw[key] for key in ("handle_butt", "handle_near_head", "grip_point"))
@@ -137,8 +141,10 @@ def validate(raw: dict) -> dict:
         raise ValueError("Shaft image endpoints too close")
     fraction = ((grip[0]-start[0])*axis[0]+(grip[1]-start[1])*axis[1])/sq
     deviation = abs((grip[0]-start[0])*axis[1]-(grip[1]-start[1])*axis[0])/math.sqrt(sq)
-    if not .04 <= fraction <= .64 or deviation > .20:
+    if raw["grip_geometry"] == "shaft" and (not .04 <= fraction <= .64 or deviation > .20):
         raise ValueError("Vision grip not located on the shaft")
+    if raw["grip_geometry"] == "frame" and (not .25 <= fraction <= .75 or deviation > .35):
+        raise ValueError("Vision grip not located near the frame's central handhold")
     return {"grip_fraction_from_butt": round(fraction, 5),
             "image_deviation": round(deviation, 5),
             "supported_by_current_geometry_fitter": True}
