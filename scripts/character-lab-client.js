@@ -605,7 +605,9 @@
           // Image classifiers can be permissive: a GO is not permission to
           // ignore physical contradictions verified on actual mesh vertices.
           if(best.balanceY>=0 || best.face<.25 || best.gripError>.04 || best.actual<0)
-            throw Error("Prise physiquement incohérente : gravité/face utile/contact/collision");
+            throw Error("Prise physiquement incohérente : "+JSON.stringify({
+              transpose:best.transpose,tilt:best.tilt,balance:best.balanceY,
+              face:best.face,grip:best.gripError,clearance:best.actual}));
           actualClearance=best.actual;
           actualBalanceY=best.balanceY;
           actualGripError=best.gripError;
