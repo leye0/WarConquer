@@ -1,0 +1,34 @@
+{
+  "source_sha256": "3d625b108daf5780a338bc8e6b83352edcc5c79d233284fa1f1493317bc42701",
+  "rigged_sha256": "acbb3362557a6eae799c7bd2c4b255d6626e87f774dc129e010b93b4c03d3952",
+  "source_texture": {
+    "valid": true,
+    "mesh_count": 1,
+    "primitive_count": 1,
+    "uv_primitives": 1,
+    "textured_primitives": 1,
+    "image_count": 1,
+    "embedded_images": 1,
+    "material_count": 1,
+    "skin_count": 0,
+    "joint_count": 0,
+    "skinned_primitives": 0,
+    "animation_count": 0
+  },
+  "result": {
+    "valid": true,
+    "mesh_count": 1,
+    "primitive_count": 1,
+    "uv_primitives": 1,
+    "textured_primitives": 1,
+    "image_count": 1,
+    "embedded_images": 1,
+    "material_count": 1,
+    "skin_count": 1,
+    "joint_count": 52,
+    "skinned_primitives": 1,
+    "animation_count": 0
+  },
+  "preserved_native_uv_texture": true,
+  "note": "Native UVs must be present; screenshot review will assess visual quality."
+}
