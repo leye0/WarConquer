@@ -291,6 +291,24 @@ def state(doc, stage):
                         not all(name in landmarks.get("points", {}) for name in
                                 ("handle_butt", "grip_center", "working_head", "functional_edge"))):
                     paths[grip] = "missing_mesh_landmarks"
+                    continue
+                contract_path = safe_path(prop["interaction"])
+                if contract_path.is_file():
+                    contract = json.loads(contract_path.read_text())
+                    sem = contract["characterization"]
+                    contract_sha = hashlib.sha256(contract_path.read_bytes()).hexdigest()
+                    wanted_grips = {g["id"] for g in sem["grips"]}
+                    wanted_features = {f["id"] for f in sem["features"]}
+                    if (landmarks.get("interaction_sha256") != contract_sha or
+                            set(landmarks.get("grips", {})) != wanted_grips or
+                            set(landmarks.get("features", {})) != wanted_features or
+                            not all(isinstance(v.get("local"), list) and len(v["local"]) == 3
+                                    for v in landmarks["grips"].values()) or
+                            not all(all(isinstance(f.get(k, {}).get("local"), list) and
+                                            len(f[k]["local"]) == 3
+                                        for k in ("origin", "direction_tip"))
+                                    for f in landmarks["features"].values())):
+                        paths[grip] = "missing_named_mesh_grips_or_actions"
             except (ValueError, OSError, KeyError):
                 paths[grip] = "invalid_mesh_landmarks"
     return {"stage": stage, "description": STAGE_DESCRIPTION[stage],
