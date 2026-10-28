@@ -4,6 +4,7 @@
 **Date : 2026-10-28**  
 **Portée :** tout objet avec action tenu par un personnage (hache, arc, bouclier, fusil, outil, etc.), toutes les unités et tous les clips Mixamo.  
 **Complément :** [contrat technique existant](../docs/prop-interaction-contract.md).
+**Vocabulaire contractuel obligatoire :** [affordances, états, contacts, contraintes et 26 scénarios](held-object-affordance-contract.md). Les rôles/fonctions de l'objet et les contraintes dépendant de son état sont deux domaines distincts; aucune règle par nom d'arme.
 
 ## Résultat attendu
 
