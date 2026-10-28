@@ -119,7 +119,7 @@ const me=options=>new Brain({id:"scout",x:.5,z:.5,visionRange:7,...options});
   w.occlusion=Array.from({length:5},()=> "........");
   w.objects=[{id:"rocky",kind:"resource",x:2.5,z:2.5,blocking:true,radius:.8}];
   const b=me({x:.5,z:2.5,visionRange:8});
-  const d=b.step(w,{type:"collect",entityId:"rocky",distance:1.3},100,100);
+  const d=b.step(w,{type:"collect",entityId:"rocky",distance:1.95},100,100);
   assert(d.goal,"Find a reachable interaction position outside the blocked cell");
   assert.notEqual(w.grid[cell(w,d.goal.x,d.goal.z).z][cell(w,d.goal.x,d.goal.z).x],"#");
 }

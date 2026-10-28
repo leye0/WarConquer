@@ -425,7 +425,7 @@
         if(!obj||!(state.pending==="attack"?obj.kind==="unit"&&obj.team==="red":obj.kind==="resource")){
           message("Sélectionnez "+(state.pending==="attack"?"une unité ennemie.":"une ressource."));return;
         }
-        state.order={type:state.pending,entityId:obj.id,distance:state.pending==="attack"?ATTACK_DISTANCE:Math.max(1.25,obj.radius+1)};
+        state.order={type:state.pending,entityId:obj.id,distance:state.pending==="attack"?ATTACK_DISTANCE:collectDistance(obj)};
       }
       message("Ordre actif : "+state.order.type);
       state.pending=null;syncMode();
@@ -447,6 +447,10 @@
     $("attackNearest").disabled=true;
     document.querySelector('[data-order="attack"]').disabled=true;
     updateGait();
+  }
+  function collectDistance(entity){
+    const radius=Number(entity?.radius)||.4;
+    return entity?.blocking?Math.max(1.85,radius+1.15):Math.max(1.25,radius+1);
   }
   const COMBAT_REACH=1.85;
   const ATTACK_DISTANCE=1.65;
@@ -609,14 +613,14 @@
       return;
     }
     state.order={type:"collect",entityId:entity.id,
-      distance:Math.max(1.25,entity.radius+1)};
+      distance:collectDistance(entity)};
     state.pending=null;state.tool=null;syncMode();
     message("Ordre de collecte : "+entity.id);
   });
   $("collectSelected").addEventListener("click",()=>{
     if(state.selected?.kind!=="resource")return;
     state.order={type:"collect",entityId:state.selected.id,
-      distance:Math.max(1.25,state.selected.radius+1)};
+      distance:collectDistance(state.selected)};
     state.pending=null;state.tool=null;syncMode();
     message("Ordre de collecte : "+state.selected.name);
   });
