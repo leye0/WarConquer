@@ -568,16 +568,15 @@
       if(bodyCapsules.length&&outwardWorld){
         const v=window.WCWeaponGrip;
         const margin=bodyCapsules[0].radius*.8;
-        // Once the imported mesh has been calibrated, prefer carrying with
-        // the functional face forward (ready for use) whenever that is safe.
-        // The object's annotated safe face is an anatomical fallback, not a
-        // hard-coded orientation for a named weapon.
-        const faceOptions=[...new Set(["forward",spec.edge_direction])].map(name=>({
-          name,contact:window.WCRigContact.contactFrame(joints,{
+        // Transport has no target: use the safe blade-facing direction that
+        // vision annotated for this intrinsic prop. Forward-facing use is a
+        // different constraint reserved for the object's active animation.
+        const faceOptions=[{
+          name:spec.edge_direction,contact:window.WCRigContact.contactFrame(joints,{
             hand:side,palm_fraction:spec.palm_from_wrist,
-            shaft_direction:"gravity",working_face:name
+            shaft_direction:"gravity",working_face:spec.edge_direction
           })
-        }));
+        }];
         let best=null;
         for(const option of faceOptions)
         for(const transpose of [false,true])
@@ -599,8 +598,7 @@
           const wrongGravity=Math.max(0,balance[1]+desiredLength*.08);
           const wrongFace=Math.max(0,.65-face);
           const score=deficit*deficit*100+wrongGravity**2*300+
-            wrongFace**2*40+gripError**2*150+candidate.tilt*.03+
-            (option.name==="forward"?0:.3);
+            wrongFace**2*40+gripError**2*150+candidate.tilt*.03;
           if(!best||score<best.score)best={...candidate,transpose,actual,score,
             faceDirection:option.name,blade:option.contact.blade,
             balanceY:balance[1],gripError,face};
@@ -715,7 +713,7 @@
             hand.getWorldMatrix().decompose(handScale,handRotation);
             const invHand=B.Quaternion.Inverse(handRotation);
             let best=null;
-            for(const faceName of [...new Set(["forward",spec.edge_direction])]){
+            for(const faceName of [spec.edge_direction]){
               const target=window.WCRigContact.contactFrame(next,{
                 hand:side,palm_fraction:spec.palm_from_wrist,
                 shaft_direction:"gravity",working_face:faceName
@@ -742,8 +740,7 @@
                   const inward=Math.max(0,.05-edgeOut);
                   const proximity=Math.max(0,.06-clearance);
                   const score=gravityError**2*1200+inward**2*180+
-                    proximity**2*500+Math.max(0,.45-edgeFront)**2*10+
-                    candidate.tilt*.03+(faceName==="forward"?0:.12);
+                    proximity**2*500+candidate.tilt*.03;
                   if(!best||score<best.score)best={q:localQ.clone(),score,
                     balanceY,edgeOut,clearance};
                 }
