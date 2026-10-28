@@ -76,6 +76,17 @@
       bladeMethod:"signed-vision-glb-functional-edge"};
   }
 
+  function capsuleClearance(vertices,capsules){
+    let nearest=Infinity;
+    for(const point of vertices)for(const capsule of capsules){
+      const v=sub(capsule.b,capsule.a),w=sub(point,capsule.a),vv=dot(v,v);
+      const t=vv>1e-9?Math.max(0,Math.min(1,dot(w,v)/vv)):0;
+      const separation=norm(sub(point,add(capsule.a,mul(v,t))))-capsule.radius;
+      nearest=Math.min(nearest,separation);
+    }
+    return nearest;
+  }
+
   function chooseNonCollidingCarry(vertices,source,gripWorld,workingWorld,awayWorld,
       targetLength,capsules) {
     if(!source.carryShaft||!Array.isArray(capsules)||!capsules.length)
@@ -84,15 +95,10 @@
     if(!away)throw Error("No usable anatomical outward direction");
     const scale=targetLength/source.length;
     const sourceShaft=source.carryShaft;
-    const headPoints=vertices.filter(p=>dot(sub(p,source.grip),sourceShaft)>.18*source.length);
-    const sample=(headPoints.length?headPoints:vertices);
+    // The shaft, butt and fittings can also cross the body. Assess the whole
+    // object, including vertices on the grip's opposite side.
+    const sample=vertices;
     const stride=Math.max(1,Math.ceil(sample.length/850));
-    const distanceToCapsule=(p,c)=>{
-      const v=sub(c.b,c.a),w=sub(p,c.a);
-      const vv=dot(v,v);
-      const t=vv>1e-9?Math.max(0,Math.min(1,dot(w,v)/vv)):0;
-      return norm(sub(p,add(c.a,mul(v,t))));
-    };
     let best=null;
     for(const tilt of [0,.1,.2,.35,.5,.7,1.0,1.4]) {
       const shaft=unit(add([0,-1,0],mul(away,tilt)));
@@ -105,7 +111,7 @@
         const point=add(gripWorld,mul([0,1,2].map(j=>
           p[0]*rotation[j]+p[1]*rotation[3+j]+p[2]*rotation[6+j]),scale));
         for(const capsule of capsules){
-          const separation=distanceToCapsule(point,capsule)-capsule.radius;
+          const separation=capsuleClearance([point],[capsule]);
           nearest=Math.min(nearest,separation);
           if(separation<0)collisions+=separation*separation;
         }
@@ -288,6 +294,6 @@
     return {grip,shaft:signed,blade,length:trueLength,headWidthRatio:spreadRatio,
       gripFractionFromButt:gripFraction,vertexCount:points.length,bladeMethod};
   }
-  return {fitGrip,frameFromLandmarks,chooseNonCollidingCarry,
+  return {fitGrip,frameFromLandmarks,chooseNonCollidingCarry,capsuleClearance,
     rotationBetweenFrames,cross,dot,unit,sub,mul,add,norm};
 });

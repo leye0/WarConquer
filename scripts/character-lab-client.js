@@ -518,6 +518,7 @@
       const desiredLength=estimatedLengthCm===null
         ? 1.9*spec.length_relative_character_height : estimatedLengthCm/100;
       let carryFit=null;
+      let bodyCapsules=[];
       if(gravityCarry && joints.Hips && joints.Chest &&
           joints.LeftShoulder && joints.RightShoulder){
         const v=window.WCWeaponGrip;
@@ -525,11 +526,12 @@
         const away=v.sub(contact.grip,center);
         const shoulderSpan=v.norm(v.sub(joints.LeftShoulder,joints.RightShoulder));
         const torsoRadius=Math.max(.17,shoulderSpan*.46);
-        carryFit=v.chooseNonCollidingCarry(points,frame,contact.grip,
-          contact.blade,away,desiredLength,[
+        bodyCapsules=[
             {a:joints.Hips,b:joints.Chest,radius:torsoRadius},
             {a:joints.Chest,b:joints.Neck||joints.Chest,radius:torsoRadius*.75}
-          ]);
+          ];
+        carryFit=v.chooseNonCollidingCarry(points,frame,contact.grip,
+          contact.blade,away,desiredLength,bodyCapsules);
       }
       const shaftWorld=new B.Vector3(...(carryFit?.shaft||contact.shaft));
       const bladeWorld=new B.Vector3(...contact.blade);
@@ -554,6 +556,13 @@
       offset.position=new B.Vector3(...frame.grip).negate();
       const roots=[...prop.meshes,...prop.transformNodes].filter(node=>!node.parent);
       for(const node of roots)node.parent=offset;
+      // Verify the fitted transform against the *real* Babylon world matrices
+      // rather than trusting the idealized pre-parenting prediction.
+      anchor.computeWorldMatrix(true);
+      offset.computeWorldMatrix(true);
+      const mountedPoints=importedPropPoints(prop.meshes||[]);
+      const actualClearance=bodyCapsules.length
+        ? window.WCWeaponGrip.capsuleClearance(mountedPoints,bodyCapsules):NaN;
       state.weaponImport=prop;
       state.weaponAnchor=anchor;
       text("weaponMetric","Prise anatomique auto · vision sur GLB · main "+side+
@@ -566,6 +575,9 @@
       byId("world").dataset.weaponCarryTilt=carryFit?.tilt?.toFixed(3)||"0";
       byId("world").dataset.weaponCarryClearance=Number.isFinite(carryFit?.nearest)
         ? carryFit.nearest.toFixed(3):"";
+      byId("world").dataset.weaponActualClearance=Number.isFinite(actualClearance)
+        ? actualClearance.toFixed(3):"";
+      byId("world").dataset.weaponBodyRadius=bodyCapsules[0]?.radius?.toFixed(3)||"";
       byId("world").dataset.weaponGripScale=(desiredLength/1.9).toFixed(3);
       byId("world").dataset.weaponLengthCm=estimatedLengthCm===null
         ? "" : estimatedLengthCm.toFixed(1);
