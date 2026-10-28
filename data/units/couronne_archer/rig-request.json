@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "unit": "couronne_archer",
+  "source": "assets/experiments/rig-ready-3d/couronne_archer/tpose-v1/fal-textured.glb",
+  "source_sha256": "3d625b108daf5780a338bc8e6b83352edcc5c79d233284fa1f1493317bc42701",
+  "rig_model": "uthana/create-character-v1",
+  "maximum_new_paid_rig_predictions": 1,
+  "require_textured_output": true,
+  "motion_source": "archived_mixamo_fbx"
+}
