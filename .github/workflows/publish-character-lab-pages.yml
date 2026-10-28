@@ -23,11 +23,9 @@ on:
       - 'scripts/build-character-lab-pages.mjs'
       - 'assets/experiments/rig-ready-3d/**'
       - 'assets/experiments/rig-source-turnaround/**'
-      - 'assets/experiments/props/marches_hache/trellis-v1/axe.glb'
-      - 'assets/experiments/props/marches_hache/trellis-v1/grip-plan.json'
-      - 'assets/experiments/props/marches_hache/trellis-v1/physical-size.json'
-      - 'assets/experiments/props/marches_hache/trellis-v1/grip-plan-v3.json'
-      - 'assets/concepts/marches/units/hache.png'
+      - 'assets/experiments/props/**'
+      - 'assets/concepts/**'
+      - 'data/units/**'
       - '.github/workflows/publish-character-lab-pages.yml'
   workflow_dispatch:
 
