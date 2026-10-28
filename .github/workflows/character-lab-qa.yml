@@ -124,6 +124,9 @@ jobs:
           git restore -- character-lab.html
           git add -A assets/experiments/character-lab-qa/couronne-archer-actual-3d-initial-live.png
           git add -A assets/experiments/character-lab-qa/couronne-archer-actual-3d-switch-live.png
+          # CDP writes other tracked QA screenshots too. Discard their
+          # unstaged local mutations before rebasing the two selected shots.
+          git restore --worktree -- .
           if ! git diff --cached --quiet; then
             git commit -m 'qa: save real 3D Crown archer Chrome screenshots'
             git fetch origin main
