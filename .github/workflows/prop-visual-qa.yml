@@ -1,0 +1,90 @@
+name: Equipment · live 3D vision GO / NO-GO
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'assets/experiments/props/**/grip-plan.json'
+      - 'scripts/capture-prop-contact.mjs'
+      - 'scripts/verify-prop-visual-qa.py'
+      - 'scripts/run-prop-visual-qa.py'
+      - 'scripts/rig-contact-landmarks.js'
+      - 'scripts/weapon-grip-geometry.js'
+      - 'scripts/character-lab-client.js'
+      - '.github/workflows/prop-visual-qa.yml'
+  workflow_dispatch:
+    inputs:
+      unit:
+        description: 'Optional unit ID (blank = every ready prop)'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: generic-prop-visual-qa
+  cancel-in-progress: false
+
+jobs:
+  real-browser-and-vision:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      SELECTED_UNIT: ${{ inputs.unit || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check independent GO/NO-GO contract
+        run: |
+          python -m pip install 'Pillow==11.3.0'
+          python scripts/test-verify-prop-visual-qa.py
+          node --check scripts/capture-prop-contact.mjs
+      - name: Install local Babylon runtime and run the real Character Lab
+        run: |
+          npm install --no-save --no-audit --no-fund babylonjs@7.48.3 babylonjs-loaders@7.48.3
+          mkdir -p assets/browser-qa
+          cp node_modules/babylonjs/babylon.js assets/browser-qa/babylon.js
+          cp node_modules/babylonjs-loaders/babylonjs.loaders.min.js assets/browser-qa/babylonjs.loaders.min.js
+          python - <<'PY'
+          from pathlib import Path
+          page=Path('character-lab.html')
+          contents=page.read_text()
+          contents=contents.replace('https://cdn.babylonjs.com/babylon.js','/assets/browser-qa/babylon.js')
+          contents=contents.replace('https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js','/assets/browser-qa/babylonjs.loaders.min.js')
+          page.write_text(contents)
+          PY
+          node scripts/serve-character-lab.mjs > "$RUNNER_TEMP/contact-server.log" 2>&1 &
+      - name: Browser screenshots → cheap vision GO/NO-GO for each ready object
+        run: |
+          set -euo pipefail
+          args=(--output "$RUNNER_TEMP/contact-views" --allow-paid)
+          if [[ -n "$SELECTED_UNIT" ]]; then args+=(--unit "$SELECTED_UNIT"); fi
+          python scripts/run-prop-visual-qa.py "${args[@]}"
+      - name: Preserve one canonical visual verdict and its paid receipt
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git restore -- character-lab.html
+          git add -A -- assets/experiments/props/
+          if ! git diff --cached --quiet; then
+            git commit -m 'qa: record genuine visual GO or NO-GO for generic held props'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Keep real browser views for inspection
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: generic-prop-contact-views
+          path: ${{ runner.temp }}/contact-views/**/*.png
+          if-no-files-found: ignore
+          retention-days: 3

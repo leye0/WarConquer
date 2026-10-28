@@ -73,6 +73,8 @@ Créer une fiche JSON minimale de l'unité avec le chemin de son image originale
 
 **Animations indépendantes.** Le contrat de prise reste valable même si le bon geste manque. `equipment-animation-policy.js` associe les catégories d'actions (hache, épée, arc, outil, etc.) à leurs animations Mixamo compatibles et interdit de réutiliser une animation d'attaque incompatible. Tir de corde, seconde main et événements de projectile appartiennent à la couche d'action, et non à l'orientation de la prise.
 
+**GO visuel automatique.** Après création du GLB et des repères, le workflow `prop-visual-qa.yml` appelle les scripts **du projet** `capture-prop-contact.mjs` puis `run-prop-visual-qa.py`. Ils rendent trois vues de chaque unité jouable tenant son objet (plus la vue d'action lorsque disponible), transmettent ces vues au petit modèle vision et exigent un véritable **GO/NO-GO** pour la prise, le tranchant et l'échelle. Le résultat et sa justification sont intégrés à l'unique `grip-plan.json`. Le reçu brut est conservé avant validation; la même configuration ne provoque pas une nouvelle dépense. Un NO-GO empêche de déclarer le test final réussi.
+
 Cette migration conserve les gros GLB et PNG historiques à leur emplacement : pas de génération 3D refacturée et pas de liens de l'arène cassés. Les prises secondaires par IK et la bibliothèque exhaustive d'animations d'objets restent des fonctions indépendantes du montage rigide générique.
 
 ## Validation
@@ -80,6 +82,7 @@ Cette migration conserve les gros GLB et PNG historiques à leur emplacement : p
 - scripts/test-unit-pipeline.py : sélection, contrôles de fichiers, absence de dépenses implicites.
 - scripts/test-prop-mesh-landmarks.py : rendu des vrais GLB et projection signée vision → sommets.
 - scripts/test-rig-contact-landmarks.mjs : transfert d'une prise entre deux squelettes non identiques.
+- scripts/test-verify-prop-visual-qa.py : vérification du contrat de verdict vision GO/NO-GO.
 - scripts/unit-pipeline.py : assemblage et vérification du catalogue Character Lab.
 - scripts/build-character-lab-pages.mjs : construction réutilisable du site statique.
 - docs/character-production-pipeline.md : architecture cible multi-objets.

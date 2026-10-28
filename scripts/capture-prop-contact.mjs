@@ -1,0 +1,110 @@
+#!/usr/bin/env node
+/* Generic browser capture of ANY rigged unit and held prop in the actual Lab.
+ * The screenshots, not mathematical assertions, go to the vision GO/NO-GO gate.
+ */
+import {spawn} from "node:child_process";
+import {existsSync,mkdtempSync,readFileSync,writeFileSync,mkdirSync} from "node:fs";
+import {join,resolve} from "node:path";
+import {tmpdir} from "node:os";
+
+const [unit,prop,out]=process.argv.slice(2);
+if(!/^[a-z][a-z0-9_]*$/.test(unit||"") || !/^[a-z][a-z0-9_]*$/.test(prop||"")||!out)
+  throw Error("Usage: node scripts/capture-prop-contact.mjs <unit> <prop> <output-directory>");
+const output=resolve(out);
+mkdirSync(output,{recursive:true});
+const profile=mkdtempSync(join(tmpdir(),"wc-contact-chrome-"));
+const browser=spawn(process.env.CHROME_BIN||"google-chrome",[
+  "--headless=new","--no-sandbox","--enable-unsafe-swiftshader",
+  "--disable-dev-shm-usage","--no-first-run","--window-size=1280,800",
+  "--remote-debugging-port=0","--user-data-dir="+profile,"about:blank"
+],{stdio:"ignore"});
+const sleep=ms=>new Promise(done=>setTimeout(done,ms));
+let socket,serial=0;
+const pending=new Map();
+const request=(method,params={})=>new Promise((done,fail)=>{
+  const id=++serial;
+  const timeout=setTimeout(()=>{pending.delete(id);fail(Error(method+" timeout"));},20000);
+  pending.set(id,{done,fail,timeout});
+  socket.send(JSON.stringify({id,method,params}));
+});
+async function debuggerSocket(){
+  for(let t=0;t<200;t++){
+    if(browser.exitCode!==null)throw Error("Chrome unavailable");
+    const portFile=join(profile,"DevToolsActivePort");
+    if(existsSync(portFile)){
+      try{
+        const port=readFileSync(portFile,"utf8").split("\n")[0];
+        const tabs=await(await fetch("http://127.0.0.1:"+port+"/json/list")).json();
+        const page=tabs.find(x=>x.type==="page");
+        if(page?.webSocketDebuggerUrl)return page.webSocketDebuggerUrl;
+      }catch{}
+    }
+    await sleep(100);
+  }
+  throw Error("Chrome DevTools connection not ready");
+}
+const js=async expression=>{
+  const result=await request("Runtime.evaluate",{expression,returnByValue:true});
+  if(result.exceptionDetails)throw Error("Browser evaluation failed: "+expression.slice(0,90));
+  return result.result?.value;
+};
+async function capture(name){
+  await sleep(550);
+  const result=await request("Page.captureScreenshot",{format:"png",fromSurface:true});
+  const file=join(output,name+".png");
+  writeFileSync(file,Buffer.from(result.data,"base64"));
+  console.log("CONTACT_CAPTURE",name,file);
+}
+async function camera(angle){
+  await js(`(()=>{const e=BABYLON.EngineStore.LastCreatedEngine;
+    const c=e?.scenes?.[0]?.activeCamera;if(!c)throw Error('camera');
+    c.alpha=${angle};c.beta=Math.PI/2.12;c.setTarget(new BABYLON.Vector3(0,1.1,0));
+    c.lowerRadiusLimit=2.8;c.radius=4.5;
+    document.getElementById('world').scrollIntoView({block:'center'});
+    return true})()`);
+}
+try{
+  socket=new WebSocket(await debuggerSocket());
+  await new Promise((done,fail)=>{
+    socket.addEventListener("open",done,{once:true});
+    socket.addEventListener("error",()=>fail(Error("CDP socket failed")),{once:true});
+  });
+  socket.addEventListener("message",event=>{
+    const msg=JSON.parse(event.data),pendingRequest=pending.get(msg.id);
+    if(!pendingRequest)return;
+    pending.delete(msg.id);clearTimeout(pendingRequest.timeout);
+    msg.error?pendingRequest.fail(Error(JSON.stringify(msg.error))):pendingRequest.done(msg.result||{});
+  });
+  await request("Page.enable");await request("Runtime.enable");
+  await request("Emulation.setDeviceMetricsOverride",{width:1280,height:800,
+    deviceScaleFactor:1,mobile:false});
+  const url="http://127.0.0.1:4173/character-lab.html?unit="+
+    encodeURIComponent(unit)+"&prop="+encodeURIComponent(prop);
+  await request("Page.navigate",{url});
+  let ready=false,last="";
+  for(let i=0;i<150;i++){
+    await sleep(320);
+    const state=await js(`(()=>{const world=document.getElementById('world');
+      return {unit:world?.dataset.unitId||'',grip:world?.dataset.weaponGrip||'',
+      weapon:document.getElementById('weaponMetric')?.textContent||'',
+      attack:!document.getElementById('attackButton')?.disabled}})()`);
+    last=JSON.stringify(state);
+    if(state.unit===unit && state.grip==="vision-glb-anatomical-landmarks"){
+      ready=true;break;
+    }
+    if(state.weapon.startsWith("Prise refusée"))throw Error(state.weapon);
+  }
+  if(!ready)throw Error("Rig not ready with generic prop contact: "+last);
+  await camera(Math.PI/2);await capture("front");
+  await camera(0);await capture("side");
+  await camera(-Math.PI/2);await capture("back");
+  if(await js("!document.getElementById('attackButton').disabled")){
+    await js("document.getElementById('attackButton').click()");
+    await sleep(190);
+    await capture("action");
+  }
+  console.log("PASS: real animated humanoid holds requested prop in three browser views");
+}finally{
+  try{socket?.close();}catch{}
+  browser.kill("SIGTERM");
+}
