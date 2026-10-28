@@ -154,7 +154,7 @@ export function inventory() {
     });
   }
   return { schema: 1, characters, generatedAt: new Date().toISOString(),
-    note: "The sandbox moves the 3D character with WASD. Walk cycles require a separately rigged walking clip." };
+    note: "Units have explicit source_only, mesh_only, rigged or playable build status. Genuine Mixamo animations are available only when present in each unit GLB." };
 }
 
 function send(res, code, body, type) {
