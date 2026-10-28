@@ -53,10 +53,10 @@
   "automatic_paid_retries": 0,
   "visual_qa": {
     "status": "approved",
-    "signature": "a12fd9e33a832a8d28a392009e708c279c4e8d8ff7b223d7b91a27149be619ac",
+    "signature": "f2f4f015edf762b1a145c644e2220b4136814affd9cf7e67cb0f780ba5eaf24d",
     "confidence": 1.0,
     "issues": [],
-    "reason": "The character is holding the axe correctly, with the heavy end hanging naturally below the gripping hand. The blade faces away from the body, posing no risk to the holder. The scale of the axe appears plausible in relation to the character.",
+    "reason": "The axe is held correctly in a passive carry pose. The character grips the handle, and the heavy head of the axe hangs naturally below the hand due to gravity. The blade faces away from the character's body, posing no risk of self-injury. The scale of the axe appears plausible in relation to the character.",
     "vision_model": "google/gemini-2.5-flash-lite",
     "checked_views": [
       "front",
