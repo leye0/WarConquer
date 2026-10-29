@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Independent, Studio-style labeled bbox audit of vision-grounded GLB grips.
+"""Multi-view region annotation and independent overlay review of real GLBs.
+
+Default schema 2 uses complete views and semantic IDs, without old anchors.
+The explicit --legacy-crops option preserves historical schema-1 diagnostics.
 
 Builds on leye0/studio/services/create-scene-assets/src/
 scene-bbox-detector.js and rain-splash-zone-detector.js: labeled target crops,
@@ -338,13 +341,297 @@ def audit(plan_path,pass_id,model):
     print("PASS: Studio-style labeled physical regions corroborate GLB contacts",report_path.relative_to(ROOT))
 
 
+# Region schema 2 deliberately does not overwrite schema-1 vertex anchors.
+# B2-B4 establish image-space evidence; B5 must consume it without snapping.
+REGION_PROMPT_VERSION = 2
+
+
+def region_labels(semantic):
+    labels = {g['id']: {'role': 'grasp_region', 'description': g['surface']}
+              for g in semantic['grips']}
+    for feature in semantic['features']:
+        if feature['id'] in labels:
+            raise ValueError('Duplicate semantic ID across grips/features')
+        labels[feature['id']] = {'role': 'functional_region',
+            'description': feature['function'],
+            'direction_semantics': feature['direction_semantics']}
+    if len(labels) != len(semantic['grips']) + len(semantic['features']):
+        raise ValueError('Duplicate semantic IDs')
+    return labels
+
+
+def region_prompt(labels, order):
+    return (
+        'Locate the supplied semantic regions on FOUR complete views of the SAME '
+        'actual textured GLB. Each image is a separate VIEW 0..3. Use ONLY the '
+        'supplied IDs and descriptions; ID spelling does not redefine its function. '
+        'Identify each region anew from visible material, boundaries and function, '
+        'not from its screen position or length. Distinct grasp regions must bound '
+        'their distinct usable portions, not the entire shared shaft or body. '
+        'A functional region encloses the named EFFECT-producing surface, not the '
+        'whole supporting body. For a signed direction, locate origin on its '
+        'supporting material and direction_tip on the named functional surface; '
+        'the origin may be outside the functional region. Both points must touch '
+        'visible object pixels. Do not copy coordinates between views. '
+        'Return JSON {"views":[{"view":0,"objects":{"<id>":'
+        '{"visible":true,"box_2d":[a,b,c,d],"confidence":0.9,'
+        '"evidence":"visible physical identity and boundaries",'
+        '"origin":[x,y],"direction_tip":[x,y]}}}, ...]}. '
+        'Include each ID in EVERY view. box_2d order is ' + order +
+        '; all coordinates are normalized 0..1000 WITHIN that single full image, '
+        'including margins. Points ALWAYS use [x,y]. Only functional regions '
+        'need origin/direction_tip. For occluded, absent or ambiguous parts return '
+        'visible=false, confidence=0 and evidence explaining which additional view '
+        'would resolve it; omit box and points. Never invent a hidden location. '
+        'Grasp intervals on a uniform material can remain ambiguous: report it. '
+        'REQUESTED ROLES:\n' + json.dumps(labels, ensure_ascii=False))
+
+
+def validate_multiview(answer, labels, views, order):
+    records = answer.get('views') if isinstance(answer, dict) else None
+    if (not isinstance(records, list) or len(records) != 4 or
+            any(not isinstance(r, dict) or type(r.get('view')) is not int for r in records) or
+            {r['view'] for r in records} != set(range(4))):
+        raise ValueError('Exactly four distinct view IDs required')
+    result = []
+    for record in sorted(records, key=lambda r: r['view']):
+        boxes = validate_boxes(record, labels, order)
+        issues = visible_glb_region_issues(boxes, views[record['view']])
+        for label, box in boxes.items():
+            raw = record['objects'][label]
+            evidence = raw.get('evidence')
+            if not isinstance(evidence, str) or len(evidence.strip()) < 10:
+                raise ValueError('Missing visibility/identity evidence: ' + label)
+            box['evidence'] = evidence
+            if not box['visible']:
+                continue
+            if box['confidence'] < .75:
+                issues.append(label + ': low confidence')
+            if labels[label]['role'] == 'functional_region':
+                for field in ('origin', 'direction_tip'):
+                    point = raw.get(field)
+                    if (not isinstance(point, list) or len(point) != 2 or
+                            any(isinstance(v, bool) or not isinstance(v, (int, float)) or
+                                not math.isfinite(v) or not 0 <= v < 1000 for v in point)):
+                        raise ValueError('Invalid signed direction ' + label + '.' + field)
+                    box[field] = point
+                    x, y = (int(v * mesh_vision.VIEW_SIZE / 1000) for v in point)
+                    if not views[record['view']]['surface_mask'][y, x]:
+                        issues.append(label + ': ' + field + ' is on background')
+                if math.dist(box['origin'], box['direction_tip']) < 1:
+                    issues.append(label + ': signed direction collapses')
+                x, y = box['direction_tip']; x0, y0, x1, y1 = box['box_2d']
+                if not (x0 <= x <= x1 and y0 <= y <= y1):
+                    issues.append(label + ': direction tip outside functional region')
+        result.append({'view': record['view'], 'objects': boxes, 'issues': issues})
+    return result
+
+
+def review_prompt(labels):
+    return (
+        'Independently review the SAME physical part IDs across four actual GLB '
+        'views. For each VIEW you receive the untouched image and an overlay. '
+        'Inspect every rectangle against visible pixels and the supplied role '
+        'description, NOT merely its label. Distinct grasp portions must not be '
+        'swapped or merged. Inspect signed arrows: origin -> tip must follow the '
+        'supplied physical meaning; an active surface is not the entire body. '
+        'Compare the SAME ID across views and report contradictions, occlusion, '
+        'depth ambiguity or missing surfaces. Do not endorse unseen surfaces. '
+        'Return JSON {"views":[{"view":0,"objects":{"<id>":'
+        '{"verdict":"confirmed|rejected|unresolved","reason":"visual evidence"}}}, ...],'
+        '"cross_view":{"<id>":{"verdict":"confirmed|rejected|unresolved",'
+        '"reason":"identity and direction across views",'
+        '"additional_views":["needed camera or detail, if any"]}}}. '
+        'Exactly four views and every ID in each view and cross_view are required. '
+        'Return confirmed across views only with at least TWO useful views of '
+        'the same region and consistent signed directions. ROLES:\n' +
+        json.dumps(labels, ensure_ascii=False))
+
+
+def reviewed_regions(records, review, labels):
+    rows = review.get('views') if isinstance(review, dict) else None
+    if (not isinstance(rows, list) or len(rows) != 4 or
+            any(not isinstance(r, dict) or type(r.get('view')) is not int for r in rows) or
+            {r['view'] for r in rows} != set(range(4)) or
+            not isinstance(review.get('cross_view'), dict) or
+            set(review['cross_view']) != set(labels)):
+        raise ValueError('Incomplete independent multi-view review')
+    def check(entries):
+        if not isinstance(entries, dict) or set(entries) != set(labels):
+            raise ValueError('Reviewer omitted or invented region IDs')
+        for item in entries.values():
+            if (not isinstance(item, dict) or item.get('verdict') not in
+                    ('confirmed', 'rejected', 'unresolved') or
+                    not isinstance(item.get('reason'), str) or len(item['reason'].strip()) < 10):
+                raise ValueError('Invalid independent region verdict')
+    by_view = {r['view']: r for r in rows}
+    for row in rows: check(row.get('objects'))
+    check(review['cross_view'])
+    issues = []
+    for record in records:
+        issues.extend('view ' + str(record['view']) + ': ' + s for s in record['issues'])
+    coverage = {}
+    for label in labels:
+        accepted = []
+        for record in records:
+            region = record['objects'][label]
+            verdict = by_view[record['view']]['objects'][label]
+            if verdict['verdict'] == 'rejected':
+                issues.append(f'view {record["view"]}: {label}: ' + verdict['reason'])
+            if (region['visible'] and region['confidence'] >= .75 and
+                    not any(s.startswith(label + ':') for s in record['issues']) and
+                    verdict['verdict'] == 'confirmed'):
+                accepted.append(record['view'])
+        coverage[label] = accepted
+        cross = review['cross_view'][label]
+        if (not isinstance(cross.get('additional_views'), list) or
+                any(not isinstance(v, str) for v in cross['additional_views'])):
+            raise ValueError('Missing explicit additional-view requests')
+        if len(accepted) < 2:
+            issues.append(label + ': fewer than two independently confirmed visible views')
+        if cross['verdict'] != 'confirmed' or cross['additional_views']:
+            issues.append(label + ': cross-view unresolved: ' + cross['reason'])
+    return coverage, issues
+
+
+def region_request(folder, stage, model, prompt, images, provenance, allow_paid):
+    """One immutable request per stage; cache raw provider output before parsing."""
+    signature_data = {'schema': REGION_PROMPT_VERSION, 'stage': stage, 'model': model,
+        'prompt': prompt, 'images': [{'label': label,
+            'sha256': hashlib.sha256(data).hexdigest()} for label, data in images],
+        'provenance': provenance}
+    signature = hashlib.sha256(json.dumps(signature_data, sort_keys=True).encode()).hexdigest()
+    receipt = folder / (stage + '-' + signature + '.json')
+    if receipt.exists():
+        document = json.loads(receipt.read_text())
+        if document.get('signature') != signature or 'response' not in document:
+            raise ValueError('Previous request outcome unknown; no blind retry')
+        response = document['response']
+    else:
+        if not allow_paid:
+            raise ValueError('No cached receipt; explicit --allow-paid required')
+        key = os.environ.get('OPENROUTER_API_KEY', '').strip()
+        if not key: raise RuntimeError('OPENROUTER_API_KEY required in Actions')
+        content = [{'type': 'text', 'text': prompt}]
+        for label, data in images:
+            content.extend([{'type': 'text', 'text': label}, mesh_vision.image_part(data)])
+        payload = {'model': model, 'temperature': 0, 'max_tokens': 6000,
+            'provider': {'sort': 'price', 'max_price': {'prompt': 3, 'completion': 3}},
+            'messages': [{'role': 'user', 'content': content}]}
+        document = {**signature_data, 'signature': signature, 'status': 'submission-outcome-unknown'}
+        receipt.write_text(json.dumps(document, indent=2) + '\n')
+        request = Request(ENDPOINT, data=json.dumps(payload).encode(), method='POST',
+            headers={'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json'})
+        with urlopen(request, timeout=150) as response_stream:
+            response = json.loads(response_stream.read(400000))
+        document.update(status='received', response=response, usage=response.get('usage'))
+        receipt.write_text(json.dumps(document, ensure_ascii=False, indent=2) + '\n')
+    return parse_response(response['choices'][0]['message']['content']), receipt.name
+
+
+def audit_multiview(plan_path, pass_id, model, reviewer, allow_paid=False, prepare_only=False):
+    if not re.fullmatch(r'[a-z][a-z0-9_]{0,48}', pass_id):
+        raise ValueError('Immutable region pass ID required')
+    if reviewer == model: raise ValueError('Region reviewer must use a different model')
+    order = native_box_order(model)
+    plan = json.loads(plan_path.read_text())
+    semantic, semantic_hash = mesh_vision.confirmed_interaction(plan_path, plan)
+    if semantic is None: raise ValueError('Confirmed semantic contract required')
+    glb = (ROOT / plan['inputs']['object_glb']).resolve()
+    if not glb.is_relative_to(ROOT): raise ValueError('GLB outside repository')
+    digest = hashlib.sha256(glb.read_bytes()).hexdigest()
+    if digest != plan['input_hashes']['prop_glb_sha256']:
+        raise ValueError('Stale GLB provenance')
+    labels = region_labels(semantic)
+    rendered, views = mesh_vision.make_views(mesh_vision.glb_geometry(glb))
+    # Changing an input or either prompt/model produces a new evidence directory.
+    bundle_hash = hashlib.sha256(json.dumps({'glb': digest, 'semantic': semantic_hash,
+        'render': hashlib.sha256(rendered).hexdigest(), 'model': model, 'reviewer': reviewer,
+        'annotation_prompt': region_prompt(labels, order),
+        'review_prompt': review_prompt(labels), 'schema': REGION_PROMPT_VERSION},
+        sort_keys=True).encode()).hexdigest()[:16]
+    folder = plan_path.parent / 'vision-region-receipts' / ('multiview-' + pass_id + '-' + bundle_hash)
+    folder.mkdir(parents=True, exist_ok=True)
+    provenance = {'glb_sha256': digest, 'interaction_sha256': semantic_hash,
+        'prompt_version': REGION_PROMPT_VERSION}
+    images = []; panels = []
+    mosaic = Image.open(io.BytesIO(rendered)); size = mesh_vision.VIEW_SIZE
+    cameras = []
+    for i, view in enumerate(views):
+        panel = mosaic.crop(((i % 2)*size, (i // 2)*size, (i % 2+1)*size, (i // 2+1)*size))
+        data = io.BytesIO(); panel.save(data, format='PNG'); data = data.getvalue()
+        (folder / f'view-{i}.png').write_bytes(data)
+        panels.append(panel); images.append((f'VIEW {i} unannotated full image', data))
+        cameras.append({k: v.tolist() if isinstance(v, np.ndarray) else v
+                        for k, v in view.items() if k != 'surface_mask'})
+    (folder / 'inputs.json').write_text(json.dumps({**provenance, 'roles': labels,
+        'coordinate_frame': 'full_view_xyxy_normalized_1000',
+        'image_size': [size, size], 'crop': [0, 0, size, size],
+        'projection': 'orthographic: x=size/2+(world-center).right*scale; y=size/2-(world-center).up*scale',
+        'cameras': cameras, 'images': [{'file': f'view-{i}.png',
+            'sha256': hashlib.sha256(data).hexdigest()} for i, (_, data) in enumerate(images)]}, indent=2) + '\n')
+    if prepare_only:
+        print('Prepared four complete GLB views:', folder.relative_to(ROOT)); return
+    report_path = folder / 'report.json'
+    report = {**provenance, 'schema': 2, 'status': 'needs_review',
+        'glb_surface_status': 'unresolved_pending_B5', 'issues': []}
+    try:
+        answer, receipt = region_request(folder, 'annotation', model,
+            region_prompt(labels, order), images, provenance, allow_paid)
+        records = validate_multiview(answer, labels, views, order)
+        report.update(views=records, annotation_receipt=receipt)
+        review_images = []
+        for record in records:
+            i = record['view']
+            overlay = Image.open(io.BytesIO(render_overlay(panels[i], record['objects'], {})))
+            draw = ImageDraw.Draw(overlay)
+            for region in record['objects'].values():
+                if not region['visible'] or 'origin' not in region: continue
+                a, b = [[v * size / 1000 for v in region[k]] for k in ('origin', 'direction_tip')]
+                draw.line((*a, *b), fill=(255, 80, 0), width=3)
+                draw.ellipse((b[0]-4, b[1]-4, b[0]+4, b[1]+4), fill=(255,80,0))
+                draw.text(tuple(a), 'origin', fill=(200,60,0)); draw.text(tuple(b), 'tip', fill=(200,60,0))
+            data = io.BytesIO(); overlay.save(data, format='PNG'); data = data.getvalue()
+            (folder / f'overlay-{i}.png').write_bytes(data)
+            review_images.extend([images[i], (f'VIEW {i} labeled regions and signed directions', data)])
+        review, review_receipt = region_request(folder, 'review', reviewer,
+            review_prompt(labels), review_images, provenance, allow_paid)
+        coverage, issues = reviewed_regions(records, review, labels)
+        report.update(review=review, review_receipt=review_receipt,
+            confirmed_views=coverage, issues=issues,
+            status='confirmed_2d' if not issues else 'needs_review')
+    except (ValueError, RuntimeError, KeyError, IndexError, TypeError, OSError) as error:
+        report['issues'].append(str(error))
+        raise
+    finally:
+        report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
+        # Publish a source-matched image-space report, never upgrade old vertices,
+        # contact anatomy or the existing rejected pose verdict.
+        plan['mesh_region_review'] = {'schema': 2, **provenance,
+            'status': report['status'], 'review': str(report_path.relative_to(ROOT)),
+            'glb_surface_status': report['glb_surface_status']}
+        plan_path.write_text(json.dumps(plan, ensure_ascii=False, indent=2) + '\n')
+    if report['issues']: raise ValueError('; '.join(report['issues']))
+    print('Confirmed 2D regions only; B5 surfaces still unresolved:', report_path.relative_to(ROOT))
+
+
 if __name__=="__main__":
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plan",required=True)
     parser.add_argument("--pass-id",default="studio_flash_audit")
-    parser.add_argument("--model",default=MODEL)
+    parser.add_argument("--model",default="qwen/qwen3-vl-32b-instruct")
+    parser.add_argument("--reviewer",default="qwen/qwen3-vl-235b-a22b-instruct")
+    parser.add_argument("--legacy-crops",action="store_true")
+    parser.add_argument("--allow-paid",action="store_true")
+    parser.add_argument("--prepare-only",action="store_true")
     args=parser.parse_args()
     target=(ROOT/args.plan).resolve()
     if not target.is_file() or not target.is_relative_to(ROOT):
         raise ValueError("Audited plan must be a canonical repository file")
-    audit(target,args.pass_id,args.model)
+    if args.legacy_crops:
+        if not args.allow_paid:
+            raise ValueError("Legacy audit requires --allow-paid (may reuse receipts)")
+        audit(target,args.pass_id,args.model)
+    else:
+        audit_multiview(target,args.pass_id,args.model,args.reviewer,
+                        args.allow_paid,args.prepare_only)

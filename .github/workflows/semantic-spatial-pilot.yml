@@ -2,9 +2,11 @@ name: Equipment · versioned multi-pass GLB vision pilot
 
 on:
   push:
-    branches: [feat/semantic-prop-contact-contract]
+    branches: [feat/semantic-prop-contact-contract, fix/held-prop-multiview-regions]
     paths:
       - '.github/workflows/semantic-spatial-pilot.yml'
+      - 'scripts/audit-prop-vision-regions.py'
+      - 'scripts/test-audit-prop-vision-regions.py'
 
 permissions:
   contents: write
@@ -35,31 +37,14 @@ jobs:
           python scripts/test-prop-visual-qa.py
           python scripts/test-verify-prop-visual-qa.py
           node scripts/test-prop-motion-contact.mjs
-      - name: Ground GLB points with exact coordinate grid and strict spatial schema
+      - name: Annotate complete GLB views and independently review exact overlays
         run: |
-          # Second Qwen reply localized named grips, but emitted four-number
-          # BOXES for legacy two-number POINTS. The stronger schema prevents
-          # this; visible panel ticks enable unambiguous mesh coordinates.
-          # Immutable failed results and raw evidence remain inspectable.
-          python scripts/prop-mesh-landmarks.py \
-            --plan assets/experiments/props/marches_hache/trellis-v1/grip-plan.json \
-            --pass-id qwen_grid_ticks --model qwen/qwen3-vl-235b-a22b-instruct
-      - name: Independently detect labeled 0-1000 rectangles with Studio's Gemini Flash vision
-        run: |
-          # Official Gemini image-understanding order is [ymin,xmin,ymax,xmax],
-          # NOT Studio's custom [xmin,ymin,xmax,ymax]. Keep native wire format;
-          # convert to canonical XYXY only after parsing/validation.
-          # Reuse the immutable native pass receipt. Its verified metal-edge
-          # and handle-butt boxes now ground REAL corrected mesh vertices;
-          # visually indistinguishable bare-shaft grasp locations belong to
-          # the articulated Mixamo/IK phase, not pixel-level box detection.
-          # Studio's labeled contact-sheet protocol: enlarged independent
-          # TARGET crops per confirmed semantic ID, each with its OWN 0..1000
-          # box_2d frame. Remap to the original GLB view after vision.
-          # The initial full-view pass missed thin shaft regions by ~20 pixels.
+          # B2-B4 only: two bounded, cached requests; no old-point crops or vertex repair.
           python scripts/audit-prop-vision-regions.py \
             --plan assets/experiments/props/marches_hache/trellis-v1/grip-plan.json \
-            --pass-id studio_flash_native3 --model google/gemini-2.5-flash
+            --pass-id full_views_v2 \
+            --model qwen/qwen3-vl-32b-instruct \
+            --reviewer qwen/qwen3-vl-235b-a22b-instruct --allow-paid
       - name: Preserve the GLB source-matched vision receipts and the canonical plan on the feature branch
         if: always()
         shell: bash
@@ -70,7 +55,7 @@ jobs:
           git add -A -- assets/experiments/props/marches_hache/trellis-v1/
           if ! git diff --cached --quiet; then
             git commit -m 'assets: capture real GLB regions and immutable OpenRouter vision receipt'
-            git push origin HEAD:feat/semantic-prop-contact-contract
+            git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
       - uses: actions/upload-artifact@v4
         if: always()
@@ -81,7 +66,7 @@ jobs:
             assets/experiments/props/marches_hache/trellis-v1/vision-input-*.png
             assets/experiments/props/marches_hache/trellis-v1/vision-regions-*.png
             assets/experiments/props/marches_hache/trellis-v1/vision-region-review-*.json
-            assets/experiments/props/marches_hache/trellis-v1/vision-region-receipts/*.json
+            assets/experiments/props/marches_hache/trellis-v1/vision-region-receipts/**
             assets/experiments/props/marches_hache/trellis-v1/vision-landmark-receipts/*.json
             assets/experiments/props/marches_hache/trellis-v1/grip-plan.json
           if-no-files-found: ignore
