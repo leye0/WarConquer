@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from PIL import Image
+import numpy as np
 
 path=Path(__file__).with_name("audit-prop-vision-regions.py")
 spec=importlib.util.spec_from_file_location("wc_studio_prop_bbox_audit",path)
@@ -59,9 +60,8 @@ else:raise AssertionError("Invented semantic grip not blocked")
 print("PASS: Studio 0..1000 labeled bboxes, exact IDs and visible review overlays")
 
 # Real textured axe regression: the two independent vision passes disagreed
-# about its physical BOTTOM and cutting EDGE. Only the Gemini-confirmed
-# labeled rectangles may repair those locations; a numerical longest-axis
-# heuristic is prohibited.
+# about its physical BOTTOM and cutting EDGE. A disputed labeled rectangle
+# cannot repair an anchor until its true triangle surface is demonstrated.
 meshes=module.mesh_vision.glb_geometry(module.ROOT/
     "assets/experiments/props/marches_hache/trellis-v1/axe.glb")
 _,views=module.mesh_vision.make_views(meshes)
@@ -80,12 +80,36 @@ native_regions={name:{"visible":True,"box_2d":list(box),"confidence":.9}
         "handle_butt":(443.1,925.9,500.3,945.6),
         "working_head":(374.2,206.7,608.9,450.2),
         "functional_edge":(272.2,360.8,343.1,456.1)}.items()}
-fixed=module.reconcile_physical_regions(real_plan,meshes,views[2],native_regions)
-assert set(fixed)=={"handle_butt","functional_edge"},fixed
-for name in fixed:
-    x,y=module.project_confirmed_point(real_plan["mesh_landmarks"]["points"][name],meshes,views[2])
-    x0,y0,x1,y1=native_regions[name]["box_2d"]
-    assert x0<=x<=x1 and y0<=y<=y1,(name,x,y)
+# The real GLB renderer must expose its exact object-pixel depth mask,
+# independently of grid, labels, material colors and the source illustration.
+mask=views[2]["surface_mask"]
+assert mask.shape==(module.mesh_vision.VIEW_SIZE,)*2
+assert mask.any() and not mask[0,0]
+ys,xs=np.nonzero(mask)
+sample=len(xs)//2
+x,y=int(xs[sample]),int(ys[sample])
+scale=1000/module.mesh_vision.VIEW_SIZE
+visible_box={"surface":{"visible":True,
+    "box_2d":[x*scale,y*scale,(x+1)*scale,(y+1)*scale],
+    "confidence":.99}}
+assert not module.visible_glb_region_issues(visible_box,views[2])
+empty_box={"empty":{"visible":True,"box_2d":[0,0,20,20],"confidence":.99}}
+issues=module.visible_glb_region_issues(empty_box,views[2])
+assert len(issues)==1 and "no visible GLB surface pixels" in issues[0],issues
+try:module.visible_glb_region_issues(empty_box,{"surface_mask":None})
+except ValueError as error:assert "mask is missing" in str(error)
+else:raise AssertionError("Accepted missing depth/visibility evidence")
+
+# Historic bbox-center/nearest-vertex snap is precisely the unsafe shortcut
+# the B5 triangle patch contract forbids. Preserve rejected points and labels.
+before=json.dumps(real_plan,sort_keys=True)
+try:module.reconcile_physical_regions(real_plan,meshes,views[2],native_regions)
+except ValueError as error:assert "disabled" in str(error)
+else:raise AssertionError("Silently repaired a semantic region by vertex snapping")
+assert json.dumps(real_plan,sort_keys=True)==before
+_,issues=module.qa_points(real_plan,meshes,views[2],native_regions)
+assert any("handle_butt" in issue for issue in issues),issues
+assert any("functional_edge" in issue for issue in issues),issues
 assert (real_plan["mesh_landmarks"]["features"]["axe_head"]["direction_tip"]==
     real_plan["mesh_landmarks"]["points"]["functional_edge"])
-print("PASS: second VLM's native boxes re-anchor real blade/butt, preserve semantic names")
+print("PASS: real GLB pixels gate 2D regions and legacy anchors are never auto-repaired")
