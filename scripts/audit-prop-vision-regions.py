@@ -549,12 +549,14 @@ def reviewed_regions(records, review, labels):
     return coverage, issues
 
 
-def region_request(folder, stage, model, prompt, images, provenance, allow_paid):
+def region_request(folder, stage, model, prompt, images, provenance, allow_paid, request_options=None):
     """One immutable request per stage; cache raw provider output before parsing."""
     signature_data = {'schema': REGION_PROMPT_VERSION, 'stage': stage, 'model': model,
         'prompt': prompt, 'images': [{'label': label,
             'sha256': hashlib.sha256(data).hexdigest()} for label, data in images],
         'provenance': provenance}
+    if request_options:
+        signature_data['request_options'] = request_options
     signature = hashlib.sha256(json.dumps(signature_data, sort_keys=True).encode()).hexdigest()
     receipt = folder / (stage + '-' + signature + '.json')
     if receipt.exists():
@@ -573,6 +575,7 @@ def region_request(folder, stage, model, prompt, images, provenance, allow_paid)
         payload = {'model': model, 'temperature': 0, 'max_tokens': 6000,
             'provider': {'sort': 'price', 'max_price': {'prompt': 3, 'completion': 3}},
             'messages': [{'role': 'user', 'content': content}]}
+        payload.update(request_options or {})
         document = {**signature_data, 'signature': signature, 'status': 'submission-outcome-unknown'}
         receipt.write_text(json.dumps(document, indent=2) + '\n')
         request = Request(ENDPOINT, data=json.dumps(payload).encode(), method='POST',
@@ -587,7 +590,10 @@ def region_request(folder, stage, model, prompt, images, provenance, allow_paid)
             raise
         document.update(status='received', response=response, usage=response.get('usage'))
         receipt.write_text(json.dumps(document, ensure_ascii=False, indent=2) + '\n')
-    return parse_response(response['choices'][0]['message']['content']), receipt.name
+    choice = response['choices'][0]
+    if choice.get('finish_reason') == 'length':
+        raise ValueError('Provider exhausted output budget before complete region JSON')
+    return parse_response(choice['message']['content']), receipt.name
 
 
 def audit_multiview(plan_path, pass_id, model, reviewer, allow_paid=False, prepare_only=False):
@@ -656,7 +662,8 @@ def audit_multiview(plan_path, pass_id, model, reviewer, allow_paid=False, prepa
             (folder / f'overlay-{i}.png').write_bytes(data)
             review_images.extend([images[i], (f'VIEW {i} labeled regions and signed directions', data)])
         review, review_receipt = region_request(folder, 'review', reviewer,
-            review_prompt(labels), review_images, provenance, allow_paid)
+            review_prompt(labels), review_images, provenance, allow_paid,
+            request_options={'reasoning': {'enabled': False}})
         coverage, issues = reviewed_regions(records, review, labels)
         report.update(review=review, review_receipt=review_receipt,
             confirmed_views=coverage, issues=issues,

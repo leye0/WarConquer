@@ -221,3 +221,16 @@ with patch.object(module,'region_request',side_effect=unwrapped_request):
     unwrapped,_=module.annotate_individual_views(Path('/tmp'),'test',labels,
         'xmin_ymin_xmax_ymax',images,{},False)
 assert unwrapped==per_view
+
+# Replay the actual paid false-positive review: the second model approved a
+# copied edge on the opposite camera even though its tip is on background.
+receipt_folder=module.ROOT/'assets/experiments/props/marches_hache/trellis-v1/vision-region-receipts/multiview-full_views_v2-c1162a3241ae0a17'
+annotation=json.loads(next(receipt_folder.glob('annotation-*.json')).read_text())
+review_receipt=json.loads(next(receipt_folder.glob('review-*.json')).read_text())
+raw=module.parse_response(annotation['response']['choices'][0]['message']['content'])
+verdict=module.parse_response(review_receipt['response']['choices'][0]['message']['content'])
+recorded=module.validate_multiview(raw,labels,views,'xmin_ymin_xmax_ymax')
+coverage,issues=module.reviewed_regions(recorded,verdict,labels)
+assert any('view 3: axe_head: direction_tip is on background' in issue for issue in issues)
+assert coverage['axe_head']==[2],coverage
+print('PASS: actual Qwen false-positive review cannot approve the mirrored-view edge in empty space')
