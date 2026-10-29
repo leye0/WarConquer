@@ -234,3 +234,22 @@ coverage,issues=module.reviewed_regions(recorded,verdict,labels)
 assert any('view 3: axe_head: direction_tip is on background' in issue for issue in issues)
 assert coverage['axe_head']==[2],coverage
 print('PASS: actual Qwen false-positive review cannot approve the mirrored-view edge in empty space')
+
+# A revision receives ONLY its disputed camera and cannot alter the other views.
+clean=module.validate_multiview(proposal,labels,synthetic_views,'xmin_ymin_xmax_ymax')
+clean[3]['issues']=['axe_head: direction_tip is on background']
+requests=[]
+def repair_request(folder,stage,model,prompt,images,provenance,allow_paid):
+    requests.append((stage,images,prompt))
+    return {'objects':proposal['views'][3]['objects']},'revision.json'
+with patch.object(module,'region_request',side_effect=repair_request):
+    repaired,receipts=module.refine_region_views(Path('/tmp'),1,'test',labels,
+        'xmin_ymin_xmax_ymax',clean,review,images,{},False)
+assert len(requests)==1 and requests[0][1]==[images[3]]
+assert 'direction_tip is on background' in requests[0][2]
+assert receipts==['revision.json']
+assert repaired['views'][:3]==[{'view':r['view'],'objects':r['objects']} for r in clean[:3]]
+try:module.audit_multiview(Path('/tmp/nonexistent'), 'test', 'test', 'review', max_revisions=3)
+except ValueError as e:assert 'At most two' in str(e)
+else:raise AssertionError('Unbounded revision loop')
+print('PASS: bounded revisions target only disputed cameras without geometric annotation edits')

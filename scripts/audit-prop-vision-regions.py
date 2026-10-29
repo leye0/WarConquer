@@ -596,7 +596,45 @@ def region_request(folder, stage, model, prompt, images, provenance, allow_paid,
     return parse_response(choice['message']['content']), receipt.name
 
 
-def audit_multiview(plan_path, pass_id, model, reviewer, allow_paid=False, prepare_only=False):
+def refine_region_views(folder, round_id, model, labels, order, records, review,
+                        images, provenance, allow_paid):
+    """One targeted revision per disputed camera; no geometry edits annotations."""
+    reviewer_views = {r['view']: r['objects'] for r in review['views']}
+    rows = []; receipts = []
+    for record in records:
+        i = record['view']
+        disputes = {label: verdict for label, verdict in reviewer_views[i].items()
+                    if verdict['verdict'] != 'confirmed' and record['objects'][label]['visible']}
+        cross = {label: verdict for label, verdict in review['cross_view'].items()
+                 if verdict['verdict'] != 'confirmed'}
+        if not record['issues'] and not disputes and not cross:
+            rows.append({'view': i, 'objects': record['objects']}); continue
+        prompt = single_view_prompt(labels, order) + (
+            '\nThis is a TARGETED REVISION of this same camera, not a request to '
+            'repeat your previous answer. Reinspect visible pixels. The prior '
+            'annotation below is disputed and must not be treated as truth. '
+            'Return corrected boundaries/points only when visible; otherwise '
+            'set visible=false and explain the missing evidence. A functional '
+            'edge must bound its effect-producing strip, not the supporting '
+            'body. A named material region must stop at its material boundary. '
+            'Do not invent a numerical shift to satisfy a metric. Geometry has '
+            'not supplied replacement coordinates. PREVIOUS ANNOTATION AND FAILURES:\n' +
+            json.dumps({'objects': record['objects'], 'pixel_errors': record['issues'],
+                        'independent_review': disputes, 'cross_view_issues': cross},
+                       ensure_ascii=False))
+        answer, receipt = region_request(folder, f'revision-{round_id}-view-{i}', model,
+            prompt, [images[i]], provenance, allow_paid)
+        if isinstance(answer, dict) and set(answer) == set(labels):
+            answer = {'objects': answer}
+        if not isinstance(answer, dict) or set(answer) != {'objects'}:
+            raise ValueError('Revision must preserve the exact semantic objects map')
+        rows.append({'view': i, 'objects': answer['objects']}); receipts.append(receipt)
+    return {'views': rows}, receipts
+
+
+def audit_multiview(plan_path, pass_id, model, reviewer, allow_paid=False, prepare_only=False, max_revisions=0):
+    if type(max_revisions) is not int or not 0 <= max_revisions <= 2:
+        raise ValueError("At most two targeted revision rounds are permitted")
     if not re.fullmatch(r'[a-z][a-z0-9_]{0,48}', pass_id):
         raise ValueError('Immutable region pass ID required')
     if reviewer == model: raise ValueError('Region reviewer must use a different model')
@@ -645,29 +683,38 @@ def audit_multiview(plan_path, pass_id, model, reviewer, allow_paid=False, prepa
     try:
         answer, receipts = annotate_individual_views(folder, model, labels, order,
             images, provenance, allow_paid)
-        records = validate_multiview(answer, labels, views, order)
-        report.update(views=records, annotation_receipts=receipts)
-        review_images = []
-        for record in records:
-            i = record['view']
-            overlay = Image.open(io.BytesIO(render_overlay(panels[i], record['objects'], {})))
-            draw = ImageDraw.Draw(overlay)
-            for region in record['objects'].values():
-                if not region['visible'] or 'origin' not in region: continue
-                a, b = [[v * size / 1000 for v in region[k]] for k in ('origin', 'direction_tip')]
-                draw.line((*a, *b), fill=(255, 80, 0), width=3)
-                draw.ellipse((b[0]-4, b[1]-4, b[0]+4, b[1]+4), fill=(255,80,0))
-                draw.text(tuple(a), 'origin', fill=(200,60,0)); draw.text(tuple(b), 'tip', fill=(200,60,0))
-            data = io.BytesIO(); overlay.save(data, format='PNG'); data = data.getvalue()
-            (folder / f'overlay-{i}.png').write_bytes(data)
-            review_images.extend([images[i], (f'VIEW {i} labeled regions and signed directions', data)])
-        review, review_receipt = region_request(folder, 'review', reviewer,
-            review_prompt(labels), review_images, provenance, allow_paid,
-            request_options={'reasoning': {'enabled': False}})
-        coverage, issues = reviewed_regions(records, review, labels)
-        report.update(review=review, review_receipt=review_receipt,
-            confirmed_views=coverage, issues=issues,
-            status='confirmed_2d' if not issues else 'needs_review')
+        for attempt in range(max_revisions + 1):
+            records = validate_multiview(answer, labels, views, order)
+            report.update(views=records, annotation_receipts=receipts)
+            review_images = []
+            for record in records:
+                i = record['view']
+                overlay = Image.open(io.BytesIO(render_overlay(panels[i], record['objects'], {})))
+                draw = ImageDraw.Draw(overlay)
+                for region in record['objects'].values():
+                    if not region['visible'] or 'origin' not in region: continue
+                    a, b = [[v * size / 1000 for v in region[k]] for k in ('origin', 'direction_tip')]
+                    draw.line((*a, *b), fill=(255, 80, 0), width=3)
+                    draw.ellipse((b[0]-4, b[1]-4, b[0]+4, b[1]+4), fill=(255,80,0))
+                    draw.text(tuple(a), 'origin', fill=(200,60,0)); draw.text(tuple(b), 'tip', fill=(200,60,0))
+                data = io.BytesIO(); overlay.save(data, format='PNG'); data = data.getvalue()
+                (folder / (f'overlay-{i}.png' if attempt == 0 else f'overlay-r{attempt}-{i}.png')).write_bytes(data)
+                review_images.extend([images[i], (f'VIEW {i} labeled regions and signed directions', data)])
+            review, review_receipt = region_request(folder, 'review' if attempt == 0 else f'review-r{attempt}', reviewer,
+                review_prompt(labels) + ('' if attempt == 0 else '\nExact annotations to verify against the images: '+json.dumps(records)), review_images, provenance, allow_paid,
+                request_options={'reasoning': {'enabled': False}})
+            coverage, issues = reviewed_regions(records, review, labels)
+            report.update(review=review, review_receipt=review_receipt,
+                confirmed_views=coverage, issues=issues,
+                status='confirmed_2d' if not issues else 'needs_review')
+            snapshot = json.dumps(report, ensure_ascii=False, indent=2) + '\n'
+            stamp = hashlib.sha256(snapshot.encode()).hexdigest()[:16]
+            (folder / f'attempt-{attempt}-{stamp}.json').write_text(snapshot)
+            if not issues or attempt == max_revisions:
+                break
+            answer, revision_receipts = refine_region_views(folder, attempt+1, model,
+                labels, order, records, review, images, provenance, allow_paid)
+            receipts = receipts + revision_receipts
     except (ValueError, RuntimeError, KeyError, IndexError, TypeError, OSError) as error:
         report['issues'].append(str(error))
         raise
@@ -692,6 +739,7 @@ if __name__=="__main__":
     parser.add_argument("--legacy-crops",action="store_true")
     parser.add_argument("--allow-paid",action="store_true")
     parser.add_argument("--prepare-only",action="store_true")
+    parser.add_argument("--max-revisions",type=int,choices=(0,1,2),default=0)
     args=parser.parse_args()
     target=(ROOT/args.plan).resolve()
     if not target.is_file() or not target.is_relative_to(ROOT):
@@ -702,4 +750,4 @@ if __name__=="__main__":
         audit(target,args.pass_id,args.model)
     else:
         audit_multiview(target,args.pass_id,args.model,args.reviewer,
-                        args.allow_paid,args.prepare_only)
+                        args.allow_paid,args.prepare_only,args.max_revisions)
