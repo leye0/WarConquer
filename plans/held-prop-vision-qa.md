@@ -13,7 +13,7 @@ Un personnage tient réellement l'objet au bon endroit, avec la ou les mains att
 
 ## Feuille de route détaillée — cases à cocher et preuves
 
-**Référence d'avancement : branche `feat/semantic-prop-contact-contract`, pilote `marches_hache`, état au 2026-10-28.** `[x]` signifie qu'un livrable précis existe et est identifiable dans le dépôt, **pas** que l'étape suivante a été validée. `[ ]` signifie non démontré, incomplet ou rejeté. Toute case portant sur la qualité de prise reste ouverte jusqu'à vérification sur le rendu réel. La hache est actuellement **`VISUAL_NO_GO`**, malgré les distances de paumes numériquement acceptées par le prototype.
+**Référence d'avancement : pilote `marches_hache`, preuves historiques de la [PR #2](https://github.com/leye0/WarConquer/pull/2) (`feat/semantic-prop-contact-contract`), état au 2026-10-28; après fusion, reprendre depuis `main`.** `[x]` signifie qu'un livrable précis existe et est identifiable dans le dépôt, **pas** que l'étape suivante a été validée. `[ ]` signifie non démontré, incomplet ou rejeté. Toute case portant sur la qualité de prise reste ouverte jusqu'à vérification sur le rendu réel. La hache est actuellement **`VISUAL_NO_GO`**, malgré les distances de paumes numériquement acceptées par le prototype.
 
 **Preuves existantes :** `assets/experiments/props/marches_hache/trellis-v1/interaction-contract.json` (sens et modes de la hache), `scripts/rig-contact-landmarks.js` (repères anatomiques), `scripts/character-lab-client.js` (prototype de fitting/IK), `scripts/capture-prop-contact.mjs` (captures/mesures), `scripts/verify-prop-visual-qa.py` et `scripts/run-prop-visual-qa.py` (verdict indépendant), `assets/experiments/props/marches_hache/trellis-v1/grip-plan.json` (`visual_qa.status: rejected`). Ces preuves ne démontrent **ni** un repère de surface 3D complet **ni** une prise anatomiquement correcte.
 
@@ -112,7 +112,7 @@ Un personnage tient réellement l'objet au bon endroit, avec la ou les mains att
 - [ ] H2. Faire un second pilote : **pot rempli ouvert**, puis le *même* GLB vide, rempli scellé et en mode `pour`; vérifier états, gravité et transitions.
 - [ ] H3. Tester le **fusil** (deux mains + épaule + bouche orientée), l'**arc** (corde/contact mobile), le **bouclier** (sangle avant-bras), la **lanterne** (suspension/pivot).
 - [ ] H4. Étendre progressivement la matrice des **26 scénarios** du [contrat d'affordances](held-object-affordance-contract.md) avec preuves et contre-exemples, sans écrire de branche spéciale « si hache » / « si pot » dans le solveur.
-- [ ] H5. Publier/fusionner la fonctionnalité uniquement lorsque les critères des modes annoncés sont réellement démontrés; ne jamais présenter l'ensemble des 26 scénarios comme implémenté avant leurs vérifications.
+- [ ] H5. **Déclarer un mode `fully_ready` et sa prise validée** uniquement lorsque tous ses critères sont démontrés; ne jamais présenter les 26 scénarios comme implémentés avant leurs vérifications. Une **fusion explicitement demandée de travaux WIP dans `main`** reste une intégration de code **non validé** : conserver `VISUAL_NO_GO`, les preuves d'échec et les cases ouvertes, sans annoncer de succès.
 
 **Ordre de priorité immédiat :** **vérifier B2–B4**, puis **B5–B8** (régions de vision → surface réelle) → **C3–C7** (paume/poignet/doigts) → **D2–D9** (préhension 6D couplée) → **F2–F7** (régressions) → **G3–G9** (preuve visuelle) → **H1** (hache). Les fondations déjà cochées sont réutilisées; on n'accumule pas de nouveaux essais de rotation du manche autour de deux points.
 
