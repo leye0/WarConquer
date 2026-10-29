@@ -191,7 +191,19 @@ def prepare_requests(doc, prop):
     """Materialize reproducible requests from a vision description, never overwrite edits."""
     description = prop.get("description")
     if not description:
-        raise ValueError("No source-grounded equipment description for " + prop["id"])
+        # Historical units may already have an original, hand-reviewed
+        # generation brief instead of an equipment-analysis receipt. Reuse
+        # that SOURCE evidence; do not hallucinate a description or charge a
+        # new identification call merely to backfill metadata.
+        original = safe(prop["source_request"])
+        if original.is_file():
+            old = json.loads(original.read_text(encoding="utf8"))
+            if (old.get("output") == prop["source_image"] and
+                    doc["source"]["character_image"] in old.get("references", []) and
+                    isinstance(old.get("prompt"), str) and old["prompt"].strip()):
+                description = old["prompt"]
+        if not description:
+            raise ValueError("No source-grounded equipment description for " + prop["id"])
     image = doc["source"]["character_image"]
     source_req = {"prompt": "Reconstruct exactly ONE separate removable equipment object from "
                   "the supplied original character image. Preserve the original object's design, "
@@ -203,6 +215,14 @@ def prepare_requests(doc, prop):
                   "reference_role": "identity"}
     # Existing original generation briefs remain authoritative and are reused.
     records = [(prop["source_request"], source_req),
+       (prop["interaction_request"], {"schema": 2,
+          "object_id": prop["id"], "object_kind": prop["kind"],
+          "object_image": prop["source_image"],
+          "character_image": image,
+          "generation_request": prop["source_request"],
+          "motion_library": doc.get("body", {}).get("animations", "data/motion-library.json"),
+          "output_path": prop["interaction"], "vision_model": MODEL,
+          "vision_strategy": "evidence_driven"}),
        (prop["trellis_request"], {"schema": 1, "source_image": prop["source_image"],
           "output_path": prop["glb"], "replicate_model": "firtoz/trellis",
           "maximum_paid_predictions": 1, "automatic_paid_retries": 0}),
@@ -210,12 +230,12 @@ def prepare_requests(doc, prop):
           "character_image": image, "generation_request": prop["source_request"],
           "output_path": prop["physical_size"], "vision_model": MODEL,
           "maximum_paid_requests": 1, "automatic_paid_retries": 0}),
-       (prop["grip_request"], {"schema": 1,
+       (prop["grip_request"], {"schema": 3,
           "experiment": doc["id"] + "-" + prop["id"] + "-grip",
           "object_image": prop["source_image"], "character_image": image,
-          "object_glb": prop["glb"], "output_path": prop["grip"],
-          "vision_model": MODEL, "maximum_paid_requests": 1,
-          "automatic_paid_retries": 0})]
+          "object_glb": prop["glb"], "interaction_contract": prop["interaction"],
+          "output_path": prop["grip"],
+          "vision_model": MODEL, "vision_strategy": "evidence_driven"})]
     for rel, record in records:
         path = safe(rel)
         if path.exists():

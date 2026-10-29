@@ -1,0 +1,111 @@
+{
+  "schema": 1,
+  "object_id": "axe",
+  "source_hashes": {
+    "object_image": "061c18599da536c363ffa8bb10f648405d31c240f027c3867a46541d2b0d79bc",
+    "character_image": "40596135f14365c2a77258cd34fe8285c2968fc791816023fbe37cdb197982c7",
+    "generation_brief": "7292454751dbea7110a1817f371e5da086f18d3d0b7f578a4f10af92b259680c",
+    "mixamo_catalog": "90f80de12b316420b9af9143e7332938d532b08c728133a2b05123bb7337ae80"
+  },
+  "vision_model": "google/gemini-2.5-flash-lite",
+  "characterization": {
+    "object_kind": "axe",
+    "object_function": "A two-handed cutting axe: the sharp outward metal blade chops a target while both hands hold separated regions of its wooden shaft.",
+    "object_evidence": "IMAGE 1 shows a long wooden axe haft with reinforced rings and leather near the butt; an unmistakable wide metal chopping head extends laterally from the upper end. IMAGE 2 explicitly shows the intended character grasping this haft with two separated hands.",
+    "features": [
+      {
+        "id": "axe_head",
+        "function": "Sharpened outward-facing cutting edge of the axe head",
+        "origin": [
+          0.67,
+          0.3
+        ],
+        "direction_tip": [
+          0.73,
+          0.28
+        ],
+        "direction_semantics": "From the body of the metal head outward toward its visible sharp curved blade edge, not toward the flat poll or down the handle.",
+        "evidence": "IMAGE 1 exposes the broad dark metal head and its pale sharp curved outer edge; IMAGE 2 shows this blade at the far end from both hands."
+      }
+    ],
+    "grips": [
+      {
+        "id": "grip_lower_haft",
+        "point": [
+          0.31,
+          0.79
+        ],
+        "surface": "Leather-wrapped lower wooden shaft, clear of the blade",
+        "evidence": "IMAGE 1 visibly exposes this wrapped grip on the wooden shaft; IMAGE 2 shows the character's anatomical right palm clasping the lower part near the butt."
+      },
+      {
+        "id": "grip_upper_haft",
+        "point": [
+          0.48,
+          0.41
+        ],
+        "surface": "Bare upper-middle wooden shaft, clear of the head and its sharp edge",
+        "evidence": "IMAGE 1 shows uninterrupted wooden haft here; IMAGE 2 shows the anatomical left palm grasping a distinct higher section of the shaft."
+      }
+    ],
+    "modes": [
+      {
+        "id": "carry_mode",
+        "phase": "carry",
+        "hands": 2,
+        "primary_hand": "right",
+        "primary_grip": "grip_lower_haft",
+        "secondary_hand": "left",
+        "secondary_grip": "grip_upper_haft",
+        "functional_feature": "",
+        "action_direction": "none",
+        "mixamo_role": "none",
+        "action_intent": "Carrying the axe in a relaxed manner.",
+        "evidence": "The original character IMAGE 2 visibly has two hands on the haft: his anatomical right grips the lower segment and his left grips a separate segment closer to the axe head."
+      },
+      {
+        "id": "use_mode_chop",
+        "phase": "use",
+        "hands": 2,
+        "primary_hand": "right",
+        "primary_grip": "grip_lower_haft",
+        "secondary_hand": "left",
+        "secondary_grip": "grip_upper_haft",
+        "functional_feature": "axe_head",
+        "action_direction": "down",
+        "mixamo_role": "axe_chop",
+        "action_intent": "Chopping with the axe.",
+        "evidence": "The original character explicitly demonstrates two distinct grasp regions; the metal axe edge is the chopping feature, while axe_chop is only a Mixamo candidate pending joint QA."
+      }
+    ],
+    "confidence": 0.9,
+    "uncertainties": [],
+    "explanation": "Both source images directly demonstrate distinct lower and upper wooden shaft handholds and the axe head's sharpened outward edge. The character has two hands on the shaft. This reviewed image-space characterization does not assert that the Mixamo clip physically fits until 3D joint QA."
+  },
+  "expected_joint_anchors": {
+    "left": {
+      "wrist_chain": [
+        "leftarm",
+        "leftforearm",
+        "lefthand"
+      ],
+      "contact_bone": "lefthand"
+    },
+    "right": {
+      "wrist_chain": [
+        "rightarm",
+        "rightforearm",
+        "righthand"
+      ],
+      "contact_bone": "righthand"
+    }
+  },
+  "semantic_status": "confirmed",
+  "mixamo_pose_status": "pending_real_joint_validation",
+  "review_provenance": {
+    "path": "assets/experiments/props/marches_hache/trellis-v1/interaction-review.json",
+    "sha256": "52b1cfdc5d8e0ef24e930d93b31ae3bf6225ad6561c7907d135926296061be9c",
+    "paid_response_sha256": "0b679cdab903216ff0d6206b17f9306ab8b112945a634aa07dd28e48d0879c76",
+    "method": "independent_source_image_inspection"
+  }
+}

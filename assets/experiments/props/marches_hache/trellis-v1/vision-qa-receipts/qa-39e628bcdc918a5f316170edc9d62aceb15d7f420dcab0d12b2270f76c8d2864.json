@@ -1,0 +1,131 @@
+{
+  "schema": 2,
+  "signature": "39e628bcdc918a5f316170edc9d62aceb15d7f420dcab0d12b2270f76c8d2864",
+  "pass_id": "primary",
+  "vision_model": "google/gemini-2.5-flash-lite",
+  "raw_review": {
+    "go": true,
+    "confidence": 1.0,
+    "issues": [],
+    "explanation": "All frames show the character holding the axe correctly in both hands, with the axe head oriented for chopping. The grips and functional feature are correctly positioned and oriented in all provided screenshots.",
+    "frames": [
+      {
+        "id": "front",
+        "hands_contact": true,
+        "action_feature_correct": true,
+        "orientation_constraints_met": true,
+        "collision_free": true,
+        "confidence": 1.0,
+        "issues": []
+      },
+      {
+        "id": "side",
+        "hands_contact": true,
+        "action_feature_correct": true,
+        "orientation_constraints_met": true,
+        "collision_free": true,
+        "confidence": 1.0,
+        "issues": []
+      },
+      {
+        "id": "back",
+        "hands_contact": true,
+        "action_feature_correct": true,
+        "orientation_constraints_met": true,
+        "collision_free": true,
+        "confidence": 1.0,
+        "issues": []
+      },
+      {
+        "id": "walk",
+        "hands_contact": true,
+        "action_feature_correct": true,
+        "orientation_constraints_met": true,
+        "collision_free": true,
+        "confidence": 1.0,
+        "issues": []
+      },
+      {
+        "id": "run",
+        "hands_contact": true,
+        "action_feature_correct": true,
+        "orientation_constraints_met": true,
+        "collision_free": true,
+        "confidence": 1.0,
+        "issues": []
+      },
+      {
+        "id": "action",
+        "hands_contact": true,
+        "action_feature_correct": true,
+        "orientation_constraints_met": true,
+        "collision_free": true,
+        "confidence": 1.0,
+        "issues": []
+      },
+      {
+        "id": "action_mid",
+        "hands_contact": true,
+        "action_feature_correct": true,
+        "orientation_constraints_met": true,
+        "collision_free": true,
+        "confidence": 1.0,
+        "issues": []
+      },
+      {
+        "id": "action_mid_1",
+        "hands_contact": true,
+        "action_feature_correct": true,
+        "orientation_constraints_met": true,
+        "collision_free": true,
+        "confidence": 1.0,
+        "issues": []
+      },
+      {
+        "id": "action_mid_2",
+        "hands_contact": true,
+        "action_feature_correct": true,
+        "orientation_constraints_met": true,
+        "collision_free": true,
+        "confidence": 1.0,
+        "issues": []
+      },
+      {
+        "id": "action_mid_3",
+        "hands_contact": true,
+        "action_feature_correct": true,
+        "orientation_constraints_met": true,
+        "collision_free": true,
+        "confidence": 1.0,
+        "issues": []
+      },
+      {
+        "id": "action_mid_5",
+        "hands_contact": true,
+        "action_feature_correct": true,
+        "orientation_constraints_met": true,
+        "collision_free": true,
+        "confidence": 1.0,
+        "issues": []
+      },
+      {
+        "id": "action_mid_6",
+        "hands_contact": true,
+        "action_feature_correct": true,
+        "orientation_constraints_met": true,
+        "collision_free": true,
+        "confidence": 1.0,
+        "issues": []
+      },
+      {
+        "id": "action_mid_7",
+        "hands_contact": true,
+        "action_feature_correct": true,
+        "orientation_constraints_met": true,
+        "collision_free": true,
+        "confidence": 1.0,
+        "issues": []
+      }
+    ]
+  }
+}

@@ -13,3 +13,24 @@ Use `scripts/websuite.mjs` (zero npm dependencies) and
 `.github/workflows/websuite.yml`. Prefer one run for multiple changed HTML
 files to minimize Actions cost; keep the browser in one session for interactions.
 WebSuite is portable and should remain independent of WarConquer game logic.
+
+For any work involving held props, equipment attachment, hand contact,
+vision landmarks or Mixamo pose QA, read the agent execution/runbook in
+[plans/held-prop-agent-runbook.md](plans/held-prop-agent-runbook.md) and follow
+the non-negotiable plan in
+[plans/held-prop-vision-qa.md](plans/held-prop-vision-qa.md) before implementing
+or declaring a result ready. Verify actual deterministic pose renderings and
+both numerical hand-contact errors and independent vision judgments; passing
+unit tests alone does not establish correct attachment.
+
+The canonical vocabulary for held-object semantics, contents and physical
+constraints is [plans/held-object-affordance-contract.md](plans/held-object-affordance-contract.md).
+It is a proposed v2 contract, NOT proof of runtime support. Do not infer object
+contents or physics rules from an image, and do not claim a mode is verified
+unless its state-dependent constraints and contacts pass rendered-pose QA.
+
+For held-prop task progress, only mark a checked box when its input provenance,
+actual production change, relevant tests, real rendered PNGs, and independent
+vision verdict (when applicable) are linked as evidence. Record the exact
+next task and unresolved failures for the next agent. A numeric-only pass must
+never be reported as a successful anatomical grasp.

@@ -1,0 +1,82 @@
+{
+  "schema": 2,
+  "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+  "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
+  "pass_signature": "d8b0c5528aadf9fcf9790ac3863c565383614fccb0d30a61f6199d30b35bbc38",
+  "pass_id": "qwen_textured",
+  "model": "qwen/qwen3-vl-235b-a22b-instruct",
+  "raw_landmarks": {
+    "view": 3,
+    "handle_butt": [
+      0.28,
+      0.94
+    ],
+    "grip_center": [
+      0.31,
+      0.79
+    ],
+    "working_head": [
+      0.67,
+      0.3
+    ],
+    "functional_edge": [
+      0.73,
+      0.28
+    ],
+    "confidence": 0.92,
+    "explanation": "VIEW 3 is selected because it clearly shows the full profile of the axe head with its curved blade, the wooden haft, and the leather-wrapped butt. handle_butt is placed at the very end of the haft, visible as the dark, textured, rounded termination point. grip_center is located on the lower leather-wrapped section of the haft, where a palm would naturally rest, clearly visible and distinct from the blade. working_head is centered on the metal mass of the axe head, away from the edge. functional_edge is placed on the outer, curved, pale-colored cutting edge of the blade, clearly distinct from the working_head and visibly sharp in the render. All four landmarks are physically distinct and clearly visible within VIEW 3.",
+    "grips": [
+      {
+        "id": "grip_lower_haft",
+        "view": 3,
+        "region": [
+          0.25,
+          0.75,
+          0.35,
+          0.85
+        ],
+        "evidence": "The leather-wrapped lower haft is clearly visible in VIEW 3. The texture and wrapping are distinct from the bare wood above and the metal head. The point [0.31, 0.79] lies squarely on this wrapped section, which is the intended lower handhold.",
+        "point": [
+          0.31,
+          0.79
+        ]
+      },
+      {
+        "id": "grip_upper_haft",
+        "view": 3,
+        "region": [
+          0.45,
+          0.35,
+          0.55,
+          0.45
+        ],
+        "evidence": "The bare wooden shaft above the head is visible in VIEW 3. The point [0.48, 0.41] is located on this smooth, unwrapped section of the haft, clearly distinct from the blade and the lower grip, matching the upper handhold position.",
+        "point": [
+          0.48,
+          0.41
+        ]
+      }
+    ],
+    "features": [
+      {
+        "id": "axe_head",
+        "view": 3,
+        "region": [
+          0.6,
+          0.25,
+          0.8,
+          0.35
+        ],
+        "evidence": "The metal axe head is fully visible in VIEW 3. The origin [0.67, 0.3] is placed on the body of the head, and the direction_tip [0.73, 0.28] points outward along the visible curved, pale cutting edge. This direction clearly indicates the functional cutting surface, not the flat back or the handle.",
+        "origin": [
+          0.67,
+          0.3
+        ],
+        "direction_tip": [
+          0.73,
+          0.28
+        ]
+      }
+    ]
+  }
+}

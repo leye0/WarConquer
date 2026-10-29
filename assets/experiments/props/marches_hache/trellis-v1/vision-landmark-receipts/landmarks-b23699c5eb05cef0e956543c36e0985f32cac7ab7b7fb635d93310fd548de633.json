@@ -1,0 +1,82 @@
+{
+  "schema": 2,
+  "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+  "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
+  "pass_signature": "b23699c5eb05cef0e956543c36e0985f32cac7ab7b7fb635d93310fd548de633",
+  "pass_id": "qwen_grid_ticks",
+  "model": "qwen/qwen3-vl-235b-a22b-instruct",
+  "raw_landmarks": {
+    "view": 2,
+    "handle_butt": [
+      0.48,
+      0.88
+    ],
+    "grip_center": [
+      0.48,
+      0.65
+    ],
+    "working_head": [
+      0.48,
+      0.32
+    ],
+    "functional_edge": [
+      0.38,
+      0.32
+    ],
+    "confidence": 0.95,
+    "explanation": "Selected VIEW 2 as it clearly shows the full profile of the axe head and handle, with the sharp cutting edge facing left and the handle extending downward. handle_butt is placed at the very bottom tip of the wooden haft, visible as the dark, textured end. grip_center is located on the mid-section of the handle, where the wood grain and leather wrapping are visible, indicating the primary palm grip. working_head is centered on the metal head\u2019s body, just above the blade\u2019s curve. functional_edge is placed precisely on the outermost visible point of the curved, sharpened blade edge, clearly distinct from the working_head and facing outward, not toward the poll or handle. All points lie on visible textured material, not background or grid.",
+    "grips": [
+      {
+        "id": "grip_lower_haft",
+        "view": 2,
+        "region": [
+          0.45,
+          0.75,
+          0.51,
+          0.9
+        ],
+        "evidence": "Tight bounding box around the lower wooden haft, showing visible wood grain and leather wrapping texture. This region is clearly below the axe head and free of blade interference, matching the 'Leather-wrapped lower wooden shaft' description.",
+        "point": [
+          0.48,
+          0.82
+        ]
+      },
+      {
+        "id": "grip_upper_haft",
+        "view": 2,
+        "region": [
+          0.45,
+          0.5,
+          0.51,
+          0.65
+        ],
+        "evidence": "Tight bounding box around the upper-middle wooden shaft, showing bare wood texture with metal bands. This region is clearly above the lower grip and below the axe head, free of the blade\u2019s sharp edge, matching the 'Bare upper-middle wooden shaft' description.",
+        "point": [
+          0.48,
+          0.58
+        ]
+      }
+    ],
+    "features": [
+      {
+        "id": "axe_head",
+        "view": 2,
+        "region": [
+          0.35,
+          0.25,
+          0.55,
+          0.4
+        ],
+        "evidence": "Tight bounding box around the entire metal axe head, including the curved blade and upper poll. The functional cutting edge is clearly visible on the left side of this region, facing outward. The direction 'From the body of the metal head outward toward its visible sharp curved blade edge' is satisfied by placing the functional_edge point on the leftmost curve of the blade, distinct from the head\u2019s center.",
+        "origin": [
+          0.48,
+          0.32
+        ],
+        "direction_tip": [
+          0.38,
+          0.32
+        ]
+      }
+    ]
+  }
+}

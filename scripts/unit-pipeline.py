@@ -22,14 +22,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 UNITS = ROOT / "data" / "units"
 STAGES = (
-    "source", "equipment_identify", "turnaround", "body", "rig", "animations",
-    "object_source", "object_mesh", "object_size", "object_grip", "object_landmarks", "integrate"
+    "source", "equipment_identify", "object_source", "object_interaction",
+    "turnaround", "body", "rig", "animations", "object_mesh", "object_size",
+    "object_grip", "object_landmarks", "integrate"
 )
 PAID = frozenset({
     "equipment_identify", "turnaround", "body", "rig", "object_source",
-    "object_mesh", "object_size", "object_grip", "object_landmarks"
+    "object_interaction", "object_mesh", "object_size", "object_grip", "object_landmarks"
 })
 DEPENDENCIES = {
+    "object_interaction": ("Pillow==11.3.0",),
     "turnaround": ("Pillow==11.3.0", "numpy==2.2.6", "scipy==1.16.2"),
     "body": ("fal-client==0.14.0",),
     "rig": ("replicate==1.0.7", "Pillow==11.3.0"),
@@ -46,6 +48,7 @@ STAGE_DESCRIPTION = {
     "rig": "Squelette Uthana",
     "animations": "Mouvements Mixamo transférés",
     "object_source": "Illustration isolée de chaque objet",
+    "object_interaction": "Contrat vision objet/personnage/Mixamo : rôles, prises et modalités",
     "object_mesh": "GLB indépendant TRELLIS",
     "object_size": "Estimation de longueur physique en cm",
     "object_grip": "Prise / orientation sémantique de l'objet",
@@ -126,7 +129,9 @@ def manifest(unit):
         prop.setdefault("glb", f"assets/experiments/props/{unit}/{prop['id']}/mesh.glb")
         prop.setdefault("trellis_request", f"data/units/{unit}/{prop['id']}-trellis-request.json")
         pbase = str(Path(prop["glb"]).parent)
-        for key, default in {"physical_size_request":pbase+"/physical-size-request.json",
+        for key, default in {"interaction_request":pbase+"/interaction-request.json",
+           "interaction":pbase+"/interaction-contract.json",
+           "physical_size_request":pbase+"/physical-size-request.json",
            "physical_size":pbase+"/physical-size.json",
            "grip_request":pbase+"/grip-request.json",
            "grip":pbase+"/grip-plan.json"}.items():
@@ -142,7 +147,8 @@ def manifest(unit):
     ]
     fields = (
         "source_image", "source_request", "glb", "trellis_request",
-        "physical_size_request", "physical_size", "grip_request", "grip"
+        "interaction_request", "interaction", "physical_size_request",
+        "physical_size", "grip_request", "grip"
     )
     for prop in doc["equipment"]:
         if not isinstance(prop, dict) or not prop.get("id"):
@@ -171,6 +177,7 @@ def assets_for(doc, stage):
         "rig": [b["rigged_glb"]],
         "animations": [b["playable_glb"]],
         "object_source": [p["source_image"] for p in props],
+        "object_interaction": [p["interaction"] for p in props],
         "object_mesh": [p["glb"] for p in props],
         "object_size": [p["physical_size"] for p in props],
         "object_grip": [p["grip"] for p in props],
@@ -217,10 +224,62 @@ def inspect(rel):
             return "invalid_physical_size"
         if path.name == "grip-plan.json" and result.get("schema") not in (2, 3):
             return "invalid_grip_plan"
+        if path.name == "interaction-contract.json" and (
+            result.get("schema") != 1 or result.get("semantic_status") != "confirmed" or
+            result.get("mixamo_pose_status") != "pending_real_joint_validation" or
+            not isinstance(result.get("characterization", {}).get("modes"), list)
+        ):
+            return "invalid_interaction_contract"
     return "ready"
 
 def state(doc, stage):
     paths = {p: inspect(p) for p in assets_for(doc, stage)}
+    if stage == "object_interaction" and any(v == "ready" for v in paths.values()):
+        # A JSON flag is not sufficient proof. Check the actual source hashes,
+        # candidate Mixamo catalog, object identity and the entire modal schema.
+        spec = importlib.util.spec_from_file_location(
+            "wc_prop_interaction", ROOT / "scripts/characterize-prop-interaction.py")
+        vision = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(vision)
+        for prop in doc["equipment"]:
+            if paths.get(prop["interaction"]) != "ready":
+                continue
+            try:
+                cfg, obj, char, brief, clips, out, hashes = vision.read_request(
+                    prop["interaction_request"])
+                saved = json.loads(out.read_text())
+                if (saved.get("source_hashes") != hashes or
+                        saved.get("object_id") != prop["id"] or
+                        saved.get("vision_model") != vision.MODEL or
+                        saved.get("expected_joint_anchors") != vision.JOINT_ANCHORS or
+                        cfg["object_kind"] != prop["kind"]):
+                    raise ValueError("Stale identity, skeleton or source hashes")
+                vision.validate(saved["characterization"], clips, prop["kind"])
+                vision.validate_visible_landmarks(saved["characterization"], obj)
+            except (ValueError, OSError, KeyError, TypeError, AttributeError):
+                paths[prop["interaction"]] = "invalid_or_stale_semantics"
+    if stage in ("object_grip", "object_landmarks", "integrate"):
+        planner = None
+        for prop in doc["equipment"]:
+            if (paths.get(prop["grip"]) != "ready" or
+                    inspect(prop["interaction"]) != "ready"):
+                continue
+            try:
+                if planner is None:
+                    spec = importlib.util.spec_from_file_location(
+                        "wc_prop_attachment", ROOT / "scripts/plan-prop-attachment.py")
+                    planner = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(planner)
+                plan = json.loads(safe_path(prop["grip"]).read_text())
+                contract_path = safe_path(prop["interaction"])
+                provenance = {"path": prop["interaction"],
+                              "sha256": hashlib.sha256(contract_path.read_bytes()).hexdigest()}
+                if plan.get("interaction_provenance") != provenance:
+                    raise ValueError("Grip plan predates semantic contract")
+                planner.check_grip_consistency(
+                    plan["specifications"], json.loads(contract_path.read_text()))
+            except (ValueError, OSError, KeyError, TypeError):
+                paths[prop["grip"]] = "grip_conflicts_with_semantics"
     if stage == "object_landmarks":
         for prop in doc["equipment"]:
             grip = prop["grip"]
@@ -234,6 +293,32 @@ def state(doc, stage):
                         not all(name in landmarks.get("points", {}) for name in
                                 ("handle_butt", "grip_center", "working_head", "functional_edge"))):
                     paths[grip] = "missing_mesh_landmarks"
+                    continue
+                contract_path = safe_path(prop["interaction"])
+                if contract_path.is_file():
+                    contract = json.loads(contract_path.read_text())
+                    sem = contract["characterization"]
+                    contract_sha = hashlib.sha256(contract_path.read_bytes()).hexdigest()
+                    wanted_grips = {g["id"] for g in sem["grips"]}
+                    wanted_features = {f["id"] for f in sem["features"]}
+                    if (landmarks.get("interaction_sha256") != contract_sha or
+                            set(landmarks.get("grips", {})) != wanted_grips or
+                            set(landmarks.get("features", {})) != wanted_features or
+                            not all(isinstance(v.get("local"), list) and len(v["local"]) == 3
+                                    for v in landmarks["grips"].values()) or
+                            not all(all(isinstance(f.get(k, {}).get("local"), list) and
+                                            len(f[k]["local"]) == 3
+                                        for k in ("origin", "direction_tip"))
+                                    for f in landmarks["features"].values())):
+                        paths[grip] = "missing_named_mesh_grips_or_actions"
+                    if paths.get(grip)=="ready":
+                        bbox_audit=plan.get("mesh_region_review",{})
+                        if (bbox_audit.get("schema")!=1 or
+                                bbox_audit.get("status")!="confirmed" or
+                                bbox_audit.get("glb_sha256")!=digest or
+                                bbox_audit.get("interaction_sha256")!=contract_sha or
+                                bbox_audit.get("bbox_convention")!="xyxy_normalized_1000"):
+                            paths[grip]="missing_independent_vision_labeled_regions"
             except (ValueError, OSError, KeyError):
                 paths[grip] = "invalid_mesh_landmarks"
     return {"stage": stage, "description": STAGE_DESCRIPTION[stage],
@@ -249,6 +334,14 @@ def py(name, *args, env=None):
     run_cmd(sys.executable, "scripts/" + name, *args, env=env)
 
 def execute(doc, stage):
+    # Explicit --stage runs must obey the same early semantic gate as --stage all.
+    # A pre-existing body may be read without rework, but new paid generation
+    # cannot silently skip object/actor/Mixamo intent confirmation.
+    if stage in ("turnaround", "body", "rig", "animations", "object_mesh",
+                 "object_size", "object_grip", "object_landmarks", "integrate") and (
+            doc["equipment"] and not state(doc, "object_interaction")["ready"]):
+        raise PipelineError("Vision-confirm object × character × Mixamo hand modes "
+                            "before this stage (--stage object_interaction)")
     if stage == "source":
         if not state(doc, "source")["ready"]:
             raise PipelineError("Create the original unit illustration before the 3D pipeline")
@@ -282,9 +375,18 @@ def execute(doc, stage):
             env = os.environ.copy()
             env["OPENROUTER_IMAGE_MODEL"] = "meta/muse-image"
             py("generate-image.py", "--request", prop["source_request"], env=env)
+    elif stage == "object_interaction":
+        for prop in doc["equipment"]:
+            if state({**doc,"equipment":[prop]},stage)["ready"]:continue
+            if not state({**doc,"equipment":[prop]},"object_source")["ready"]:
+                raise PipelineError("An isolated source object is required for semantic confirmation")
+            equipment_tools().prepare_requests(doc, prop)
+            py("characterize-prop-interaction.py", "--request", prop["interaction_request"])
     elif stage == "object_mesh":
         for prop in doc["equipment"]:
             if state({**doc,"equipment":[prop]},stage)["ready"]:continue
+            if not state({**doc,"equipment":[prop]},"object_interaction")["ready"]:
+                raise PipelineError("Confirm object/character/Mixamo grips before generating a GLB")
             equipment_tools().prepare_requests(doc, prop)
             for part in ("validate", "submit", "collect"):
                 py("build-prop-trellis.py", "--request", prop["trellis_request"], "--stage", part)
@@ -296,6 +398,8 @@ def execute(doc, stage):
     elif stage == "object_grip":
         for prop in doc["equipment"]:
             if state({**doc,"equipment":[prop]},stage)["ready"]:continue
+            if not state({**doc,"equipment":[prop]},"object_interaction")["ready"]:
+                raise PipelineError("Confirm interaction modalities before fitting a prop")
             equipment_tools().prepare_requests(doc, prop)
             py("plan-prop-attachment.py", "--request", prop["grip_request"])
     elif stage == "object_landmarks":
@@ -304,6 +408,7 @@ def execute(doc, stage):
             if not state({**doc,"equipment":[prop]},"object_grip")["ready"]:
                 raise PipelineError("Generate the semantic grip plan before annotating its GLB")
             py("prop-mesh-landmarks.py", "--plan", prop["grip"])
+            py("audit-prop-vision-regions.py", "--plan", prop["grip"])
     elif stage == "integrate":
         with tempfile.TemporaryDirectory(prefix="wc-character-pages-") as sandbox:
             target = str(Path(sandbox) / "pages")

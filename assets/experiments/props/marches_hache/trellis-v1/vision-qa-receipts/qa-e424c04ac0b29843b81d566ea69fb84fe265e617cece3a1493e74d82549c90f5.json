@@ -1,0 +1,372 @@
+{
+  "schema": 2,
+  "signature": "e424c04ac0b29843b81d566ea69fb84fe265e617cece3a1493e74d82549c90f5",
+  "pass_id": "primary",
+  "vision_model": "google/gemini-2.5-flash",
+  "raw_review": {
+    "go": false,
+    "confidence": 0.8,
+    "issues": [
+      "The axe is not held by the character in any of the 'carry' poses. It is either floating behind the character or clipped into the character's back.",
+      "In 'use' poses, the axe is often clipped into the character's body or the hands are not properly gripping the axe.",
+      "The 'action_mid_2_grip' image shows the axe floating in front of the character, not held.",
+      "The 'action_mid_6_grip' image shows the axe clipped into the character's back.",
+      "The 'action_mid_grip' and 'action_grip' images show the axe clipped into the character's back.",
+      "The 'back_grip', 'front_grip', 'side_grip', and 'walk_grip' images show the axe clipped into the character's back or not held by the hands.",
+      "The 'run_grip' image shows the axe floating behind the character."
+    ],
+    "explanation": "The axe is consistently either floating behind the character, clipped into the character's body, or not properly gripped by the hands across all provided poses. There is no clear visual evidence of the character holding the axe as described in the contract for either carry or use modes. The bounding box detections for hands and held_object are often impossible due to these issues.",
+    "frames": [
+      {
+        "id": "front",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is floating behind the character, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": []
+      },
+      {
+        "id": "side",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is floating behind the character, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": []
+      },
+      {
+        "id": "back",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is floating behind the character, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": []
+      },
+      {
+        "id": "walk",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is floating behind the character, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": []
+      },
+      {
+        "id": "run",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is floating behind the character, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is clipped into the character's back, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is clipped into the character's back, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_1",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is clipped into the character's back, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_2",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is clipped into the character's back, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_2_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is floating in front of the character, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 400,
+            "xmin": 398,
+            "ymax": 500,
+            "xmax": 500
+          }
+        ]
+      },
+      {
+        "id": "action_mid_3",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is clipped into the character's back, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_5",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is clipped into the character's back, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_6",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is clipped into the character's back, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_6_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is clipped into the character's back, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 400,
+            "xmin": 400,
+            "ymax": 500,
+            "xmax": 500
+          }
+        ]
+      },
+      {
+        "id": "action_mid_7",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is clipped into the character's back, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": []
+      },
+      {
+        "id": "action_mid_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is clipped into the character's back, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 400,
+            "xmin": 400,
+            "ymax": 500,
+            "xmax": 500
+          }
+        ]
+      },
+      {
+        "id": "action_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is clipped into the character's back, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 400,
+            "xmin": 400,
+            "ymax": 500,
+            "xmax": 500
+          }
+        ]
+      },
+      {
+        "id": "back_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is clipped into the character's back, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 400,
+            "xmin": 400,
+            "ymax": 500,
+            "xmax": 500
+          }
+        ]
+      },
+      {
+        "id": "front_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is clipped into the character's back, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 400,
+            "xmin": 400,
+            "ymax": 500,
+            "xmax": 500
+          }
+        ]
+      },
+      {
+        "id": "run_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is floating behind the character, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": []
+      },
+      {
+        "id": "side_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is clipped into the character's back, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 400,
+            "xmin": 400,
+            "ymax": 500,
+            "xmax": 500
+          }
+        ]
+      },
+      {
+        "id": "walk_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.5,
+        "issues": [
+          "The axe is clipped into the character's back, not held by the hands.",
+          "No clear hand contact with the object."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 400,
+            "xmin": 400,
+            "ymax": 500,
+            "xmax": 500
+          }
+        ]
+      }
+    ]
+  }
+}

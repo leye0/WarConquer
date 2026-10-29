@@ -60,6 +60,7 @@ for (const character of catalog.characters) {
     assets.add(repositoryAssetPath(prop.gripPlan));
     assets.add(repositoryAssetPath(prop.model));
     if (prop.physicalSize) assets.add(repositoryAssetPath(prop.physicalSize));
+    if (prop.interactionContract) assets.add(repositoryAssetPath(prop.interactionContract));
   }
 }
 
@@ -76,6 +77,7 @@ bytes += publish("scripts/perception-lab-client.js");
 bytes += publish("scripts/character-lab-client.js");
 bytes += publish("scripts/weapon-grip-geometry.js");
 bytes += publish("scripts/rig-contact-landmarks.js");
+bytes += publish("scripts/prop-motion-contact.js");
 bytes += publish("scripts/equipment-animation-policy.js");
 // Publish URLs that change with the JS contents. Mobile browsers otherwise
 // reuse the previous rotation logic even after a successful Pages deployment.
@@ -83,7 +85,7 @@ for (const page of ["index.html","character-lab.html"]) {
   const target=join(output,page);
   let html=readFileSync(target,"utf8");
   for(const script of ["character-lab-client.js","weapon-grip-geometry.js","rig-contact-landmarks.js",
-                         "equipment-animation-policy.js","arena-scene.js"]){
+                         "prop-motion-contact.js","equipment-animation-policy.js","arena-scene.js"]){
     const name="scripts/"+script;
     const hash=createHash("sha256").update(readFileSync(join(repo,name)))
       .digest("hex").slice(0,12);

@@ -18,12 +18,13 @@ import io
 import json
 import math
 import os
+import re
 import struct
 from pathlib import Path
 from urllib.request import Request, urlopen
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 ROOT = Path(__file__).resolve().parents[1]
 ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
@@ -31,11 +32,15 @@ MODEL = "google/gemini-2.5-flash-lite"
 LANDMARKS = ("handle_butt", "grip_center", "working_head", "functional_edge")
 VIEW_SIZE = 510
 MARGIN = 38
+POINT_SCHEMA = {"type": "array", "items": {"type": "number"},
+                "minItems": 2, "maxItems": 2}
+REGION_SCHEMA = {"type": "array", "items": {"type": "number"},
+                 "minItems": 4, "maxItems": 4}
 SCHEMA = {
     "type": "object", "additionalProperties": False,
     "properties": {
         "view": {"type": "integer", "enum": [0, 1, 2, 3]},
-        **{name: {"type": "array", "items": {"type": "number"}} for name in LANDMARKS},
+        **{name: POINT_SCHEMA for name in LANDMARKS},
         "confidence": {"type": "number"},
         "explanation": {"type": "string"},
     },
@@ -46,6 +51,19 @@ PROMPT = (
     "IMAGE 1 is a four-panel orthographic 3D render of the actual GLB, each "
     "panel labeled VIEW 0 through VIEW 3. IMAGE 2 is the original object "
     "illustration, only for identifying what the 3D prop's parts do. "
+    "IMPORTANT: IMAGE 2 and IMAGE 1 have DIFFERENT orientations, crops and "
+    "coordinate systems. Never copy any point, box, or numeric position from "
+    "the illustration. Locate every requested point ANEW on the visible "
+    "pixels of the actual 3D mesh in a specific VIEW of IMAGE 1. "
+    "Legacy landmarks handle_butt, grip_center, working_head, and "
+    "functional_edge are POINTS: exactly TWO numbers [x,y] each; they "
+    "must NOT be bounding boxes. Named grip/feature regions are bounding "
+    "boxes: exactly FOUR numbers [xmin,ymin,xmax,ymax]. "
+    "Each 3D view has a faint grid with 0.1 coordinate ticks in its OWN "
+    "panel. Use those ticks to measure the precise IMAGE 1 positions. "
+    "Before answering, CHECK that EVERY point lands on visible TEXTURED "
+    "object pixels, never blank grid/background; keep functional-feature "
+    "regions tight around actual visible material (metal, wood, string). "
     "Select ONE of the four views where the functional working edge and "
     "handle are CLEARLY visible. Coordinates of ALL four landmarks must be "
     "normalized [x,y] (0..1) WITHIN THE SELECTED PANEL, including its margin. "
@@ -54,11 +72,95 @@ PROMPT = (
     "working_head: center of the working head, or the upper functional end "
     "of a curved frame; functional_edge: the ACTUAL working/cutting edge's "
     "outer edge or the functional FRONT of the object, NOT the back/poll. "
+    "working_head and functional_edge MUST be two DISTINCT physical locations "
+    "separated clearly in the image; NEVER return the same coordinates for both. "
+    "For a chopping axe, working_head is inside the metal head and "
+    "functional_edge is on the visible SHARP side of the blade. "
     "For an axe, make CERTAIN functional_edge points to the SHARP side of "
     "the head, not the flat back. Never use generic assumptions about which "
     "way the mesh axes point. For a symmetric double-edge, choose either "
     "equivalent cutting edge. If the mesh is unclear, lower confidence."
 )
+
+
+def semantic_role_labels(semantic):
+    """Tell 3D vision WHAT to locate without leaking 2D source landmarks.
+
+    Source concept-space points, bounding boxes, evidence and image angles
+    must not be exposed to the mesh annotator: even a strong vision model can
+    accidentally echo those numerically in a different camera coordinate frame.
+    """
+    return {
+        "object_kind": semantic["object_kind"],
+        "grips": [{"id": item["id"], "surface": item["surface"]}
+                  for item in semantic["grips"]],
+        "features": [{"id": item["id"], "function": item["function"],
+                      "direction_semantics": item["direction_semantics"]}
+                     for item in semantic["features"]],
+        "modes": [{key: mode[key] for key in (
+            "id", "phase", "hands", "primary_hand", "primary_grip",
+            "secondary_hand", "secondary_grip", "functional_feature",
+            "action_direction") if key in mode} for mode in semantic["modes"]],
+    }
+
+
+def confirmed_interaction(plan_path: Path, plan: dict):
+    """Resolve exact semantic IDs; a GLB annotator cannot invent its own roles."""
+    provenance = plan.get("interaction_provenance")
+    if not provenance:
+        return None, None  # Explicit historical compatibility, no invented second grip.
+    if not isinstance(provenance, dict):
+        raise ValueError("Malformed interaction provenance")
+    rel = provenance.get("path", "")
+    if not isinstance(rel, str) or not rel or rel.startswith("/"):
+        raise ValueError("Unsafe interaction provenance path")
+    contract_path = (ROOT / rel).resolve()
+    if (not contract_path.is_relative_to(ROOT) or
+            not contract_path.is_relative_to(ROOT) or not contract_path.is_file()):
+        raise ValueError("Missing authoritative interaction contract")
+    content = contract_path.read_bytes()
+    fingerprint = hashlib.sha256(content).hexdigest()
+    contract = json.loads(content)
+    image_path = ROOT / plan["inputs"]["object_image"]
+    if (fingerprint != provenance.get("sha256") or
+            contract.get("schema") != 1 or
+            contract.get("semantic_status") != "confirmed" or
+            contract.get("mixamo_pose_status") != "pending_real_joint_validation" or
+            contract.get("source_hashes", {}).get("object_image") !=
+                hashlib.sha256(image_path.read_bytes()).hexdigest()):
+        raise ValueError("Unconfirmed or stale object/character/Mixamo roles")
+    sem = contract.get("characterization", {})
+    grips, features = sem.get("grips"), sem.get("features")
+    if (not isinstance(grips, list) or not grips or
+            not isinstance(features, list) or not features or
+            any(not isinstance(item, dict) or not isinstance(item.get("id"), str)
+                for item in grips + features)):
+        raise ValueError("Missing vision-confirmed named grip or action features")
+    return sem, fingerprint
+
+
+def named_schema(semantic):
+    """Only the already confirmed IDs can be annotated on actual mesh views."""
+    if semantic is None:
+        return SCHEMA
+    extra = {}
+    for collection, point_fields in (("grips", ("point",)),
+                                     ("features", ("origin", "direction_tip"))):
+        names = [item["id"] for item in semantic[collection]]
+        if len(names) != len(set(names)):
+            raise ValueError("Duplicate source-confirmed semantic identifier")
+        props = {"id": {"type": "string", "enum": names},
+                 "view": {"type": "integer", "enum": [0, 1, 2, 3]},
+                 "region": REGION_SCHEMA,
+                 "evidence": {"type": "string"}}
+        props.update({field: POINT_SCHEMA
+                      for field in point_fields})
+        extra[collection] = {"type": "array", "items": {"type": "object",
+            "additionalProperties": False, "properties": props,
+            "required": list(props)}}
+    return {"type": "object", "additionalProperties": False,
+            "properties": {**SCHEMA["properties"], **extra},
+            "required": [*SCHEMA["required"], *extra]}
 
 
 def glb_geometry(path: Path):
@@ -76,9 +178,27 @@ def glb_geometry(path: Path):
     doc = json.loads(chunks[0x4E4F534A]); binary = chunks[0x004E4942]
     accessors, views = doc["accessors"], doc["bufferViews"]
     dtype = {5121: np.uint8, 5123: np.uint16, 5125: np.uint32, 5126: np.float32}
+    texture_cache={}
+    def material_texture(primitive):
+        index=primitive.get("material")
+        if index is None:return None
+        material=doc.get("materials",[])[index]
+        color=material.get("pbrMetallicRoughness",{}).get("baseColorTexture")
+        if not isinstance(color,dict):return None
+        texture_idx=color["index"]
+        image_idx=doc["textures"][texture_idx]["source"]
+        if image_idx not in texture_cache:
+            image=doc["images"][image_idx]
+            if "bufferView" not in image:
+                raise ValueError("GLB texture must be embedded for source-grounded render QA")
+            view=views[image["bufferView"]]
+            start=view.get("byteOffset",0)
+            data=binary[start:start+view["byteLength"]]
+            texture_cache[image_idx]=np.array(Image.open(io.BytesIO(data)).convert("RGB"))
+        return texture_cache[image_idx]
     def accessor(index):
         a = accessors[index]; view = views[a["bufferView"]]
-        components = {"SCALAR": 1, "VEC3": 3}[a["type"]]
+        components = {"SCALAR": 1, "VEC2": 2, "VEC3": 3}[a["type"]]
         dt = np.dtype(dtype[a["componentType"]]).newbyteorder("<")
         item_size = dt.itemsize * components
         stride = view.get("byteStride", item_size)
@@ -110,13 +230,17 @@ def glb_geometry(path: Path):
                 if "POSITION" not in primitive["attributes"] or primitive.get("mode", 4) != 4:
                     continue
                 local = accessor(primitive["attributes"]["POSITION"]).astype(float)
+                uv=(accessor(primitive["attributes"]["TEXCOORD_0"]).astype(float)
+                    if "TEXCOORD_0" in primitive["attributes"] else None)
+                texture=material_texture(primitive)
                 world = (np.column_stack([local, np.ones(len(local))]) @ matrix.T)[:, :3]
                 indices = accessor(primitive["indices"]).reshape(-1) if "indices" in primitive else np.arange(len(local))
                 if len(indices) % 3:
                     raise ValueError("Non-triangle primitive")
                 meshes.append({"local": local, "world": world,
                     "faces": indices.reshape(-1, 3), "node": n.get("name", ""),
-                    "mesh": n["mesh"], "primitive": primitive_index})
+                    "mesh": n["mesh"], "primitive": primitive_index,
+                    "uv":uv,"texture":texture})
         for child in n.get("children", []):visit(child, matrix)
     for root in roots:visit(root, np.eye(4))
     if not meshes or sum(len(m["local"]) for m in meshes) < 40:
@@ -145,9 +269,19 @@ def make_views(meshes):
         info = {"right": right, "up": up, "camera": camera,
                 "center": center, "scale": scale, "view": i}
         views.append(info)
-        panel = Image.new("RGB", (VIEW_SIZE, VIEW_SIZE), (250, 250, 249))
-        draw = ImageDraw.Draw(panel)
-        faces = []
+        # CPU-rasterize the ACTUAL GLB baseColorTexture using its UVs and a
+        # depth buffer. Flat brown silhouettes erase exactly the material
+        # evidence that vision needs to distinguish wood, metal and sharp edge.
+        grid=Image.new("RGB",(VIEW_SIZE,VIEW_SIZE),(250,250,249))
+        ticks=ImageDraw.Draw(grid)
+        for tenth in range(1,10):
+            p=tenth*VIEW_SIZE//10
+            ticks.line((p,0,p,VIEW_SIZE-1),fill=(231,232,234))
+            ticks.line((0,p,VIEW_SIZE-1,p),fill=(231,232,234))
+            ticks.text((p+2,45),f"{tenth/10:.1f}",fill=(126,132,136))
+            ticks.text((5,p+2),f"{tenth/10:.1f}",fill=(126,132,136))
+        pixels=np.asarray(grid,dtype=np.uint8).copy()
+        zbuffer=np.full((VIEW_SIZE,VIEW_SIZE),-np.inf,dtype=float)
         for mesh in meshes:
             coords = mesh["world"]-center
             x = VIEW_SIZE/2 + coords@right*scale
@@ -158,10 +292,42 @@ def make_views(meshes):
                 normal = np.cross(triangle[1]-triangle[0],triangle[2]-triangle[0])
                 n = np.linalg.norm(normal)
                 if n < 1e-9:continue
-                shade = 130 + round(60*abs(float(np.dot(normal/n,camera))))
-                faces.append((float(depth[f].mean()), [(float(x[j]),float(y[j])) for j in f], shade))
-        for _, triangle, shade in sorted(faces):
-            draw.polygon(triangle, fill=(shade, round(shade*.87), round(shade*.69)))
+                vertices=np.array([(x[j],y[j]) for j in f],dtype=float)
+                x0,y0=vertices[0];x1,y1=vertices[1];x2,y2=vertices[2]
+                denom=(y1-y2)*(x0-x2)+(x2-x1)*(y0-y2)
+                if abs(denom)<1e-8:continue
+                left=max(0,int(math.floor(min(x0,x1,x2))))
+                top=max(0,int(math.floor(min(y0,y1,y2))))
+                right_px=min(VIEW_SIZE-1,int(math.ceil(max(x0,x1,x2))))
+                bottom_px=min(VIEW_SIZE-1,int(math.ceil(max(y0,y1,y2))))
+                if left>right_px or top>bottom_px:continue
+                xx,yy=np.meshgrid(np.arange(left,right_px+1)+.5,
+                                  np.arange(top,bottom_px+1)+.5)
+                a=((y1-y2)*(xx-x2)+(x2-x1)*(yy-y2))/denom
+                b=((y2-y0)*(xx-x2)+(x0-x2)*(yy-y2))/denom
+                c=1-a-b
+                mask=(a>=-1e-5)&(b>=-1e-5)&(c>=-1e-5)
+                if not mask.any():continue
+                surface_depth=a*depth[f[0]]+b*depth[f[1]]+c*depth[f[2]]
+                region_z=zbuffer[top:bottom_px+1,left:right_px+1]
+                front=mask&(surface_depth>region_z)
+                if not front.any():continue
+                brightness=.70+.30*abs(float(np.dot(normal/n,camera)))
+                if mesh.get("texture") is not None and mesh.get("uv") is not None:
+                    uv=mesh["uv"]
+                    u=a*uv[f[0],0]+b*uv[f[1],0]+c*uv[f[2],0]
+                    v=a*uv[f[0],1]+b*uv[f[1],1]+c*uv[f[2],1]
+                    texture=mesh["texture"]
+                    tx=(np.mod(u,1)*(texture.shape[1]-1)).astype(int)
+                    ty=(np.mod(1-v,1)*(texture.shape[0]-1)).astype(int)
+                    color=texture[ty,tx]
+                else:
+                    color=np.full((*xx.shape,3),(178,151,124),dtype=np.uint8)
+                region_pixels=pixels[top:bottom_px+1,left:right_px+1]
+                region_pixels[front]=np.clip(color[front]*brightness,0,255).astype(np.uint8)
+                region_z[front]=surface_depth[front]
+        panel=Image.fromarray(pixels,"RGB")
+        draw=ImageDraw.Draw(panel)
         draw.rectangle((0, 0, VIEW_SIZE-1, VIEW_SIZE-1), outline=(70, 78, 84), width=2)
         draw.rectangle((10, 10, 127, 38), fill=(34, 43, 50))
         draw.text((18, 17), f"VIEW {i}", fill="white")
@@ -175,61 +341,123 @@ def image_part(data: bytes):
         "data:image/png;base64,"+base64.b64encode(data).decode("ascii")}}
 
 
-def validate_answer(answer):
-    if not isinstance(answer, dict) or set(answer) != set(SCHEMA["properties"]):
+def source_reference_bytes(path):
+    """The exact source-object PNG submitted as IMAGE 2 to OpenRouter."""
+    original=Image.open(path).convert("RGBA")
+    if original.getbbox():original=original.crop(original.getbbox())
+    original.thumbnail((720,720))
+    original=ImageOps.contain(original,(720,720))
+    # A deterministic light matte avoids relying on OpenRouter's unknown
+    # presentation of transparent image pixels (sometimes black in previews).
+    matte=Image.new("RGB",original.size,(250,250,249))
+    matte.paste(original,mask=original.getchannel("A"))
+    buffer=io.BytesIO();matte.save(buffer,format="PNG")
+    return buffer.getvalue()
+
+
+def save_model_inputs(plan_path, source_image, rendered_glb, pass_id):
+    """User-auditable bit-for-bit visual evidence of what the model receives."""
+    glb_path=plan_path.with_name("vision-input-glb-"+pass_id+".png")
+    source_path=plan_path.with_name("vision-input-source-"+pass_id+".png")
+    glb_path.write_bytes(rendered_glb)
+    source_path.write_bytes(source_reference_bytes(source_image))
+    print("VISION_INPUT_IMAGES",glb_path.relative_to(ROOT),source_path.relative_to(ROOT))
+
+
+def vision_point(point, label):
+    if not isinstance(point, list) or len(point) != 2 or any(
+            isinstance(v, bool) or not isinstance(v, (int, float)) or
+            not math.isfinite(v) or not .01 <= v <= .99 for v in point):
+        raise ValueError("Invalid vision point: " + label)
+
+
+def vision_region(region, label):
+    """A named functional part must have an explicit visible 2D boundary."""
+    if (not isinstance(region, list) or len(region) != 4 or
+            any(isinstance(v,bool) or not isinstance(v,(int,float)) or not math.isfinite(v) or
+                v < 0 or v > 1 for v in region) or
+            region[2]-region[0]<.012 or region[3]-region[1]<.012):
+        raise ValueError("Vision did not bound actual region: " + label)
+
+
+def validate_answer(answer, semantic=None):
+    if not isinstance(answer, dict) or set(answer) != set(named_schema(semantic)["properties"]):
         raise ValueError("Vision landmark response has unexpected fields")
-    if answer["view"] not in (0, 1, 2, 3):raise ValueError("Invalid view")
-    if not isinstance(answer["confidence"], (float, int)) or answer["confidence"] < .72:
+    if type(answer["view"]) is not int or answer["view"] not in (0, 1, 2, 3):
+        raise ValueError("Invalid view")
+    if (isinstance(answer["confidence"], bool) or
+            not isinstance(answer["confidence"], (float, int)) or
+            not math.isfinite(answer["confidence"]) or answer["confidence"] < .72 or
+            answer["confidence"] > 1):
         raise ValueError("Functional edge insufficiently visible to annotate")
     for name in LANDMARKS:
-        p = answer[name]
-        if not isinstance(p, list) or len(p) != 2 or any(
-            isinstance(v, bool) or not isinstance(v, (int, float)) or
-            not math.isfinite(v) or not .01 <= v <= .99 for v in p):
-            raise ValueError("Invalid vision point: "+name)
+        vision_point(answer[name], name)
+    if math.dist(answer["working_head"],answer["functional_edge"])<.035:
+        raise ValueError("Vision working head and functional edge collapse on the image")
+    if semantic is not None:
+        for collection, coordinate_fields in (("grips", ("point",)),
+                                             ("features", ("origin", "direction_tip"))):
+            wanted = {item["id"] for item in semantic[collection]}
+            items = answer[collection]
+            if (not isinstance(items, list) or len(items) != len(wanted) or
+                    any(not isinstance(item, dict) or
+                        set(item) != {"id", "view", "region", "evidence", *coordinate_fields} or
+                        not isinstance(item["id"], str) or
+                        type(item["view"]) is not int or
+                        item["view"] not in (0, 1, 2, 3)
+                        for item in items) or
+                    {item["id"] for item in items} != wanted):
+                raise ValueError("Cannot invent, omit or rename confirmed " + collection)
+            for item in items:
+                vision_region(item["region"], collection + "." + item["id"])
+                if not isinstance(item["evidence"], str) or len(item["evidence"].strip())<15:
+                    raise ValueError("Missing visible-function evidence for " + item["id"])
+                for key in coordinate_fields:
+                    vision_point(item[key], collection + "." + item["id"] + "." + key)
+                    x,y=item[key]
+                    left,top,right,bottom=item["region"]
+                    if not left<=x<=right or not top<=y<=bottom:
+                        raise ValueError("Vision point lies outside its named region: " + item["id"])
     if not isinstance(answer["explanation"], str):raise ValueError("Missing explanation")
 
 
-def lift_landmarks(meshes, views, answer):
-    """Use vision for semantic SIGNS; use geometry for actual 3D contacts.
+def project_labelled_vertex(meshes, view, point):
+    """Lift ONLY a supplied 2D vision point; never select a functional extremity."""
+    pixel = np.array(point) * VIEW_SIZE
+    nearby = []
+    for mesh in meshes:
+        world = mesh["world"]
+        projection = np.column_stack([(world-view["center"]) @ view["right"],
+            (world-view["center"]) @ view["up"]]) * view["scale"]
+        pixels = np.column_stack([VIEW_SIZE/2+projection[:, 0],
+                                  VIEW_SIZE/2-projection[:, 1]])
+        distances = np.linalg.norm(pixels-pixel, axis=1)
+        depth = (world-view["center"]) @ view["camera"]
+        for i in np.argsort(distances)[:4]:
+            nearby.append((float(distances[i]), -float(depth[i]), mesh, int(i)))
+    nearby.sort(key=lambda entry: (entry[0], entry[1]))
+    distance, _, mesh, index = nearby[0]
+    if distance > VIEW_SIZE * .035:
+        raise ValueError("Vision landmark lies outside the GLB: re-annotate")
+    return {"local": [round(float(x), 7) for x in mesh["local"][index]],
+            "mesh": mesh["mesh"], "primitive": mesh["primitive"],
+            "error_px": round(distance, 1), "method": "vision-nearest-surface"}
 
-    Pixel coordinates from tiny vision models can be approximate. A point on
-    the *correct side* of a blade must project onto the real mesh silhouette,
-    even when the model placed it outside that silhouette. We do not accept
-    guessed 3D coordinates or blindly snap both head/edge to one vertex.
+
+def lift_landmarks(meshes, views, answer, semantic=None):
+    """Lift vision-labelled roles onto the real GLB, without semantic guesses.
+
+    Geometry may project a confirmed point to a surface, but must not invent
+    which extremity is a working head or which silhouette is functional.
     """
-    validate_answer(answer)
-    v = views[answer["view"]]
-    candidates = []
-    for m in meshes:
-        world = m["world"]
-        projection = np.column_stack([(world-v["center"])@v["right"],
-            (world-v["center"])@v["up"]]) * v["scale"]
-        pixels = np.column_stack([VIEW_SIZE/2+projection[:, 0], VIEW_SIZE/2-projection[:, 1]])
-        depth = (world-v["center"])@v["camera"]
-        candidates.append((m, pixels, depth))
+    validate_answer(answer, semantic)
     result = {}
-    def record(mesh, idx, distance, method):
-        return {"local": [round(float(x), 7) for x in mesh["local"][idx]],
-                "mesh": mesh["mesh"], "primitive": mesh["primitive"],
-                "error_px": round(float(distance), 1), "method": method}
-    def nearest_surface(pixel):
-        nearby = []
-        for m, projected, depth in candidates:
-            delta = np.linalg.norm(projected-pixel, axis=1)
-            for idx in np.argsort(delta)[:4]:
-                nearby.append((float(delta[idx]),-float(depth[idx]),m,int(idx)))
-        nearby.sort(key=lambda entry:(entry[0],entry[1]))
-        distance, _, mesh, index = nearby[0]
-        return mesh, index, distance
-    # These two references are on the narrow handle; direct nearest-surface
-    # projection is stable without assuming any mesh coordinates or axes.
-    for name in ("handle_butt", "grip_center"):
-        target = np.array(answer[name])*VIEW_SIZE
-        mesh, idx, distance = nearest_surface(target)
-        if distance > VIEW_SIZE*.085:
-            raise ValueError(f"Handle landmark {name} is outside the real GLB")
-        result[name] = record(mesh,idx,distance,"vision-nearest-surface")
+    # Every semantic role comes from vision, not a mesh length or width rule.
+    for name in LANDMARKS:
+        try:
+            result[name] = project_labelled_vertex(meshes, views[answer["view"]], answer[name])
+        except ValueError as error:
+            raise ValueError(f"Vision landmark {name} lies outside the GLB: re-annotate") from error
     def pos(name):
         item = result[name]
         for m in meshes:
@@ -238,59 +466,10 @@ def lift_landmarks(meshes, views, answer):
                 j = np.argmin(np.linalg.norm(m["local"]-local, axis=1))
                 return m["world"][j]
         raise ValueError("Landmark mesh missing")
-    # Estimate where the HEAD lives from the long axis of the handle. This
-    # is independent of its shape, material, category or facing direction.
-    butt, grip = pos("handle_butt"), pos("grip_center")
-    axis = grip-butt
-    length = np.linalg.norm(axis)
-    if length < 1e-5:raise ValueError("Handle endpoints collapse")
-    axis /= length
-    world = np.vstack([m["world"] for m in meshes])
-    projection = (world-butt)@axis
-    low, high = float(projection.min()), float(projection.max())
-    if high-low < length*.8:raise ValueError("Model shaft too short")
-    head_mask = projection > low+.69*(high-low)
-    active_mask = projection > low+.49*(high-low)
-    if head_mask.sum()<8 or active_mask.sum()<12:
-        raise ValueError("No recognizable working end of the mesh")
-    center = world[head_mask].mean(axis=0)
-    # Choose a REAL surface vertex close to the head's geometric center.
-    offsets = np.linalg.norm(world-center, axis=1)
-    offsets[~head_mask] = np.inf
-    head_index = int(np.argmin(offsets))
-    def at_global(index):
-        for m in meshes:
-            if index < len(m["world"]):return m,index
-            index -= len(m["world"])
-        raise ValueError("Missing mesh vertex")
-    head_mesh, head_local = at_global(head_index)
-    head_pixel = np.array([VIEW_SIZE/2+(center-v["center"])@v["right"]*v["scale"],
-                           VIEW_SIZE/2-(center-v["center"])@v["up"]*v["scale"]])
-    # The *sign* of the functional face is a visual-semantic decision. Its
-    # position and outermost point are solved from the actual GLB silhouette.
-    expected_head = np.array(answer["working_head"])*VIEW_SIZE
-    expected_edge = np.array(answer["functional_edge"])*VIEW_SIZE
-    to_edge = expected_edge-expected_head
-    edge_distance = np.linalg.norm(to_edge)
-    if edge_distance < VIEW_SIZE*.035:
-        raise ValueError("Vision cannot distinguish working edge from its head")
-    if np.linalg.norm(expected_head-head_pixel)>VIEW_SIZE*.28:
-        raise ValueError("Vision working head does not match the mesh's working end")
-    to_edge /= edge_distance
-    pixels = np.column_stack([
-        VIEW_SIZE/2+(world-v["center"])@v["right"]*v["scale"],
-        VIEW_SIZE/2-(world-v["center"])@v["up"]*v["scale"]])
-    signed = (pixels-head_pixel)@to_edge
-    signed[~active_mask] = -np.inf
-    edge_index = int(np.argmax(signed))
-    edge_mesh, edge_local = at_global(edge_index)
-    edge_pixel = pixels[edge_index]
-    if signed[edge_index]<VIEW_SIZE*.04:
-        raise ValueError("No functional surface extends toward the vision-defined side")
-    result["working_head"] = record(head_mesh,head_local,
-        np.linalg.norm(expected_head-pixels[head_index]),"3d-working-head-centroid")
-    result["functional_edge"] = record(edge_mesh,edge_local,
-        np.linalg.norm(expected_edge-edge_pixel),"signed-mesh-silhouette-extreme")
+    # These are sanity checks on the FOUR labelled points, not rules for
+    # assigning any point's function to a particular part of the mesh.
+    if np.linalg.norm(pos("handle_butt")-pos("grip_center"))<1e-5:
+        raise ValueError("Vision identified a collapsed handle")
     shaft = pos("working_head")-pos("grip_center")
     blade = pos("functional_edge")-pos("working_head")
     if np.linalg.norm(shaft)<1e-6:raise ValueError("Grip and working head coincide")
@@ -302,7 +481,76 @@ def lift_landmarks(meshes, views, answer):
     return result
 
 
-def run(plan_path: Path, check=False):
+def lift_named_landmarks(meshes, views, answer, semantic):
+    """Physically locate EVERY source-named handhold and action direction."""
+    validate_answer(answer, semantic)
+    result = {"grips": {}, "features": {}}
+    for grip in answer["grips"]:
+        result["grips"][grip["id"]] = project_labelled_vertex(
+            meshes, views[grip["view"]], grip["point"])
+    for feature in answer["features"]:
+        origin = project_labelled_vertex(meshes, views[feature["view"]], feature["origin"])
+        tip = project_labelled_vertex(meshes, views[feature["view"]], feature["direction_tip"])
+        if origin["mesh"] == tip["mesh"] and origin["local"] == tip["local"]:
+            raise ValueError("Functional direction collapses on the 3D object: re-annotate")
+        result["features"][feature["id"]] = {"origin": origin, "direction_tip": tip}
+    return result
+
+
+def annotated_view_image(source, answer):
+    """Make the model's actual claimed semantic regions inspectable as PNG."""
+    picture=Image.open(io.BytesIO(source)).convert("RGB")
+    draw=ImageDraw.Draw(picture)
+    legacy_view=answer.get("view",0)
+    if type(legacy_view) is int and legacy_view in range(4):
+        ox=(legacy_view%2)*VIEW_SIZE;oy=(legacy_view//2)*VIEW_SIZE
+        for label in LANDMARKS:
+            position=answer.get(label,[])
+            if not isinstance(position,list) or not all(
+                    isinstance(p,(float,int)) for p in position):
+                continue
+            if len(position)==2:
+                x,y=ox+position[0]*VIEW_SIZE,oy+position[1]*VIEW_SIZE
+                draw.ellipse((x-4,y-4,x+4,y+4),fill=(25,149,111),
+                    outline=(255,255,255),width=1)
+                draw.text((x+5,y+5),label,fill=(25,101,78))
+            elif len(position)==4:
+                x0,y0,x1,y1=position
+                draw.rectangle((ox+x0*VIEW_SIZE,oy+y0*VIEW_SIZE,
+                    ox+x1*VIEW_SIZE,oy+y1*VIEW_SIZE),outline=(215,135,0),width=2)
+                draw.text((ox+x0*VIEW_SIZE,oy+y0*VIEW_SIZE-12),
+                    label+" [BAD BOX]",fill=(150,83,0))
+    for kind,color,points in (("grips",(20,115,230),("point",)),
+                              ("features",(223,45,67),("origin","direction_tip"))):
+        for item in answer.get(kind,[]):
+            if not isinstance(item,dict) or item.get("view") not in (0,1,2,3):continue
+            view=item["view"]
+            ox,oy=(view%2)*VIEW_SIZE,(view//2)*VIEW_SIZE
+            region=item.get("region",[])
+            if isinstance(region,list) and len(region)==4:
+                box=[ox+region[0]*VIEW_SIZE,oy+region[1]*VIEW_SIZE,
+                     ox+region[2]*VIEW_SIZE,oy+region[3]*VIEW_SIZE]
+                draw.rectangle(box,outline=color,width=3)
+                draw.text((box[0],max(40,box[1]-18)),item.get("id","?"),fill=color)
+            for name in points:
+                point=item.get(name,[])
+                if isinstance(point,list) and len(point)==2:
+                    x,y=ox+point[0]*VIEW_SIZE,oy+point[1]*VIEW_SIZE
+                    draw.ellipse((x-5,y-5,x+5,y+5),fill=color,outline=(255,255,255),width=2)
+            if kind=="features" and all(isinstance(item.get(k),list) and
+                    len(item[k])==2 for k in points):
+                a,b=(item[k] for k in points)
+                draw.line((ox+a[0]*VIEW_SIZE,oy+a[1]*VIEW_SIZE,
+                           ox+b[0]*VIEW_SIZE,oy+b[1]*VIEW_SIZE),fill=color,width=3)
+    out=io.BytesIO();picture.save(out,format="PNG")
+    return out.getvalue()
+
+
+def run(plan_path: Path, check=False, pass_id="primary", model=MODEL):
+    if not re.fullmatch(r"[a-z][a-z0-9_]{0,48}",pass_id):
+        raise ValueError("Vision pass ID must identify one immutable analysis")
+    if not re.fullmatch(r"[a-zA-Z0-9_./:-]{3,120}",model):
+        raise ValueError("Invalid OpenRouter spatial vision model")
     if not plan_path.is_file() or not plan_path.resolve().is_relative_to(ROOT):
         raise ValueError("A canonical repository grip plan is required")
     plan = json.loads(plan_path.read_text())
@@ -313,7 +561,13 @@ def run(plan_path: Path, check=False):
     digest = hashlib.sha256(glb.read_bytes()).hexdigest()
     if digest != plan["input_hashes"]["prop_glb_sha256"]:
         raise ValueError("GLB changed: regenerate the canonical grip plan")
-    if plan.get("mesh_landmarks",{}).get("glb_sha256") == digest:
+    semantic, interaction_hash = confirmed_interaction(plan_path, plan)
+    previous = plan.get("mesh_landmarks", {})
+    complete_named = (semantic is None or
+        (previous.get("interaction_sha256") == interaction_hash and
+         set(previous.get("grips", {})) == {g["id"] for g in semantic["grips"]} and
+         set(previous.get("features", {})) == {f["id"] for f in semantic["features"]}))
+    if previous.get("glb_sha256") == digest and complete_named and pass_id=="primary":
         print("3D functional landmarks already present; zero paid requests")
         return
     if check:
@@ -321,31 +575,60 @@ def run(plan_path: Path, check=False):
         return
     meshes = glb_geometry(glb)
     render, views = make_views(meshes)
-    receipt = plan_path.with_name("grip-landmarks-response.json")
+    save_model_inputs(plan_path,image,render,pass_id)
+    receipt_dir=plan_path.parent/"vision-landmark-receipts"
+    signature=hashlib.sha256(json.dumps({"glb":digest,
+        "interaction":interaction_hash,"pass_id":pass_id,"model":model,
+        "schema":named_schema(semantic),"prompt":PROMPT,
+        "actual_glb_image_sha256":hashlib.sha256(render).hexdigest(),
+        "source_reference_image_sha256":hashlib.sha256(source_reference_bytes(image)).hexdigest()},
+        sort_keys=True).encode()).hexdigest()
+    receipt=receipt_dir/("landmarks-"+signature+".json")
     if receipt.exists():
         cached = json.loads(receipt.read_text())
-        if cached.get("glb_sha256") != digest:
-            raise ValueError("Cached vision answer belongs to a different GLB")
+        if (cached.get("glb_sha256") != digest or
+                cached.get("interaction_sha256") != interaction_hash or
+                cached.get("pass_signature") != signature or
+                "raw_landmarks" not in cached):
+            raise ValueError("Prior spatial vision pass is pending/invalid; no blind paid retry")
         answer = cached["raw_landmarks"]
     else:
         key = os.environ.get("OPENROUTER_API_KEY", "").strip()
         if not key:raise RuntimeError("Missing OPENROUTER_API_KEY (run the pipeline Actions)")
-        from PIL import ImageOps
-        original = Image.open(image).convert("RGBA")
-        if original.getbbox():original = original.crop(original.getbbox())
-        original.thumbnail((720, 720))
-        original = ImageOps.contain(original, (720, 720))
-        original_bytes = io.BytesIO(); original.save(original_bytes, format="PNG")
-        payload = {"model": MODEL, "temperature": 0, "max_tokens": 520,
+        parts = [
+            {"type": "text", "text": "IMAGE 1: generated 3D GLB, four labeled views"},
+            image_part(render),
+            {"type": "text", "text": "IMAGE 2: reference concept for functional edge only"},
+            image_part(source_reference_bytes(image)),
+        ]
+        if semantic is not None:
+            parts.append({"type": "text", "text":
+                "AUTHORITATIVE VISUAL CHARACTERIZATION: annotate EACH named grip "
+                "and EACH functional direction on the ACTUAL GLB. You may choose "
+                "a DIFFERENT VIEW for each grip or functional feature; the origin "
+                "and tip of one direction share a view. Use ONLY the supplied IDs. "
+                "For EVERY named role, first DRAW a tight region as normalized "
+                "[xmin,ymin,xmax,ymax] in that panel, then choose physical "
+                "point(s) INSIDE that region and describe visible evidence. "
+                "The region must bound the REAL part, not the whole object or background. "
+                "If a handhold, working region or direction is not truly visible "
+                "on the 3D object, lower confidence. Never infer which end or "
+                "surface is functional by length or width. The following "
+                "descriptions contain role NAMES and FUNCTION only, never "
+                "concept-image coordinates: " +
+                json.dumps(semantic_role_labels(semantic), ensure_ascii=False)})
+        payload = {"model": model, "temperature": 0, "max_tokens": 2400 if semantic else 520,
             "provider": {"require_parameters": True},
             "response_format": {"type": "json_schema", "json_schema": {
-                "name": "glb_prop_landmarks", "strict": True, "schema": SCHEMA}},
+                "name": "glb_prop_landmarks", "strict": True,
+                "schema": named_schema(semantic)}},
             "messages": [{"role": "system", "content": PROMPT},
-                {"role": "user", "content": [
-                    {"type": "text", "text": "IMAGE 1: generated 3D GLB, four labeled views"},
-                    image_part(render),
-                    {"type": "text", "text": "IMAGE 2: reference concept for functional edge only"},
-                    image_part(original_bytes.getvalue())]}]}
+                {"role": "user", "content": parts}]}
+        receipt_dir.mkdir(parents=True,exist_ok=True)
+        receipt.write_text(json.dumps({"schema":2,"pass_signature":signature,
+            "glb_sha256":digest,"interaction_sha256":interaction_hash,
+            "pass_id":pass_id,"model":model,
+            "status":"submission-outcome-unknown"},indent=2)+"\n")
         request = Request(ENDPOINT, data=json.dumps(payload).encode(), method="POST",
             headers={"Authorization": "Bearer "+key, "Content-Type": "application/json",
                      "HTTP-Referer": "https://github.com/leye0/WarConquer",
@@ -353,12 +636,18 @@ def run(plan_path: Path, check=False):
         with urlopen(request, timeout=150) as response:
             data = json.loads(response.read(160000))
         answer = json.loads((data.get("choices") or [{}])[0]["message"]["content"])
-        receipt.write_text(json.dumps({"schema":1, "glb_sha256": digest,
-            "model": MODEL, "raw_landmarks":answer}, indent=2)+"\n")
-    landmarks = lift_landmarks(meshes, views, answer)
+        receipt.write_text(json.dumps({"schema":2, "glb_sha256": digest,
+            "interaction_sha256": interaction_hash,
+            "pass_signature":signature,"pass_id":pass_id,
+            "model":model, "raw_landmarks":answer}, indent=2)+"\n")
+    preview=plan_path.with_name("vision-landmarks-"+pass_id+".png")
+    preview.write_bytes(annotated_view_image(render,answer))
+    landmarks = lift_landmarks(meshes, views, answer, semantic)
+    named = lift_named_landmarks(meshes, views, answer, semantic) if semantic else {}
     plan["mesh_landmarks"] = {"schema":1,"glb_sha256":digest,
-        "model": MODEL,"view":answer["view"],"confidence":answer["confidence"],
-        "points":landmarks,"explanation":answer["explanation"]}
+        "model":model,"view":answer["view"],"confidence":answer["confidence"],
+        "points":landmarks,"explanation":answer["explanation"],
+        **({"interaction_sha256": interaction_hash, **named} if semantic else {})}
     plan_path.write_text(json.dumps(plan, ensure_ascii=False, indent=2)+"\n")
     print("Saved reusable 3D grip/contact landmark contract:", plan_path.relative_to(ROOT))
 
@@ -367,5 +656,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plan", required=True)
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--pass-id",default="primary",
+        help="Distinct source-matched OpenRouter spatial analysis; no one-call limit")
+    parser.add_argument("--model",default=MODEL)
+    parser.add_argument("--render-preview",action="store_true",
+        help="Save exactly the two texture/source images supplied to vision, without API calls")
     args = parser.parse_args()
-    run((ROOT/args.plan).resolve(), args.check)
+    target=(ROOT/args.plan).resolve()
+    if args.render_preview:
+        if not target.is_file() or not target.is_relative_to(ROOT):
+            raise ValueError("Invalid canonical plan for preview")
+        plan=json.loads(target.read_text())
+        mesh=glb_geometry(ROOT/plan["inputs"]["object_glb"])
+        render,_=make_views(mesh)
+        save_model_inputs(target,ROOT/plan["inputs"]["object_image"],render,args.pass_id)
+    else:
+        run(target,args.check,args.pass_id,args.model)

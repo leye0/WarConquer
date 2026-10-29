@@ -5,10 +5,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
-import os
-import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -30,86 +27,64 @@ def candidates(selected=None):
             yield unit,prop["id"],prop["grip"]
 
 
-def run(selected,output,allow_paid):
+def run(selected,output,allow_paid,passes=("primary","independent")):
     if not allow_paid:raise RuntimeError("Visual model requests require --allow-paid")
     ready=list(candidates(selected))
     if not ready:
+        if selected:raise RuntimeError("Selected unit has no vision-grounded 3D contact ready: "+selected)
         print("No playable humanoid with a ready vision-annotated prop")
         return
     output.mkdir(parents=True,exist_ok=True)
     qa_spec=importlib.util.spec_from_file_location("wc_visual_qa",ROOT/"scripts/verify-prop-visual-qa.py")
     qa=importlib.util.module_from_spec(qa_spec)
     qa_spec.loader.exec_module(qa)
-    select_spec=importlib.util.spec_from_file_location("wc_vision_pose_selection",
-        ROOT/"scripts/select-prop-contact-orientation.py")
-    selector=importlib.util.module_from_spec(select_spec)
-    select_spec.loader.exec_module(selector)
     failures=[]
     for unit,prop,relative in ready:
         plan=pipeline.safe_path(relative)
-        record=json.loads(plan.read_text())
-        existing=record.get("visual_qa",{})
-        if (existing.get("signature")==qa.signature(record) and
-                existing.get("status")=="approved"):
-            print("VISUAL_GO_CACHED",unit,prop)
-            continue
         screenshots=output/(unit+"_"+prop)
         print("Rendering actual browser contact:",unit,prop,flush=True)
         try:
-            subprocess.run(["node","scripts/capture-prop-contact.mjs",unit,prop,str(screenshots)],
-                cwd=ROOT,check=True,timeout=180)
-            if not qa.review(plan,screenshots):
-                old_doc=json.loads(plan.read_text())
-                previous_search=old_doc.get("automatic_orientation_selection",{})
-                if previous_search.get("selected_head_direction"):
-                    failures.append(unit+"/"+prop+" (visual NO-GO after both anatomical axis searches)")
-                    continue
-                # Instead of a weapon-specific angle fix, render the SAME GLB
-                # with every valid anatomical working-face direction. Vision
-                # sees the candidates together and picks the physically valid
-                # one; the regular GO gate then checks it independently.
-                original=plan.read_text()
-                source=json.loads(original)
-                edge_already_selected=(previous_search.get("selected_edge_direction")
-                                      or previous_search.get("selected_direction"))
-                axis="head_direction" if edge_already_selected else "edge_direction"
-                state_file=screenshots/"contact-state.json"
-                state=json.loads(state_file.read_text()) if state_file.is_file() else {}
-                if axis=="head_direction" and state.get("carry")=="mass-below-hand":
-                    # Head direction is intentionally overridden by physical
-                    # gravity in this carry state: trying six identical
-                    # rotations would waste renders/model calls.
-                    failures.append(unit+"/"+prop+" (gravity-balanced carry still rejected visually)")
-                    continue
-                previous=source["specifications"][axis]
-                alternatives=output/(unit+"_"+prop+"_"+axis+"_alternatives")
-                try:
-                    for direction in selector.choices_for(axis):
-                        target=alternatives/direction
-                        if direction==previous:
-                            shutil.copytree(screenshots,target,dirs_exist_ok=True)
-                            continue
-                        candidate=json.loads(original)
-                        candidate["specifications"][axis]=direction
-                        plan.write_text(json.dumps(candidate,ensure_ascii=False,indent=2)+"\n")
-                        subprocess.run(["node","scripts/capture-prop-contact.mjs",unit,prop,str(target)],
-                            cwd=ROOT,check=True,timeout=180)
-                finally:
-                    plan.write_text(original)
-                direction=selector.choose(plan,alternatives,previous,axis)
-                updated=json.loads(original)
-                updated["specifications"][axis]=direction
-                updated.pop("vision_review",None)
-                updated["visual_qa"]={"status":"candidate",
-                    "reason":"Real-browser alternatives ranked by low-cost vision"}
-                updated["automatic_orientation_selection"]={**previous_search,
-                    "method":"real-3d-vision-candidate-search",
-                    "previous_"+axis:previous,"selected_"+axis:direction,
-                    "candidates_"+axis:list(selector.choices_for(axis))}
-                plan.write_text(json.dumps(updated,ensure_ascii=False,indent=2)+"\n")
-                if not qa.review(plan,alternatives/direction):
-                    failures.append(unit+"/"+prop+" (no GO after visual candidate selection)")
-        except (subprocess.CalledProcessError,subprocess.TimeoutExpired,ValueError) as error:
+            capture=subprocess.run(["node","scripts/capture-prop-contact.mjs",
+                unit,prop,str(screenshots)],cwd=ROOT,check=False,timeout=180)
+            verdict_path=screenshots/"contact-numeric-verdict.json"
+            if not verdict_path.exists():
+                raise RuntimeError("Actual Mixamo frame capture did not complete")
+            numeric=json.loads(verdict_path.read_text())
+            expected={"front","side","back","walk","run"}
+            contract=qa.interaction(json.loads(plan.read_text()))
+            if any(m["phase"]=="use" for m in
+                    contract["characterization"]["modes"]):
+                expected.update({"action","action_mid","action_mid_1",
+                    "action_mid_2","action_mid_3","action_mid_5",
+                    "action_mid_6","action_mid_7"})
+            available={p.stem for p in screenshots.glob("*.png")}
+            if expected-available:
+                raise RuntimeError("Real Mixamo screenshot views missing: "+
+                    ", ".join(sorted(expected-available)))
+            decisions=[]
+            for pass_id in passes:
+                # Independently challenge Gemini with native Qwen3-VL region boxes.
+                # Different vision families avoid a same-model false consensus.
+                model=("qwen/qwen3-vl-8b-instruct"
+                    if pass_id=="independent" else qa.MODEL)
+                passed=qa.review(plan,screenshots,pass_id,model=model)
+                decision=json.loads(plan.read_text())["visual_qa"]
+                decisions.append({"pass_id":pass_id,"go":passed,**decision})
+            numeric_ok=capture.returncode==0 and numeric.get("status")=="approved"
+            if not numeric_ok or not all(d["go"] for d in decisions):
+                result=json.loads(plan.read_text())
+                result["visual_qa"]={"status":"rejected",
+                    "reason":"Independent vision or real anatomical numeric constraints rejected",
+                    "numeric_issues":numeric.get("issues",[]),"reviews":decisions,
+                    "checked_views":[p.name for p in screenshots.glob("*.png")]}
+                plan.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n")
+                failures.append(unit+"/"+prop+" (real pose or semantic vision disagreement)")
+            else:
+                result=json.loads(plan.read_text())
+                result["visual_qa"]["reviews"]=decisions
+                plan.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n")
+        except (subprocess.CalledProcessError,subprocess.TimeoutExpired,ValueError,
+                RuntimeError) as error:
             failures.append(unit+"/"+prop+": "+str(error))
     if failures:raise RuntimeError("Visual NO-GO or blocked: "+", ".join(failures))
     print("PASS: all ready object contacts received a live vision GO")
@@ -120,5 +95,8 @@ if __name__=="__main__":
     parser.add_argument("--unit",help="Optional unit ID; omit for all ready units")
     parser.add_argument("--output",required=True)
     parser.add_argument("--allow-paid",action="store_true")
+    parser.add_argument("--passes",default="primary,independent",
+        help="Comma-separated independent vision pass IDs; never brute-force rotations")
     args=parser.parse_args()
-    run(args.unit,Path(args.output).resolve(),args.allow_paid)
+    run(args.unit,Path(args.output).resolve(),args.allow_paid,
+        tuple(p.strip() for p in args.passes.split(",") if p.strip()))

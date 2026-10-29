@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "model": "google/gemini-2.5-flash",
+  "pass_id": "studio_flash_bbox1",
+  "glb_view": 2,
+  "bbox_convention": "xyxy_normalized_1000",
+  "receipt": "assets/experiments/props/marches_hache/trellis-v1/vision-region-receipts/studio-studio_flash_bbox1-c72e52c688a412b852a8145129da554ebc655c1e8b4dd6e0c18022e30dd163ba.json",
+  "overlay": "assets/experiments/props/marches_hache/trellis-v1/vision-regions-studio-studio_flash_bbox1.png",
+  "boxes": {
+    "handle_butt": {
+      "visible": true,
+      "box_2d": [
+        399,
+        897,
+        460,
+        936
+      ],
+      "confidence": 0.9
+    },
+    "grip_center": {
+      "visible": true,
+      "box_2d": [
+        400,
+        500,
+        460,
+        550
+      ],
+      "confidence": 0.9
+    },
+    "working_head": {
+      "visible": true,
+      "box_2d": [
+        240,
+        290,
+        465,
+        610
+      ],
+      "confidence": 0.9
+    },
+    "functional_edge": {
+      "visible": true,
+      "box_2d": [
+        240,
+        290,
+        465,
+        440
+      ],
+      "confidence": 0.9
+    },
+    "grip_lower_haft": {
+      "visible": true,
+      "box_2d": [
+        399,
+        560,
+        460,
+        936
+      ],
+      "confidence": 0.9
+    },
+    "grip_upper_haft": {
+      "visible": true,
+      "box_2d": [
+        399,
+        490,
+        460,
+        560
+      ],
+      "confidence": 0.9
+    },
+    "axe_head": {
+      "visible": true,
+      "box_2d": [
+        240,
+        290,
+        465,
+        610
+      ],
+      "confidence": 0.9
+    }
+  },
+  "original_point_positions_1000": {
+    "handle_butt": [
+      479.1,
+      881.1
+    ],
+    "grip_center": [
+      479.1,
+      653.9
+    ],
+    "working_head": [
+      480.0,
+      318.9
+    ],
+    "functional_edge": [
+      378.6,
+      324.6
+    ],
+    "grip_lower_haft": [
+      480.7,
+      817.3
+    ],
+    "grip_upper_haft": [
+      477.4,
+      581.7
+    ],
+    "axe_head": [
+      480.0,
+      318.9
+    ]
+  },
+  "status": "rejected",
+  "issues": [
+    "handle_butt: existing GLB landmark is OUTSIDE independently vision-labeled bbox",
+    "grip_center: existing GLB landmark is OUTSIDE independently vision-labeled bbox",
+    "working_head: existing GLB landmark is OUTSIDE independently vision-labeled bbox",
+    "grip_lower_haft: existing GLB landmark is OUTSIDE independently vision-labeled bbox",
+    "grip_upper_haft: existing GLB landmark is OUTSIDE independently vision-labeled bbox",
+    "axe_head: existing GLB landmark is OUTSIDE independently vision-labeled bbox"
+  ]
+}

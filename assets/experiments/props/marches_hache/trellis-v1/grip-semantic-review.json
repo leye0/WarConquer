@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "source_hashes": {
+    "object_image_sha256": "061c18599da536c363ffa8bb10f648405d31c240f027c3867a46541d2b0d79bc",
+    "character_image_sha256": "40596135f14365c2a77258cd34fe8285c2968fc791816023fbe37cdb197982c7",
+    "prop_glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b"
+  },
+  "legacy_plan_sha256": "783f636124d8855878da3e47c95cdda5ca6c25c0bafdf83ac6da3d60e3fc766a",
+  "interaction_contract_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
+  "source_observations": [
+    {
+      "source": "object_image",
+      "observation": "The source PNG has an opaque red-wrapped shaft butt near normalized (0.28,0.84), lower handhold (0.31,0.79), exposed upper wooden handhold (0.48,0.41), wood-to-head intersection (0.55,0.27), dark metal head (0.65,0.25) and visible sharp outer edge (0.73,0.28). All of these were sampled at 1600 x 1600 native pixels."
+    },
+    {
+      "source": "character_image",
+      "observation": "The original character holds the lower axe shaft with his anatomical right hand and a genuinely separate upper shaft region with his anatomical left hand. The metal cutting edge lies at the far end of the head, away from both grasp regions."
+    }
+  ],
+  "specifications": {
+    "object_kind": "axe",
+    "grip_geometry": "shaft",
+    "hold_mode": "two_hands",
+    "dominant_hand": "right",
+    "handle_butt": [0.28, 0.84],
+    "handle_near_head": [0.55, 0.27],
+    "grip_point": [0.31, 0.79],
+    "head_center": [0.65, 0.25],
+    "action_edge": [0.73, 0.28],
+    "head_direction": "forward",
+    "edge_direction": "outward",
+    "length_relative_character_height": 1.1,
+    "palm_from_wrist": 0.5,
+    "confidence": 0.9,
+    "explanation": "Reviewed on both full-resolution source images: right palm grips lower leather shaft, left palm grips exposed upper wood. The metal head and visibly sharpened blade are separate from the handholds. Body-relative orientation is provisional until actual Mixamo and independent 3D vision QA."
+  }
+}

@@ -1,0 +1,58 @@
+name: Equipment · one-shot signed vision pilot
+
+on:
+  push:
+    branches: [feat/semantic-prop-contact-contract]
+    paths:
+      - '.github/workflows/semantic-pilot.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wc-semantic-vision-pilot
+  cancel-in-progress: false
+
+jobs:
+  characterize:
+    if: contains(github.event.head_commit.message, '[semantic-pilot:marches_hache]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    env:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check offline contracts and no guessed grip roles
+        run: |
+          python scripts/test-prop-interaction-contract.py
+          node scripts/test-prop-motion-contact.mjs
+      - name: Pay at most once for real object-character-Mixamo semantics
+        run: |
+          # First pilot stopped before submission because the historical axe
+          # had an original brief but no separate description receipt.
+          # The source-brief migration is now covered by offline tests.
+          python scripts/unit-pipeline.py run --unit marches_hache \
+            --stage object_interaction --allow-paid
+      - name: Save both the paid receipt and any confirmed result on this feature branch
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A assets/experiments/props/marches_hache/trellis-v1/interaction-request.json \
+            assets/experiments/props/marches_hache/trellis-v1/interaction-response.json \
+            assets/experiments/props/marches_hache/trellis-v1/interaction-contract.json 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: preserve one-shot source-confirmed axe interaction and receipt'
+            git push origin HEAD:feat/semantic-prop-contact-contract
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: source-confirmed-axe-semantics
+          path: |
+            assets/experiments/props/marches_hache/trellis-v1/interaction-request.json
+            assets/experiments/props/marches_hache/trellis-v1/interaction-response.json
+            assets/experiments/props/marches_hache/trellis-v1/interaction-contract.json
+          if-no-files-found: ignore

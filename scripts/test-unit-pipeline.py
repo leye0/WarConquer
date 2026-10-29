@@ -25,6 +25,15 @@ assert archer["id"]=="couronne_archer"
 assert archer["equipment"][0]["kind"]=="bow"
 assert archer["adapter"]=="manifest_v1"
 assert "equipment_identify" in pipeline.STAGES
+assert pipeline.STAGES.index("object_interaction") < pipeline.STAGES.index("object_mesh")
+assert pipeline.STAGES.index("object_interaction") < pipeline.STAGES.index("animations")
+with patch.object(pipeline,"py") as no_build:
+    # The Marches axe now has confirmed source-matched hand modes. A still
+    # uncharacterized second unit must remain blocked at the same entry gate.
+    try:pipeline.execute(archer,"turnaround")
+    except pipeline.PipelineError as err:assert "object_interaction" in str(err)
+    else:raise AssertionError("A direct stage bypassed the initial semantic gate")
+    no_build.assert_not_called()
 assert pipeline.state(archer,"source")["ready"],"Archer original concept exists"
 assert pipeline.state(archer,"turnaround")["ready"],"Four archer views must exist after real pilot"
 assert pipeline.state(archer,"body")["ready"],"Archer fal GLB must be independently generated"
@@ -41,7 +50,11 @@ with patch.object(pipeline,"state",return_value={"ready":False,"files":{"missing
 assert set(pipeline.PAID).issubset(pipeline.STAGES)
 for stage in pipeline.STAGES:
     st=pipeline.state(m,stage)
-    if stage=="object_landmarks":
+    if stage=="object_interaction":
+        # Source-grounded review now supersedes the historically incomplete
+        # legacy plan, without pretending that the Mixamo contact is proven.
+        assert st["ready"],st
+    elif stage=="object_landmarks":
         # Existing prop models become reusable only after real GLB vision
         # annotation; never pretend their legacy PCA plan is equivalent.
         if not st["ready"]:
@@ -79,6 +92,7 @@ with tempfile.TemporaryDirectory(prefix="wc-unit-minimal-") as location:
         assert generated["source"]["views"]["front"].endswith("/new_unit/tpose-v1/front.png")
         assert generated["body"]["glb"].endswith("/new_unit/tpose-v1/fal-textured.glb")
         assert generated["equipment"][0]["glb"]=="assets/experiments/props/new_unit/object/mesh.glb"
+        assert generated["equipment"][0]["interaction"].endswith("/interaction-contract.json")
 
 # Missing outputs require explicit authorization; do not even invoke Python scripts.
 missing={"ready":False,"files":{"missing.glb":"missing"}}

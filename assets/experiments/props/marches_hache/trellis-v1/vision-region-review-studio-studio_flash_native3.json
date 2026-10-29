@@ -1,0 +1,262 @@
+{
+  "schema": 1,
+  "model": "google/gemini-2.5-flash",
+  "pass_id": "studio_flash_native3",
+  "glb_view": 2,
+  "bbox_convention": "xyxy_normalized_1000",
+  "native_bbox_convention": "ymin_xmin_ymax_xmax_normalized_1000",
+  "raw_native_boxes": {
+    "handle_butt": {
+      "visible": true,
+      "box_2d": [
+        790,
+        400,
+        846,
+        562
+      ],
+      "confidence": 0.9
+    },
+    "grip_center": {
+      "visible": false,
+      "confidence": 0
+    },
+    "working_head": {
+      "visible": true,
+      "box_2d": [
+        180,
+        199,
+        870,
+        864
+      ],
+      "confidence": 0.9
+    },
+    "functional_edge": {
+      "visible": true,
+      "box_2d": [
+        600,
+        199,
+        870,
+        400
+      ],
+      "confidence": 0.9
+    },
+    "grip_lower_haft": {
+      "visible": true,
+      "box_2d": [
+        2,
+        399,
+        870,
+        562
+      ],
+      "confidence": 0.9
+    },
+    "grip_upper_haft": {
+      "visible": false,
+      "confidence": 0
+    },
+    "axe_head": {
+      "visible": true,
+      "box_2d": [
+        180,
+        199,
+        870,
+        864
+      ],
+      "confidence": 0.9
+    }
+  },
+  "receipt": "assets/experiments/props/marches_hache/trellis-v1/vision-region-receipts/studio-studio_flash_native3-965192236afebd5c1fa2fd1c2f2b85a3b829f20a498a64b9a1c4b5de05ac73cc.json",
+  "overlay": "assets/experiments/props/marches_hache/trellis-v1/vision-regions-studio-studio_flash_native3.png",
+  "boxes": {
+    "handle_butt": {
+      "visible": true,
+      "box_2d": [
+        443.1,
+        925.9,
+        500.3,
+        945.6
+      ],
+      "confidence": 0.9
+    },
+    "grip_center": {
+      "visible": false,
+      "box_2d": null,
+      "confidence": 0.0
+    },
+    "working_head": {
+      "visible": true,
+      "box_2d": [
+        374.2,
+        206.7,
+        608.9,
+        450.2
+      ],
+      "confidence": 0.9
+    },
+    "functional_edge": {
+      "visible": true,
+      "box_2d": [
+        272.2,
+        360.8,
+        343.1,
+        456.1
+      ],
+      "confidence": 0.9
+    },
+    "grip_lower_haft": {
+      "visible": true,
+      "box_2d": [
+        444.7,
+        641.9,
+        502.3,
+        948.2
+      ],
+      "confidence": 0.9
+    },
+    "grip_upper_haft": {
+      "visible": false,
+      "box_2d": null,
+      "confidence": 0.0
+    },
+    "axe_head": {
+      "visible": true,
+      "box_2d": [
+        374.2,
+        206.7,
+        608.9,
+        450.2
+      ],
+      "confidence": 0.9
+    }
+  },
+  "boxes_within_labeled_crops_1000": {
+    "handle_butt": {
+      "visible": true,
+      "box_2d": [
+        400,
+        790,
+        562,
+        846
+      ],
+      "confidence": 0.9
+    },
+    "grip_center": {
+      "visible": false,
+      "box_2d": null,
+      "confidence": 0.0
+    },
+    "working_head": {
+      "visible": true,
+      "box_2d": [
+        199,
+        180,
+        864,
+        870
+      ],
+      "confidence": 0.9
+    },
+    "functional_edge": {
+      "visible": true,
+      "box_2d": [
+        199,
+        600,
+        400,
+        870
+      ],
+      "confidence": 0.9
+    },
+    "grip_lower_haft": {
+      "visible": true,
+      "box_2d": [
+        399,
+        2,
+        562,
+        870
+      ],
+      "confidence": 0.9
+    },
+    "grip_upper_haft": {
+      "visible": false,
+      "box_2d": null,
+      "confidence": 0.0
+    },
+    "axe_head": {
+      "visible": true,
+      "box_2d": [
+        199,
+        180,
+        864,
+        870
+      ],
+      "confidence": 0.9
+    }
+  },
+  "physical_region_reconciliations": {
+    "handle_butt": {
+      "old_1000": [
+        479.1,
+        881.1
+      ],
+      "new_1000": [
+        475.5,
+        933.6
+      ],
+      "native_labeled_region_1000": [
+        443.1,
+        925.9,
+        500.3,
+        945.6
+      ],
+      "method": "second-vision-labeled-bbox-to-real-mesh-surface"
+    },
+    "functional_edge": {
+      "old_1000": [
+        378.6,
+        324.6
+      ],
+      "new_1000": [
+        298.5,
+        410.4
+      ],
+      "native_labeled_region_1000": [
+        272.2,
+        360.8,
+        343.1,
+        456.1
+      ],
+      "method": "second-vision-labeled-bbox-to-real-mesh-surface"
+    }
+  },
+  "original_point_positions_1000": {
+    "handle_butt": [
+      475.5,
+      933.6
+    ],
+    "grip_center": [
+      479.1,
+      653.9
+    ],
+    "working_head": [
+      480.0,
+      318.9
+    ],
+    "functional_edge": [
+      298.5,
+      410.4
+    ],
+    "grip_lower_haft": [
+      480.7,
+      817.3
+    ],
+    "grip_upper_haft": [
+      477.4,
+      581.7
+    ],
+    "axe_head": [
+      480.0,
+      318.9
+    ]
+  },
+  "status": "confirmed",
+  "issues": []
+}

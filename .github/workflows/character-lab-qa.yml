@@ -1,6 +1,19 @@
 name: Character Lab · playable 3D smoke and screenshot
 
 on:
+  pull_request:
+    paths:
+      - 'character-lab.html'
+      - 'scripts/character-lab-client.js'
+      - 'scripts/prop-motion-contact.js'
+      - 'scripts/test-prop-motion-contact.mjs'
+      - 'scripts/serve-character-lab.mjs'
+      - 'scripts/build-character-lab-pages.mjs'
+      - 'scripts/capture-prop-contact.mjs'
+      - 'scripts/prop-mesh-landmarks.py'
+      - 'scripts/verify-prop-visual-qa.py'
+      - 'assets/experiments/props/**/grip-plan.json'
+      - '.github/workflows/character-lab-qa.yml'
   push:
     branches: [main]
     paths:
@@ -46,6 +59,8 @@ jobs:
           node scripts/test-weapon-grip-geometry.mjs
           node --check scripts/rig-contact-landmarks.js
           node scripts/test-rig-contact-landmarks.mjs
+          node --check scripts/prop-motion-contact.js
+          node scripts/test-prop-motion-contact.mjs
           python scripts/test-prop-mesh-landmarks.py
           node scripts/test-grip-plan-selection.mjs
           node --check scripts/serve-character-lab.mjs
@@ -132,6 +147,7 @@ jobs:
       - name: Test real Perception Lab gait, melee clip and damage
         run: node scripts/test-perception-lab-motion.mjs
       - name: Save screenshot as a reviewable repository artifact
+        if: github.event_name == 'push'
         shell: bash
         run: |
           set -euo pipefail
