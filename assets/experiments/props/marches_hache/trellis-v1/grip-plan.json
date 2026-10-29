@@ -1414,7 +1414,7 @@
     "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
     "prompt_version": 2,
     "status": "needs_review",
-    "review": "assets/experiments/props/marches_hache/trellis-v1/vision-region-receipts/multiview-full_views_v2-d7e94524c56a4d25/report.json",
+    "review": "assets/experiments/props/marches_hache/trellis-v1/vision-region-receipts/multiview-full_views_v2-c1162a3241ae0a17/report.json",
     "glb_surface_status": "unresolved_pending_B5"
   }
 }
