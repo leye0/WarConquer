@@ -14,6 +14,8 @@ on:
       - 'scripts/test-unit-equipment.py'
       - 'scripts/prop-mesh-landmarks.py'
       - 'scripts/test-prop-mesh-landmarks.py'
+      - 'scripts/audit-prop-vision-regions.py'
+      - 'scripts/test-audit-prop-vision-regions.py'
       - 'scripts/verify-prop-visual-qa.py'
       - 'scripts/test-prop-visual-qa.py'
       - 'scripts/test-verify-prop-visual-qa.py'
@@ -33,6 +35,8 @@ on:
       - 'scripts/plan-prop-attachment.py'
       - 'scripts/prop-mesh-landmarks.py'
       - 'scripts/test-prop-mesh-landmarks.py'
+      - 'scripts/audit-prop-vision-regions.py'
+      - 'scripts/test-audit-prop-vision-regions.py'
       - 'scripts/test-unit-equipment.py'
       - 'scripts/test-unit-pipeline.py'
       - 'scripts/serve-character-lab.mjs'
@@ -105,6 +109,7 @@ jobs:
           python scripts/test-unit-equipment.py
           python scripts/test-prop-interaction-contract.py
           python scripts/test-prop-mesh-landmarks.py
+          python scripts/test-audit-prop-vision-regions.py
           python scripts/test-prop-visual-qa.py
           python scripts/test-verify-prop-visual-qa.py
           node scripts/test-prop-motion-contact.mjs
