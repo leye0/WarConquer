@@ -130,6 +130,8 @@ proposal={'views':[{'view':i,'objects':{name:{'visible':True,
     for name,item in labels.items()}} for i in range(4)]}
 records=module.validate_multiview(proposal,labels,synthetic_views,'xmin_ymin_xmax_ymax')
 assert not any(r['issues'] for r in records) # Origin outside effect region is legitimate.
+assert module.validate_multiview(proposal['views'],labels,synthetic_views,
+    'xmin_ymin_xmax_ymax')==records # Provider may omit the outer envelope only.
 review={'views':[{'view':i,'objects':{name:{'verdict':'confirmed',
     'reason':'Visible identity and signed direction agree'} for name in labels}} for i in range(4)],
     'cross_view':{name:{'verdict':'confirmed','reason':'Same region visible from distinct cameras',

@@ -57,8 +57,13 @@ for stage in pipeline.STAGES:
     elif stage=="object_landmarks":
         # Existing prop models become reusable only after real GLB vision
         # annotation; never pretend their legacy PCA plan is equivalent.
-        if not st["ready"]:
-            assert list(st["files"].values())==["missing_mesh_landmarks"]
+        plan=json.loads((root/m["equipment"][0]["grip"]).read_text())
+        if plan.get("mesh_region_review",{}).get("schema")==2:
+            # Image-space evidence must NOT certify old vertex anchors as B5 surfaces.
+            assert not st["ready"],st
+            assert list(st["files"].values())==["missing_independent_vision_labeled_regions"],st
+        elif not st["ready"]:
+            assert list(st["files"].values())==["missing_mesh_landmarks"],st
     else:
         assert st["ready"],(stage,st)
 assert pipeline.inspect(m["equipment"][0]["physical_size"])=="ready"

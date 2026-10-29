@@ -389,7 +389,10 @@ def region_prompt(labels, order):
 
 
 def validate_multiview(answer, labels, views, order):
-    records = answer.get('views') if isinstance(answer, dict) else None
+    # Some providers omit only the outer envelope. Preserve raw receipts and
+    # validate the exact same four rows/IDs; never repair semantic coordinates.
+    records = answer if isinstance(answer, list) else (
+        answer.get('views') if isinstance(answer, dict) else None)
     if (not isinstance(records, list) or len(records) != 4 or
             any(not isinstance(r, dict) or type(r.get('view')) is not int for r in records) or
             {r['view'] for r in records} != set(range(4))):
