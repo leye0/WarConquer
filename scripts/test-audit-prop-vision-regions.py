@@ -253,3 +253,8 @@ try:module.audit_multiview(Path('/tmp/nonexistent'), 'test', 'test', 'review', m
 except ValueError as e:assert 'At most two' in str(e)
 else:raise AssertionError('Unbounded revision loop')
 print('PASS: bounded revisions target only disputed cameras without geometric annotation edits')
+
+assert module.native_box_order('qwen/qwen3.7-plus')=='xmin_ymin_xmax_ymax'
+try:module.native_box_order('future/unverified-model')
+except ValueError:pass
+else:raise AssertionError('Unverified model coordinate convention silently accepted')

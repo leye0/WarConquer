@@ -46,7 +46,9 @@ def native_box_order(model):
     """
     if model.startswith("google/gemini-"):
         return "ymin_xmin_ymax_xmax"
-    if model.startswith("qwen/qwen3-vl-"):
+    # Alibaba vision docs explicitly document normalized XYXY for Qwen3-VL,
+    # Qwen3.5, Qwen3.6 and Qwen3.7 (not arbitrary future model families).
+    if model.startswith(("qwen/qwen3-vl-", "qwen/qwen3.5-", "qwen/qwen3.6-", "qwen/qwen3.7-")):
         return "xmin_ymin_xmax_ymax"
     raise ValueError("Unverified model-specific native box ordering: "+model)
 
@@ -551,6 +553,8 @@ def reviewed_regions(records, review, labels):
 
 def region_request(folder, stage, model, prompt, images, provenance, allow_paid, request_options=None):
     """One immutable request per stage; cache raw provider output before parsing."""
+    if model.startswith(('qwen/qwen3.5-', 'qwen/qwen3.6-', 'qwen/qwen3.7-')) and request_options is None:
+        request_options = {'reasoning': {'enabled': False}}
     signature_data = {'schema': REGION_PROMPT_VERSION, 'stage': stage, 'model': model,
         'prompt': prompt, 'images': [{'label': label,
             'sha256': hashlib.sha256(data).hexdigest()} for label, data in images],
@@ -734,7 +738,7 @@ if __name__=="__main__":
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plan",required=True)
     parser.add_argument("--pass-id",default="studio_flash_audit")
-    parser.add_argument("--model",default="qwen/qwen3-vl-235b-a22b-instruct")
+    parser.add_argument("--model",default="qwen/qwen3.7-plus")
     parser.add_argument("--reviewer",default="xiaomi/mimo-v2.6-pro")
     parser.add_argument("--legacy-crops",action="store_true")
     parser.add_argument("--allow-paid",action="store_true")
