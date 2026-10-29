@@ -7,10 +7,9 @@
   "glb_surface_status": "unresolved_pending_B5",
   "issues": [
     "view 3: axe_head: direction_tip is on background",
-    "view 0: axe_head: The box is placed on the top spike of the weapon. The arrow points vertically upward along the spike. This is not the sharpened curved blade edge, and the direction is not outward from the head body.",
-    "view 1: axe_head: The box is on the top spike. The arrow points vertically upward. This does not represent the outward-facing cutting edge of the axe head.",
+    "view 3: axe_head: While the box bounds the metal head, the signed arrow is invalid. The origin is at the head body, but the tip points to the right into the empty background, away from the sharpened curved blade edge which is located on the left side of the head in this view.",
     "axe_head: fewer than two independently confirmed visible views",
-    "axe_head: cross-view unresolved: There is a critical contradiction. In Views 2 and 3, the annotation correctly identifies the curved blade edge with outward arrows. However, in Views 0 and 1, the annotation is placed on the top spike with vertical arrows. The spike is not the cutting edge. The annotation in Views 0 and 1 is incorrect."
+    "axe_head: cross-view unresolved: The functional cutting edge is clearly visible and correctly annotated in View 2. However, View 3 contains a critical directional error (arrow points to background instead of the blade edge), and Views 0 and 1 are edge-on with no visible functional surface. The inconsistency in View 3 prevents a confirmed cross-view verdict."
   ],
   "views": [
     {
@@ -39,23 +38,10 @@
           "evidence": "Smooth, bare wood texture visible between metal head collar at y=0.35 and leather wrap start at y=0.7, clear of blade."
         },
         "axe_head": {
-          "visible": true,
-          "box_2d": [
-            470,
-            250,
-            530,
-            350
-          ],
-          "confidence": 0.9,
-          "evidence": "Metal head with visible sharpened curved cutting edge on right side; origin on head body, direction_tip on the curved blade edge.",
-          "origin": [
-            490,
-            300
-          ],
-          "direction_tip": [
-            520,
-            310
-          ]
+          "visible": false,
+          "box_2d": null,
+          "confidence": 0.0,
+          "evidence": "In this frontal view (View 0), the axe head is presented edge-on. The sharpened curved cutting edge is not visible; only the top spike and flat poll are apparent. No functional blade surface can be identified or localized from this angle."
         }
       },
       "issues": []
@@ -86,23 +72,10 @@
           "evidence": "Bare wooden shaft segment between the metal head and the leather-wrapped lower section; visible wood grain and metallic bands at top and bottom define its extent."
         },
         "axe_head": {
-          "visible": true,
-          "box_2d": [
-            470,
-            250,
-            530,
-            350
-          ],
-          "confidence": 0.9,
-          "evidence": "Metal axe head with visible sharpened curved cutting edge on its outward-facing side; distinct from the flat poll and the wooden haft.",
-          "origin": [
-            490,
-            300
-          ],
-          "direction_tip": [
-            520,
-            320
-          ]
+          "visible": false,
+          "box_2d": null,
+          "confidence": 0.0,
+          "evidence": "The axe head is viewed edge-on in this orientation. The sharpened outward-facing cutting edge is not visible as a distinct functional surface; only the top spike and flat poll are apparent. No visible curved blade edge can be located to define the functional region."
         }
       },
       "issues": []
@@ -208,7 +181,11 @@
     "annotation-view-0-ce891de95cb411fbb85af8fd7fa61917a3178582959afe11b210f6acbdd39e30.json",
     "annotation-view-1-4135e9236124a423e1ba3cdb97f9b35ba9bf112a946d445922a28995ea7efc4d.json",
     "annotation-view-2-02218635846ef3ecdafb6ca6dedabf66d3136cf46b7ba16b7687fb433a608299.json",
-    "annotation-view-3-52b6ed062a9b1e0d10310d612a90d479a80c3d7af21a99267772aa340601f250.json"
+    "annotation-view-3-52b6ed062a9b1e0d10310d612a90d479a80c3d7af21a99267772aa340601f250.json",
+    "revision-1-view-0-40e5858e676edd445ac16d119ab61d6f24b84aef5daa8ef6781b38267553cf21.json",
+    "revision-1-view-1-0e2ef5c3dbbde6878169967c67833a96690951732b8e909d4e113542baaf1b0e.json",
+    "revision-1-view-2-65bf1d058047d31ec0e3b2d6b09bf6a044808a4b8af463790d0e49b01a5bbd43.json",
+    "revision-1-view-3-3911f11f9bc113551247851861c20972c39a53676b7ed92fb757e43d88b99600.json"
   ],
   "review": {
     "views": [
@@ -217,15 +194,15 @@
         "objects": {
           "grip_lower_haft": {
             "verdict": "confirmed",
-            "reason": "The blue box correctly bounds the lower section of the shaft, which shows the dark reddish-brown leather wrapping texture, distinct from the bare wood above."
+            "reason": "The box correctly bounds the lower shaft segment which displays a dark reddish-brown leather texture, distinct from the bare wood above and the metal head."
           },
           "grip_upper_haft": {
             "verdict": "confirmed",
-            "reason": "The box correctly isolates the middle section of the shaft, showing the bare wooden texture with metal bands, clear of the head and the leather wrap."
+            "reason": "The box correctly bounds the upper-middle shaft segment showing bare wood texture, located between the metal head collar and the leather wrap start."
           },
           "axe_head": {
-            "verdict": "rejected",
-            "reason": "The box is placed on the top spike of the weapon. The arrow points vertically upward along the spike. This is not the sharpened curved blade edge, and the direction is not outward from the head body."
+            "verdict": "unresolved",
+            "reason": "The axe head is viewed edge-on. The sharpened curved cutting edge is not visible as a distinct surface; only the top spike and flat poll are apparent. No functional blade surface can be localized."
           }
         }
       },
@@ -234,15 +211,15 @@
         "objects": {
           "grip_lower_haft": {
             "verdict": "confirmed",
-            "reason": "The box correctly bounds the lower leather-wrapped section of the shaft."
+            "reason": "The box correctly bounds the lower shaft segment wrapped in dark red leather, clearly distinct from the bare wood above."
           },
           "grip_upper_haft": {
             "verdict": "confirmed",
-            "reason": "The box correctly bounds the bare wooden middle section of the shaft."
+            "reason": "The box correctly bounds the bare wooden shaft segment between the metal head and the leather-wrapped lower section."
           },
           "axe_head": {
-            "verdict": "rejected",
-            "reason": "The box is on the top spike. The arrow points vertically upward. This does not represent the outward-facing cutting edge of the axe head."
+            "verdict": "unresolved",
+            "reason": "The axe head is viewed edge-on. The sharpened outward-facing cutting edge is not visible as a distinct functional surface; only the top spike and flat poll are apparent."
           }
         }
       },
@@ -251,15 +228,15 @@
         "objects": {
           "grip_lower_haft": {
             "verdict": "confirmed",
-            "reason": "The box correctly bounds the lower leather-wrapped section of the shaft."
+            "reason": "The box correctly bounds the lower shaft segment with reddish-brown leather wrapping, ending just above the bottom tip."
           },
           "grip_upper_haft": {
             "verdict": "confirmed",
-            "reason": "The box correctly bounds the bare wooden middle section of the shaft."
+            "reason": "The box correctly bounds the bare dark wood grain segment extending from below the metal head down to the start of the leather wrap."
           },
           "axe_head": {
             "verdict": "confirmed",
-            "reason": "The box correctly bounds the metal axe head. The arrow originates at the eye/body and points outward to the left, terminating at the sharp curved blade edge."
+            "reason": "The box correctly bounds the metal head. The signed arrow originates at the head body and points outward toward the visible sharpened curved blade edge on the left, matching the direction semantics."
           }
         }
       },
@@ -268,15 +245,15 @@
         "objects": {
           "grip_lower_haft": {
             "verdict": "confirmed",
-            "reason": "The box correctly bounds the lower leather-wrapped section of the shaft."
+            "reason": "The box correctly bounds the lower shaft segment with red-brown leather wrapping, clearly separated from the wooden upper shaft."
           },
           "grip_upper_haft": {
             "verdict": "confirmed",
-            "reason": "The box correctly bounds the bare wooden middle section of the shaft."
+            "reason": "The box correctly bounds the bare dark wood shaft segment between the metal head and the leather wrap."
           },
           "axe_head": {
-            "verdict": "confirmed",
-            "reason": "The box correctly bounds the metal axe head. The arrow originates at the eye/body and points outward to the right, terminating at the sharp curved blade edge."
+            "verdict": "rejected",
+            "reason": "While the box bounds the metal head, the signed arrow is invalid. The origin is at the head body, but the tip points to the right into the empty background, away from the sharpened curved blade edge which is located on the left side of the head in this view."
           }
         }
       }
@@ -284,22 +261,24 @@
     "cross_view": {
       "grip_lower_haft": {
         "verdict": "confirmed",
-        "reason": "The lower leather-wrapped shaft is consistently identified in all four views. The texture and position relative to the handle end are consistent.",
+        "reason": "The leather-wrapped lower shaft is consistently identified and bounded across all four views with matching texture and position relative to the handle.",
         "additional_views": []
       },
       "grip_upper_haft": {
         "verdict": "confirmed",
-        "reason": "The bare wooden middle shaft is consistently identified in all four views, clearly separated from the leather wrap and the head.",
+        "reason": "The bare upper-middle wooden shaft is consistently identified and bounded across all four views, clearly distinct from the leather wrap and the head.",
         "additional_views": []
       },
       "axe_head": {
-        "verdict": "rejected",
-        "reason": "There is a critical contradiction. In Views 2 and 3, the annotation correctly identifies the curved blade edge with outward arrows. However, in Views 0 and 1, the annotation is placed on the top spike with vertical arrows. The spike is not the cutting edge. The annotation in Views 0 and 1 is incorrect.",
-        "additional_views": []
+        "verdict": "unresolved",
+        "reason": "The functional cutting edge is clearly visible and correctly annotated in View 2. However, View 3 contains a critical directional error (arrow points to background instead of the blade edge), and Views 0 and 1 are edge-on with no visible functional surface. The inconsistency in View 3 prevents a confirmed cross-view verdict.",
+        "additional_views": [
+          "A view similar to View 2 but rotated slightly to show the blade edge clearly without the directional ambiguity seen in View 3."
+        ]
       }
     }
   },
-  "review_receipt": "review-b0aedf42142b034b38d7e18e0dc8d13d6c70a498db5b656f268e0171628e82be.json",
+  "review_receipt": "review-r1-f53d957587ba4415070072ab3cd867bb10df495bee18ade51bda671e59b9aa60.json",
   "confirmed_views": {
     "grip_lower_haft": [
       0,
