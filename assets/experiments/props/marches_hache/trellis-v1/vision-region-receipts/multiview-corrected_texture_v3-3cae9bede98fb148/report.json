@@ -1,0 +1,209 @@
+{
+  "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+  "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
+  "prompt_version": 3,
+  "schema": 2,
+  "status": "needs_review",
+  "glb_surface_status": "unresolved_pending_B5",
+  "issues": [
+    "Vision model omitted JSON text"
+  ],
+  "views": [
+    {
+      "view": 0,
+      "objects": {
+        "grip_lower_haft": {
+          "visible": true,
+          "box_2d": [
+            480,
+            700,
+            520,
+            950
+          ],
+          "confidence": 0.9,
+          "evidence": "Dark brown leather-wrapped texture visible on lower shaft, distinct from upper wood and separated from blade by metal collar at y=0.7."
+        },
+        "grip_upper_haft": {
+          "visible": true,
+          "box_2d": [
+            480,
+            350,
+            520,
+            650
+          ],
+          "confidence": 0.9,
+          "evidence": "Smooth, bare wood texture visible between metal head collar at y=0.35 and leather wrap start at y=0.7, clear of blade."
+        },
+        "axe_head": {
+          "visible": true,
+          "box_2d": [
+            470,
+            250,
+            530,
+            350
+          ],
+          "confidence": 0.9,
+          "evidence": "Metal head with visible sharpened curved cutting edge on right side; origin on head body, direction_tip on the curved blade edge.",
+          "origin": [
+            490,
+            300
+          ],
+          "direction_tip": [
+            520,
+            310
+          ]
+        }
+      },
+      "issues": []
+    },
+    {
+      "view": 1,
+      "objects": {
+        "grip_lower_haft": {
+          "visible": true,
+          "box_2d": [
+            470,
+            700,
+            530,
+            950
+          ],
+          "confidence": 0.9,
+          "evidence": "Lower shaft segment wrapped in dark red leather texture, clearly distinct from the bare wood above and the metal head; ends at the visible base of the haft."
+        },
+        "grip_upper_haft": {
+          "visible": true,
+          "box_2d": [
+            470,
+            350,
+            530,
+            700
+          ],
+          "confidence": 0.9,
+          "evidence": "Bare wooden shaft segment between the metal head and the leather-wrapped lower section; visible wood grain and metallic bands at top and bottom define its extent."
+        },
+        "axe_head": {
+          "visible": true,
+          "box_2d": [
+            470,
+            250,
+            530,
+            350
+          ],
+          "confidence": 0.9,
+          "evidence": "Metal axe head with visible sharpened curved cutting edge on its outward-facing side; distinct from the flat poll and the wooden haft.",
+          "origin": [
+            490,
+            300
+          ],
+          "direction_tip": [
+            520,
+            320
+          ]
+        }
+      },
+      "issues": []
+    },
+    {
+      "view": 2,
+      "objects": {
+        "grip_lower_haft": {
+          "visible": true,
+          "box_2d": [
+            470,
+            700,
+            530,
+            920
+          ],
+          "confidence": 0.9,
+          "evidence": "Distinct reddish-brown leather wrapping with visible stitching and texture, tightly bound around the lower wooden shaft, ending just above the bottom tip and clearly separated from the blade assembly above."
+        },
+        "grip_upper_haft": {
+          "visible": true,
+          "box_2d": [
+            470,
+            350,
+            530,
+            690
+          ],
+          "confidence": 0.9,
+          "evidence": "Bare dark wood grain with visible knots and texture, extending from below the metal head down to the start of the leather wrap, free of blade or wrapping material."
+        },
+        "axe_head": {
+          "visible": true,
+          "box_2d": [
+            330,
+            220,
+            530,
+            430
+          ],
+          "confidence": 0.9,
+          "evidence": "Metal head with visible beveled, sharpened outer edge curving downward; the functional cutting surface is the bright, thin, curved rim facing outward, distinct from the flat poll and the wooden haft.",
+          "origin": [
+            470,
+            300
+          ],
+          "direction_tip": [
+            350,
+            380
+          ]
+        }
+      },
+      "issues": []
+    },
+    {
+      "view": 3,
+      "objects": {
+        "grip_lower_haft": {
+          "visible": true,
+          "box_2d": [
+            450,
+            700,
+            500,
+            920
+          ],
+          "confidence": 0.9,
+          "evidence": "Distinct red-brown leather wrapping visible on lower shaft, clearly separated from wooden upper shaft and blade; material texture and boundary are sharp and unambiguous."
+        },
+        "grip_upper_haft": {
+          "visible": true,
+          "box_2d": [
+            450,
+            350,
+            500,
+            700
+          ],
+          "confidence": 0.9,
+          "evidence": "Bare dark wood shaft segment between metal head and leather wrap; visible grain and color contrast with both adjacent regions confirm distinct material and boundary."
+        },
+        "axe_head": {
+          "visible": true,
+          "box_2d": [
+            400,
+            200,
+            650,
+            450
+          ],
+          "confidence": 0.9,
+          "evidence": "Metal axe head with visible sharpened curved cutting edge on its outer arc; the functional surface is the thin, bright, beveled edge facing outward.",
+          "origin": [
+            450,
+            300
+          ],
+          "direction_tip": [
+            600,
+            350
+          ]
+        }
+      },
+      "issues": [
+        "axe_head: direction_tip is on background"
+      ]
+    }
+  ],
+  "annotation_receipts": [
+    "annotation-view-0-ce891de95cb411fbb85af8fd7fa61917a3178582959afe11b210f6acbdd39e30.json",
+    "annotation-view-1-4135e9236124a423e1ba3cdb97f9b35ba9bf112a946d445922a28995ea7efc4d.json",
+    "annotation-view-2-02218635846ef3ecdafb6ca6dedabf66d3136cf46b7ba16b7687fb433a608299.json",
+    "annotation-view-3-52b6ed062a9b1e0d10310d612a90d479a80c3d7af21a99267772aa340601f250.json"
+  ]
+}
