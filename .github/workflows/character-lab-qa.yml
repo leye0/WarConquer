@@ -24,11 +24,6 @@ on:
       - 'scripts/weapon-grip-geometry.js'
       - 'scripts/prop-mesh-landmarks.py'
       - 'scripts/test-prop-mesh-landmarks.py'
-      - 'perception-lab.html'
-      - 'scripts/perception-lab-client.js'
-      - 'scripts/perception-gait.js'
-      - 'scripts/perception-combat.js'
-      - 'scripts/test-perception-lab-motion.mjs'
       - 'scripts/serve-character-lab.mjs'
       - 'data/units/**'
       - '.github/workflows/character-lab-qa.yml'
@@ -72,7 +67,7 @@ jobs:
           cp node_modules/babylonjs-loaders/babylonjs.loaders.min.js assets/browser-qa/babylonjs.loaders.min.js
           python - <<'PY'
           from pathlib import Path
-          for name in ("character-lab.html", "perception-lab.html"):
+          for name in ("character-lab.html",):
               file=Path(name)
               html=file.read_text()
               assert 'https://cdn.babylonjs.com/babylon.js' in html
@@ -144,8 +139,6 @@ jobs:
           test -s assets/experiments/character-lab-qa/terrain-live.png
       - name: Exercise real idle, walk, run and axe attack with CDP keyboard
         run: node scripts/test-character-lab-motion.mjs
-      - name: Test real Perception Lab gait, melee clip and damage
-        run: node scripts/test-perception-lab-motion.mjs
       - name: Save screenshot as a reviewable repository artifact
         if: github.event_name == 'push'
         shell: bash
@@ -155,7 +148,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           # The QA step rewrote HTML locally to use pinned offline Babylon.
           # Never let that test-only modification block the screenshot rebase.
-          git restore -- character-lab.html perception-lab.html
+          git restore -- character-lab.html
           git add -A assets/experiments/character-lab-qa/couronne-archer-actual-3d-initial-live.png
           git add -A assets/experiments/character-lab-qa/couronne-archer-actual-3d-switch-live.png
           # CDP writes other tracked QA screenshots too. Discard their
