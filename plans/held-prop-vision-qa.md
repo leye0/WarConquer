@@ -4,6 +4,7 @@
 **Date : 2026-10-28**  
 **Portée :** tout objet avec action tenu par un personnage (hache, arc, bouclier, fusil, outil, etc.), toutes les unités et tous les clips Mixamo.  
 **Complément :** [contrat technique existant](../docs/prop-interaction-contract.md).
+**Mode d'emploi pour tout agent qui reprend le travail :** [guide de reprise, fichiers exacts, contrats, tests et preuves](held-prop-agent-runbook.md). Lire ce guide **avant** de modifier ou cocher une étape.
 **Vocabulaire contractuel obligatoire :** [affordances, états, contacts, contraintes et 26 scénarios](held-object-affordance-contract.md). Les rôles/fonctions de l'objet et les contraintes dépendant de son état sont deux domaines distincts; aucune règle par nom d'arme.
 
 ## Résultat attendu
@@ -69,7 +70,8 @@ Un personnage tient réellement l'objet au bon endroit, avec la ou les mains att
 
 ### E — Respecter la fonction de l'objet à travers les phases animées
 
-- [x] E1. Échantillonner des frames fixes Mixamo déterministes du transport, de la marche, de la course et de la frappe, dont plusieurs instants de l'action.
+- [x] E1. Capturer de **vrais instants normalisés déterministes de la frappe Mixamo** (huit échantillons du clip; preuve dans `scripts/capture-prop-contact.mjs`). Cela ne valide pas les phases marche/course.
+- [ ] E1b. Échantillonner **le transport, la marche et la course** par des frames normalisées explicites du vrai clip et consigner ces timestamps; les captures actuelles de marche/course reposent encore sur `sleep(500)`.
 - [ ] E2. Appliquer à chaque frame les **contacts actifs de la phase** et leurs fenêtres de relâchement, au lieu d'une seule pose de main pour toute l'animation.
 - [ ] E3. Contrôler l'axe/surface fonctionnel(le) signés par rapport à l'intention : tranchant pendant la frappe, bouche vers la cible, face du bouclier vers la menace, etc.
 - [ ] E4. Appliquer les contraintes d'état : ouverture du pot vers la gravité en transport **rempli**, inclinaison contrôlée pendant `pour`, suspension/pivot, pièces mobiles selon les capacités réelles du moteur.
@@ -92,7 +94,7 @@ Un personnage tient réellement l'objet au bon endroit, avec la ou les mains att
 
 ### G — Boucle de rendus et modèles vision indépendants
 
-- [x] G1. Capturer de vraies images fixes du rendu Babylon/Character Lab à des temps Mixamo reproductibles, avec cadrage de contrôle et gros plans.
+- [x] G1. Capturer de vrais PNG Babylon/Character Lab, avec gros plans et **frames d'action Mixamo déterministes**; la déterminisation de marche/course demeure ouverte en E1b.
 - [x] G2. Interroger deux modèles vision indépendants via OpenRouter pour un verdict `GO/NO-GO`; conserver leurs refus. **Dernier constat : deux `NO-GO`, donc pilote rejeté.**
 - [ ] G3. Sauvegarder et afficher côte à côte **exactement les PNG soumis au modèle**, leurs IDs de frame/vue, les boîtes et labels retournés, et les captures annotées reprojetées sur le GLB.
 - [ ] G4. Exiger l'inspection explicite de **chaque** prise attendue : vraie région du manche, contact paume et doigts, orientation du poignet, main secondaire, direction de l'effet, collisions; `occluded`/`unresolved` ne signifie pas `GO`.
@@ -112,7 +114,7 @@ Un personnage tient réellement l'objet au bon endroit, avec la ou les mains att
 - [ ] H4. Étendre progressivement la matrice des **26 scénarios** du [contrat d'affordances](held-object-affordance-contract.md) avec preuves et contre-exemples, sans écrire de branche spéciale « si hache » / « si pot » dans le solveur.
 - [ ] H5. Publier/fusionner la fonctionnalité uniquement lorsque les critères des modes annoncés sont réellement démontrés; ne jamais présenter l'ensemble des 26 scénarios comme implémenté avant leurs vérifications.
 
-**Ordre de priorité immédiat :** **B5–B8** (surface réelle) → **C3–C7** (paume/poignet/doigts) → **D2–D9** (préhension 6D couplée) → **F2–F7** (régressions) → **G3–G9** (preuve visuelle) → **H1** (hache). Les fondations déjà cochées sont réutilisées; on n'accumule pas de nouveaux essais de rotation du manche autour de deux points.
+**Ordre de priorité immédiat :** **vérifier B2–B4**, puis **B5–B8** (régions de vision → surface réelle) → **C3–C7** (paume/poignet/doigts) → **D2–D9** (préhension 6D couplée) → **F2–F7** (régressions) → **G3–G9** (preuve visuelle) → **H1** (hache). Les fondations déjà cochées sont réutilisées; on n'accumule pas de nouveaux essais de rotation du manche autour de deux points.
 
 ## Principes non négociables
 
@@ -234,3 +236,5 @@ Un objet/mode est accepté uniquement lorsque :
 5. Dans les rapports, séparer nettement : `sémantique confirmée`, `projection GLB confirmée`, `contact numérique confirmé`, `QA vision des rendus confirmée`. Aucun statut ne préjuge du suivant.
 
 **Règle d'arbitrage :** si une implémentation contredit ce plan, arrêter la dérive, documenter pourquoi et corriger le flow. Ne pas improviser une nouvelle heuristique sur l'objet.
+
+**Règle pour agents :** le [guide de reprise](held-prop-agent-runbook.md) précise les fichiers, interfaces, commandes, preuves et compte rendu obligatoires. Une case cochée sans preuve liée à son critère doit être rouverte.
