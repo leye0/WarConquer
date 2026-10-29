@@ -212,3 +212,12 @@ assert [r['view'] for r in per_view['views']]==[0,1,2,3]
 assert all(requests[i][1]==[images[i]] for i in range(4))
 assert len(set(receipts))==4
 print('PASS: each annotator receives exactly one camera image and no other view response')
+
+requests.clear()
+def unwrapped_request(folder, stage, model, prompt, images, provenance, allow_paid):
+    wrapped, receipt=fake_region_request(folder,stage,model,prompt,images,provenance,allow_paid)
+    return wrapped['objects'],receipt
+with patch.object(module,'region_request',side_effect=unwrapped_request):
+    unwrapped,_=module.annotate_individual_views(Path('/tmp'),'test',labels,
+        'xmin_ymin_xmax_ymax',images,{},False)
+assert unwrapped==per_view

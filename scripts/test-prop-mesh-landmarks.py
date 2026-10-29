@@ -157,3 +157,24 @@ if __name__=="__main__":
     test_lift_keeps_signed_functional_edge()
     test_source_image_coordinates_never_leak_into_mesh_vision_prompt()
     print("PASS: signed real-GLB landmarks and every vision-confirmed hand/action role")
+
+# glTF and Pillow share a TOP-left texture origin. An asymmetric color atlas
+# catches the old (1-v) flip and the off-by-one texel scaling independently.
+atlas=np.array([[[255,0,0],[0,255,0]],[[0,0,255],[255,255,0]]],dtype=np.uint8)
+u=np.array([.25,.75,.25,.75,1.25]);v=np.array([.25,.25,.75,.75,.25])
+assert module.sample_gltf_texture(atlas,u,v).tolist()==[
+    [255,0,0],[0,255,0],[0,0,255],[255,255,0],[255,0,0]]
+# Exercise the actual rasterizer, not only the texture helper.
+plane=np.array([[-.2,-.5,0],[.2,-.5,0],[.2,.5,0],[-.2,.5,0]])
+mesh={'world':plane,'local':plane,'faces':np.array([[0,1,2],[0,2,3]]),
+      'uv':np.full((4,2),.25),'texture':atlas,'mesh':0,'primitive':0}
+render,cameras=module.make_views([mesh])
+from PIL import Image
+import io
+pixels=np.asarray(Image.open(io.BytesIO(render)))
+for i,camera in enumerate(cameras):
+    panel=pixels[(i//2)*510:(i//2+1)*510,(i%2)*510:(i%2+1)*510]
+    colored=panel[camera['surface_mask']]
+    if len(colored):assert np.all(colored[:,0]>colored[:,2]),'UV flip painted blue instead of red'
+assert any(c['surface_mask'].any() for c in cameras)
+print('PASS: glTF top-left UV atlas orientation and actual textured rasterization')

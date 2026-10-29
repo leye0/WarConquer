@@ -426,6 +426,8 @@ def annotate_individual_views(folder, model, labels, order, images, provenance, 
         # is supplied by the caller, not inferred/renamed by the model.
         answer, receipt = region_request(folder, f'annotation-view-{i}', model,
             single_view_prompt(labels, order), [image], provenance, allow_paid)
+        if isinstance(answer, dict) and set(answer) == set(labels):
+            answer = {'objects': answer}  # Only an omitted envelope; IDs remain exact.
         if not isinstance(answer, dict) or set(answer) != {'objects'}:
             raise ValueError('Single-view response must contain exactly objects')
         rows.append({'view': i, 'objects': answer['objects']})

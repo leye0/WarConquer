@@ -248,6 +248,18 @@ def glb_geometry(path: Path):
     return meshes
 
 
+def sample_gltf_texture(texture, u, v):
+    """glTF UV (0,0) is the upper-left image pixel, like Pillow arrays.
+
+    https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#images
+    Flipping V here scatters unrelated atlas islands onto the visible surface.
+    This sampler retains the renderer's existing REPEAT addressing.
+    """
+    tx = (np.mod(u, 1) * texture.shape[1]).astype(int)
+    ty = (np.mod(v, 1) * texture.shape[0]).astype(int)
+    return texture[ty, tx]
+
+
 def make_views(meshes):
     """Render four real mesh views; return projection metadata for 2D→3D lift."""
     points = np.vstack([m["world"] for m in meshes])
@@ -318,9 +330,7 @@ def make_views(meshes):
                     u=a*uv[f[0],0]+b*uv[f[1],0]+c*uv[f[2],0]
                     v=a*uv[f[0],1]+b*uv[f[1],1]+c*uv[f[2],1]
                     texture=mesh["texture"]
-                    tx=(np.mod(u,1)*(texture.shape[1]-1)).astype(int)
-                    ty=(np.mod(1-v,1)*(texture.shape[0]-1)).astype(int)
-                    color=texture[ty,tx]
+                    color=sample_gltf_texture(texture,u,v)
                 else:
                     color=np.full((*xx.shape,3),(178,151,124),dtype=np.uint8)
                 region_pixels=pixels[top:bottom_px+1,left:right_px+1]
