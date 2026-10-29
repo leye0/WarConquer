@@ -6,7 +6,7 @@
 
 ## 1. Point de reprise exact, sans connaître la conversation
 
-- **Dépôt :** `leye0/WarConquer`. **Branche de travail :** `feat/semantic-prop-contact-contract`. **PR :** [#2](https://github.com/leye0/WarConquer/pull/2). Ne pas travailler directement sur `main`, ni fusionner sur la base des seuls tests unitaires.
+- **Dépôt :** `leye0/WarConquer`. **Branche de référence après intégration :** `main`; [PR #2](https://github.com/leye0/WarConquer/pull/2) conserve l'historique de la branche expérimentale `feat/semantic-prop-contact-contract`. Pour les prochains correctifs, partir de `main` à jour sur une branche dédiée, sauf demande explicite du propriétaire. **Une fusion du WIP sur demande n'équivaut pas à un `GO`** et ne donne pas le droit d'annoncer une préhension résolue.
 - **Pilote obligatoire :** unité `marches_hache`, objet `axe`, GLB réel `assets/experiments/props/marches_hache/trellis-v1/axe.glb`.
 - **Contrat source :** `assets/experiments/props/marches_hache/trellis-v1/interaction-contract.json`. La vision a nommé `grip_lower_haft` (main droite principale), `grip_upper_haft` (main gauche secondaire), `axe_head` (tranchant), et les modes `carry_mode` / `use_mode_chop`. Le rôle Mixamo `axe_chop` est un **candidat**, pas une compatibilité prouvée.
 - **Plan de repères actuel :** `assets/experiments/props/marches_hache/trellis-v1/grip-plan.json`. `mesh_landmarks.schema = 1`; les prises `local` portent la méthode `vision-nearest-surface` (un **sommet proche**, pas une surface de saisie). Le champ `visual_qa.status` est **`rejected`**; les deux juges visuels refusent la prise à deux mains même quand `numeric_issues` est vide.
