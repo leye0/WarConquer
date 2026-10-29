@@ -344,7 +344,7 @@ def audit(plan_path,pass_id,model):
 
 # Region schema 2 deliberately does not overwrite schema-1 vertex anchors.
 # B2-B4 establish image-space evidence; B5 must consume it without snapping.
-REGION_PROMPT_VERSION = 2
+REGION_PROMPT_VERSION = 3
 
 
 def region_labels(semantic):
@@ -386,6 +386,51 @@ def region_prompt(labels, order):
         'would resolve it; omit box and points. Never invent a hidden location. '
         'Grasp intervals on a uniform material can remain ambiguous: report it. '
         'REQUESTED ROLES:\n' + json.dumps(labels, ensure_ascii=False))
+
+
+def single_view_prompt(labels, order):
+    return (
+        'You are a precise visual grounding annotator. Inspect the ONE supplied '
+        'image of an actual textured 3D object. Locate only the physical regions '
+        'described below. The image includes a coordinate grid with 0.1 increments. '
+        'Read x horizontally from left to right and y vertically from top to bottom. '
+        'Return coordinates normalized 0..1000 over this ENTIRE image, margins included. '
+        'Do not use the textual role name as a location hint: inspect the pixels. '
+        'First identify the material and visible boundary, then place a TIGHT box. '
+        'For a grasp interval choose the described distinct material/segment only; '
+        'never the entire shaft and never beyond its physical end. '
+        'For a functional surface choose the actual narrow effect-producing '
+        'surface described, not its supporting body. A body, a face and its outer '
+        'edge are different regions. State what you actually see. '
+        'For functional regions additionally mark origin on the supporting material '
+        'and direction_tip ON the effect-producing surface. Both points must land '
+        'on visible object pixels; the origin may be outside the functional region. '
+        'Do not point into empty space to illustrate a direction. '
+        'For an edge-on, hidden or ambiguous surface use visible=false with a '
+        'concrete reason; do not invent coordinates to complete the answer. '
+        'Return ONE JSON object with an objects map keyed by exactly the supplied IDs. '
+        'Each entry: {"visible":true,"box_2d":[xmin,ymin,xmax,ymax],'
+        '"confidence":0.9,"evidence":"specific visible boundary/material"}. '
+        'Only functional regions add "origin":[x,y],"direction_tip":[x,y]. '
+        'Invisible entries: {"visible":false,"confidence":0,"evidence":"why hidden"}. '
+        'box_2d order: ' + order + '. Points are always [x,y]. '
+        'Before returning, visually check every coordinate against the grid and '
+        'the object boundary. Do not claim visibility from an assumed shape. ROLES:\n' +
+        json.dumps(labels, ensure_ascii=False))
+
+
+def annotate_individual_views(folder, model, labels, order, images, provenance, allow_paid):
+    rows = []; receipts = []
+    for i, image in enumerate(images):
+        # No other view or previous response enters this request. The camera ID
+        # is supplied by the caller, not inferred/renamed by the model.
+        answer, receipt = region_request(folder, f'annotation-view-{i}', model,
+            single_view_prompt(labels, order), [image], provenance, allow_paid)
+        if not isinstance(answer, dict) or set(answer) != {'objects'}:
+            raise ValueError('Single-view response must contain exactly objects')
+        rows.append({'view': i, 'objects': answer['objects']})
+        receipts.append(receipt)
+    return {'views': rows}, receipts
 
 
 def validate_multiview(answer, labels, views, order):
@@ -436,7 +481,11 @@ def review_prompt(labels):
         'Independently review the SAME physical part IDs across four actual GLB '
         'views. For each VIEW you receive the untouched image and an overlay. '
         'Inspect every rectangle against visible pixels and the supplied role '
-        'description, NOT merely its label. Distinct grasp portions must not be '
+        'description, NOT merely its label. The annotations may be WRONG even when '
+        'confident and neatly drawn. Explicitly reject a box on the wrong end, '
+        'a copied position on a mirrored view, a floating arrow or a box extending '
+        'beyond the object. Explain the actual pixels you see; never repeat the '
+        'annotation as evidence. Distinct grasp portions must not be '
         'swapped or merged. Inspect signed arrows: origin -> tip must follow the '
         'supplied physical meaning; an active surface is not the entire body. '
         'Compare the SAME ID across views and report contradictions, occlusion, '
@@ -557,7 +606,7 @@ def audit_multiview(plan_path, pass_id, model, reviewer, allow_paid=False, prepa
     # Changing an input or either prompt/model produces a new evidence directory.
     bundle_hash = hashlib.sha256(json.dumps({'glb': digest, 'semantic': semantic_hash,
         'render': hashlib.sha256(rendered).hexdigest(), 'model': model, 'reviewer': reviewer,
-        'annotation_prompt': region_prompt(labels, order),
+        'annotation_prompt': single_view_prompt(labels, order),
         'review_prompt': review_prompt(labels), 'schema': REGION_PROMPT_VERSION},
         sort_keys=True).encode()).hexdigest()[:16]
     folder = plan_path.parent / 'vision-region-receipts' / ('multiview-' + pass_id + '-' + bundle_hash)
@@ -586,10 +635,10 @@ def audit_multiview(plan_path, pass_id, model, reviewer, allow_paid=False, prepa
     report = {**provenance, 'schema': 2, 'status': 'needs_review',
         'glb_surface_status': 'unresolved_pending_B5', 'issues': []}
     try:
-        answer, receipt = region_request(folder, 'annotation', model,
-            region_prompt(labels, order), images, provenance, allow_paid)
+        answer, receipts = annotate_individual_views(folder, model, labels, order,
+            images, provenance, allow_paid)
         records = validate_multiview(answer, labels, views, order)
-        report.update(views=records, annotation_receipt=receipt)
+        report.update(views=records, annotation_receipts=receipts)
         review_images = []
         for record in records:
             i = record['view']
@@ -629,8 +678,8 @@ if __name__=="__main__":
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plan",required=True)
     parser.add_argument("--pass-id",default="studio_flash_audit")
-    parser.add_argument("--model",default="qwen/qwen3-vl-30b-a3b-instruct")
-    parser.add_argument("--reviewer",default="qwen/qwen3-vl-235b-a22b-instruct")
+    parser.add_argument("--model",default="qwen/qwen3-vl-235b-a22b-instruct")
+    parser.add_argument("--reviewer",default="xiaomi/mimo-v2.6-pro")
     parser.add_argument("--legacy-crops",action="store_true")
     parser.add_argument("--allow-paid",action="store_true")
     parser.add_argument("--prepare-only",action="store_true")

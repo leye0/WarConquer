@@ -197,3 +197,18 @@ with tempfile.TemporaryDirectory() as tmp:
         if original_key is None:module.os.environ.pop('OPENROUTER_API_KEY',None)
         else:module.os.environ['OPENROUTER_API_KEY']=original_key
 print('PASS: multi-view IDs, visibility, signed directions, independent conflicts and immutable raw receipts')
+
+# Independent requests prevent answer leakage between opposite camera views.
+from unittest.mock import patch
+requests=[]
+def fake_region_request(folder, stage, model, prompt, images, provenance, allow_paid):
+    requests.append((stage,images))
+    return {'objects':proposal['views'][len(requests)-1]['objects']},stage+'.json'
+images=[('VIEW '+str(i),bytes([i])) for i in range(4)]
+with patch.object(module,'region_request',side_effect=fake_region_request):
+    per_view,receipts=module.annotate_individual_views(Path('/tmp'), 'test', labels,
+        'xmin_ymin_xmax_ymax',images,{},False)
+assert [r['view'] for r in per_view['views']]==[0,1,2,3]
+assert all(requests[i][1]==[images[i]] for i in range(4))
+assert len(set(receipts))==4
+print('PASS: each annotator receives exactly one camera image and no other view response')

@@ -39,12 +39,12 @@ jobs:
           node scripts/test-prop-motion-contact.mjs
       - name: Annotate complete GLB views and independently review exact overlays
         run: |
-          # B2-B4 only: two bounded, cached requests; no old-point crops or vertex repair.
+          # B2-B4 only: five bounded, cached requests; no old-point crops or vertex repair.
           python scripts/audit-prop-vision-regions.py \
             --plan assets/experiments/props/marches_hache/trellis-v1/grip-plan.json \
-            --pass-id full_views_v2 \
-            --model qwen/qwen3-vl-30b-a3b-instruct \
-            --reviewer qwen/qwen3-vl-235b-a22b-instruct --allow-paid
+            --pass-id individual_views_v3 \
+            --model qwen/qwen3-vl-235b-a22b-instruct \
+            --reviewer xiaomi/mimo-v2.6-pro --allow-paid
       - name: Preserve the GLB source-matched vision receipts and the canonical plan on the feature branch
         if: always()
         shell: bash
