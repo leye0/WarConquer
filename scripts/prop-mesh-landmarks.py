@@ -326,6 +326,9 @@ def make_views(meshes):
                 region_pixels=pixels[top:bottom_px+1,left:right_px+1]
                 region_pixels[front]=np.clip(color[front]*brightness,0,255).astype(np.uint8)
                 region_z[front]=surface_depth[front]
+        # Exact object-pixel visibility from the renderer depth buffer. The
+        # textured image alone cannot distinguish a mesh pixel from its grid.
+        info["surface_mask"] = np.isfinite(zbuffer)
         panel=Image.fromarray(pixels,"RGB")
         draw=ImageDraw.Draw(panel)
         draw.rectangle((0, 0, VIEW_SIZE-1, VIEW_SIZE-1), outline=(70, 78, 84), width=2)
