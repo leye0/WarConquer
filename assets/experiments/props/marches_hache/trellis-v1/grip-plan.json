@@ -1412,9 +1412,9 @@
     "schema": 2,
     "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
     "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
-    "prompt_version": 2,
+    "prompt_version": 3,
     "status": "needs_review",
-    "review": "assets/experiments/props/marches_hache/trellis-v1/vision-region-receipts/multiview-full_views_v2-c1162a3241ae0a17/report.json",
+    "review": "assets/experiments/props/marches_hache/trellis-v1/vision-region-receipts/multiview-individual_views_v3-7b7560f0c52e57a3/report.json",
     "glb_surface_status": "unresolved_pending_B5"
   }
 }

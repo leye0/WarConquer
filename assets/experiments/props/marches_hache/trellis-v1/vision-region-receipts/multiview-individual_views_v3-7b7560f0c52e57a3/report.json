@@ -1,0 +1,11 @@
+{
+  "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+  "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
+  "prompt_version": 3,
+  "schema": 2,
+  "status": "needs_review",
+  "glb_surface_status": "unresolved_pending_B5",
+  "issues": [
+    "Single-view response must contain exactly objects"
+  ]
+}
