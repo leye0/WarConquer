@@ -1,0 +1,93 @@
+{
+  "schema": 3,
+  "stage": "revision-1-view-2",
+  "model": "qwen/qwen3.7-plus",
+  "prompt": "You are a precise visual grounding annotator. Inspect the ONE supplied image of an actual textured 3D object. Locate only the physical regions described below. The image includes a coordinate grid with 0.1 increments. Read x horizontally from left to right and y vertically from top to bottom. Return coordinates normalized 0..1000 over this ENTIRE image, margins included. Do not use the textual role name as a location hint: inspect the pixels. First identify the material and visible boundary, then place a TIGHT box. For a grasp interval choose the described distinct material/segment only; never the entire shaft and never beyond its physical end. For a functional surface choose the actual narrow effect-producing surface described, not its supporting body. A body, a face and its outer edge are different regions. State what you actually see. For functional regions additionally mark origin on the supporting material and direction_tip ON the effect-producing surface. Both points must land on visible object pixels; the origin may be outside the functional region. Do not point into empty space to illustrate a direction. For an edge-on, hidden or ambiguous surface use visible=false with a concrete reason; do not invent coordinates to complete the answer. Return ONE JSON object with an objects map keyed by exactly the supplied IDs. Each entry: {\"visible\":true,\"box_2d\":[xmin,ymin,xmax,ymax],\"confidence\":0.9,\"evidence\":\"specific visible boundary/material\"}. Only functional regions add \"origin\":[x,y],\"direction_tip\":[x,y]. Invisible entries: {\"visible\":false,\"confidence\":0,\"evidence\":\"why hidden\"}. box_2d order: xmin_ymin_xmax_ymax. Points are always [x,y]. Before returning, visually check every coordinate against the grid and the object boundary. Do not claim visibility from an assumed shape. ROLES:\n{\"grip_lower_haft\": {\"role\": \"grasp_region\", \"description\": \"Leather-wrapped lower wooden shaft, clear of the blade\"}, \"grip_upper_haft\": {\"role\": \"grasp_region\", \"description\": \"Bare upper-middle wooden shaft, clear of the head and its sharp edge\"}, \"axe_head\": {\"role\": \"functional_region\", \"description\": \"Sharpened outward-facing cutting edge of the axe head\", \"direction_semantics\": \"From the body of the metal head outward toward its visible sharp curved blade edge, not toward the flat poll or down the handle.\"}}\nThis is a TARGETED REVISION of this same camera, not a request to repeat your previous answer. Reinspect visible pixels. The prior annotation below is disputed and must not be treated as truth. Return corrected boundaries/points only when visible; otherwise set visible=false and explain the missing evidence. A functional edge must bound its effect-producing strip, not the supporting body. A named material region must stop at its material boundary. Do not invent a numerical shift to satisfy a metric. Geometry has not supplied replacement coordinates. PREVIOUS ANNOTATION AND FAILURES:\n{\"objects\": {\"grip_lower_haft\": {\"visible\": true, \"box_2d\": [430, 730, 510, 950], \"confidence\": 0.9, \"evidence\": \"The lower section of the handle wrapped in distinct reddish-brown leather material, bounded by a metal ring at the top (y~730) and the physical end of the handle at the bottom.\"}, \"grip_upper_haft\": {\"visible\": true, \"box_2d\": [460, 360, 540, 730], \"confidence\": 0.9, \"evidence\": \"The bare wooden shaft section located between the axe head assembly and the upper metal ring of the leather grip, showing vertical wood grain texture.\"}, \"axe_head\": {\"visible\": true, \"box_2d\": [280, 220, 480, 450], \"confidence\": 0.9, \"evidence\": \"The dark metal blade of the axe, featuring a curved sharpened outer edge facing left.\", \"origin\": [420, 300], \"direction_tip\": [290, 380]}}, \"pixel_errors\": [\"axe_head: direction_tip is on background\"], \"independent_review\": {\"grip_lower_haft\": {\"verdict\": \"rejected\", \"reason\": \"The box is shifted to the left and extends significantly beyond the physical width of the handle into the empty background.\"}, \"grip_upper_haft\": {\"verdict\": \"rejected\", \"reason\": \"The box is shifted to the left, extending beyond the object's boundary into the background.\"}}, \"cross_view_issues\": {\"grip_lower_haft\": {\"verdict\": \"unresolved\", \"reason\": \"The region is correctly identified in Views 0 and 1, but the boxes in Views 2 and 3 are misaligned and extend beyond the object. At least two consistent, accurate views are required for confirmation.\", \"additional_views\": [\"A corrected side view (View 2 or 3) with the box tightly bounding the handle.\"]}, \"grip_upper_haft\": {\"verdict\": \"unresolved\", \"reason\": \"The region is correctly identified in Views 0 and 1, but the boxes in Views 2 and 3 are misaligned and extend beyond the object.\", \"additional_views\": [\"A corrected side view (View 2 or 3) with the box tightly bounding the handle.\"]}, \"axe_head\": {\"verdict\": \"unresolved\", \"reason\": \"The region is correctly identified and directed in Views 2 and 3. However, Views 0 and 1 incorrectly label the top spike as the axe head with reversed directions. The contradiction prevents a global confirmation.\", \"additional_views\": [\"A top-down view to clearly distinguish the spike from the blade edge.\"]}}}",
+  "images": [
+    {
+      "label": "VIEW 2 unannotated full image",
+      "sha256": "c7efb3e09615f8c0688ba898c027e855ed4634896c873608d8b57c3eead23d87"
+    }
+  ],
+  "provenance": {
+    "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+    "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
+    "prompt_version": 3
+  },
+  "request_options": {
+    "reasoning": {
+      "enabled": false
+    }
+  },
+  "signature": "c30ba94cfb6fb288d9026624766abf54410c4597761d8058a8a162b41430c0cf",
+  "status": "received",
+  "response": {
+    "id": "gen-1793296541-48dLNi79wTi9DbHY3HGd",
+    "object": "chat.completion",
+    "created": 1793296541,
+    "model": "qwen/qwen3.7-plus",
+    "provider": "Alibaba",
+    "system_fingerprint": null,
+    "service_tier": null,
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "```json\n{\n  \"objects\": {\n    \"grip_lower_haft\": {\n      \"visible\": true,\n      \"box_2d\": [\n        435,\n        760,\n        515,\n        950\n      ],\n      \"confidence\": 0.95,\n      \"evidence\": \"The lower section of the handle wrapped in distinct reddish-brown leather material. The box is tightly bounded by the metal ring at the top (y~760) and the physical end of the handle at the bottom (y~950), with horizontal limits strictly following the leather wrap width (x~435 to x~515).\"\n    },\n    \"grip_upper_haft\": {\n      \"visible\": true,\n      \"box_2d\": [\n        455,\n        360,\n        535,\n        760\n      ],\n      \"confidence\": 0.95,\n      \"evidence\": \"The bare wooden shaft section located between the axe head assembly and the upper metal ring of the leather grip. The box captures the vertical wood grain texture and is constrained horizontally to the shaft's width, avoiding the background.\"\n    },\n    \"axe_head\": {\n      \"visible\": true,\n      \"box_2d\": [\n        280,\n        220,\n        480,\n        450\n      ],\n      \"confidence\": 0.95,\n      \"evidence\": \"The dark metal blade of the axe, featuring a curved sharpened outer edge facing left. The box encloses the entire metal head structure including the poll and the blade.\",\n      \"origin\": [\n        420,\n        300\n      ],\n      \"direction_tip\": [\n        300,\n        380\n      ]\n    }\n  }\n}\n```",
+          "refusal": null,
+          "reasoning": null
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1516,
+      "completion_tokens": 442,
+      "total_tokens": 1958,
+      "cost": 0.00105088,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.00105088,
+        "upstream_inference_prompt_cost": 0.00048512,
+        "upstream_inference_completions_cost": 0.00056576
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  "usage": {
+    "prompt_tokens": 1516,
+    "completion_tokens": 442,
+    "total_tokens": 1958,
+    "cost": 0.00105088,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.00105088,
+      "upstream_inference_prompt_cost": 0.00048512,
+      "upstream_inference_completions_cost": 0.00056576
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  }
+}

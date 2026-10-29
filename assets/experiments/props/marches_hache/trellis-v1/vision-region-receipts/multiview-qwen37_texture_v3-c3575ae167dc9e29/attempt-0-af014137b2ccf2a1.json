@@ -1,0 +1,331 @@
+{
+  "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+  "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
+  "prompt_version": 3,
+  "schema": 2,
+  "status": "needs_review",
+  "glb_surface_status": "unresolved_pending_B5",
+  "issues": [
+    "view 1: axe_head: direction_tip is on background",
+    "view 2: axe_head: direction_tip is on background",
+    "view 2: grip_lower_haft: The box is shifted to the left and extends significantly beyond the physical width of the handle into the empty background.",
+    "view 3: grip_lower_haft: The box is shifted to the left and extends beyond the physical width of the handle.",
+    "grip_lower_haft: cross-view unresolved: The region is correctly identified in Views 0 and 1, but the boxes in Views 2 and 3 are misaligned and extend beyond the object. At least two consistent, accurate views are required for confirmation.",
+    "view 2: grip_upper_haft: The box is shifted to the left, extending beyond the object's boundary into the background.",
+    "view 3: grip_upper_haft: The box is shifted to the left, extending beyond the object's boundary.",
+    "grip_upper_haft: cross-view unresolved: The region is correctly identified in Views 0 and 1, but the boxes in Views 2 and 3 are misaligned and extend beyond the object.",
+    "view 0: axe_head: The red box is placed on the top spike/finial of the weapon. The signed arrow points downward along the handle, which is the opposite of the required outward direction toward a blade edge. This is not the sharpened cutting edge.",
+    "view 1: axe_head: The box is on the top spike. The arrow points downward and to the left, away from the object's active surface and toward the handle, violating the direction semantics.",
+    "axe_head: fewer than two independently confirmed visible views",
+    "axe_head: cross-view unresolved: The region is correctly identified and directed in Views 2 and 3. However, Views 0 and 1 incorrectly label the top spike as the axe head with reversed directions. The contradiction prevents a global confirmation."
+  ],
+  "views": [
+    {
+      "view": 0,
+      "objects": {
+        "grip_lower_haft": {
+          "visible": true,
+          "box_2d": [
+            460,
+            730,
+            540,
+            960
+          ],
+          "confidence": 0.9,
+          "evidence": "The lower section of the handle featuring a distinct reddish-brown leather wrapping texture, clearly separated from the bare wood above and the pommel below."
+        },
+        "grip_upper_haft": {
+          "visible": true,
+          "box_2d": [
+            475,
+            480,
+            525,
+            680
+          ],
+          "confidence": 0.9,
+          "evidence": "The long, straight central shaft made of dark bare wood, located between the metal head assembly and the lower leather grip."
+        },
+        "axe_head": {
+          "visible": true,
+          "box_2d": [
+            465,
+            230,
+            535,
+            340
+          ],
+          "confidence": 0.9,
+          "evidence": "The metallic head at the top of the weapon, featuring a sharp, pointed blade edge facing upwards and outwards.",
+          "origin": [
+            500,
+            300
+          ],
+          "direction_tip": [
+            500,
+            235
+          ]
+        }
+      },
+      "issues": []
+    },
+    {
+      "view": 1,
+      "objects": {
+        "grip_lower_haft": {
+          "visible": true,
+          "box_2d": [
+            460,
+            730,
+            540,
+            960
+          ],
+          "confidence": 0.9,
+          "evidence": "The lower section of the handle wrapped in distinct reddish-brown leather material, situated below the upper metal ring at y=0.73 and extending to the flared base."
+        },
+        "grip_upper_haft": {
+          "visible": true,
+          "box_2d": [
+            465,
+            360,
+            535,
+            680
+          ],
+          "confidence": 0.9,
+          "evidence": "The long, bare dark wooden shaft segment located between the lower head assembly (ending approx y=0.36) and the lower grip rings (starting approx y=0.68)."
+        },
+        "axe_head": {
+          "visible": true,
+          "box_2d": [
+            455,
+            230,
+            545,
+            360
+          ],
+          "confidence": 0.9,
+          "evidence": "The metallic head assembly featuring the sharpened curved blade edge on the left side.",
+          "origin": [
+            500,
+            280
+          ],
+          "direction_tip": [
+            460,
+            310
+          ]
+        }
+      },
+      "issues": [
+        "axe_head: direction_tip is on background"
+      ]
+    },
+    {
+      "view": 2,
+      "objects": {
+        "grip_lower_haft": {
+          "visible": true,
+          "box_2d": [
+            430,
+            730,
+            510,
+            950
+          ],
+          "confidence": 0.9,
+          "evidence": "The lower section of the handle wrapped in distinct reddish-brown leather material, bounded by a metal ring at the top (y~730) and the physical end of the handle at the bottom."
+        },
+        "grip_upper_haft": {
+          "visible": true,
+          "box_2d": [
+            460,
+            360,
+            540,
+            730
+          ],
+          "confidence": 0.9,
+          "evidence": "The bare wooden shaft section located between the axe head assembly and the upper metal ring of the leather grip, showing vertical wood grain texture."
+        },
+        "axe_head": {
+          "visible": true,
+          "box_2d": [
+            280,
+            220,
+            480,
+            450
+          ],
+          "confidence": 0.9,
+          "evidence": "The dark metal blade of the axe, featuring a curved sharpened outer edge facing left.",
+          "origin": [
+            420,
+            300
+          ],
+          "direction_tip": [
+            290,
+            380
+          ]
+        }
+      },
+      "issues": [
+        "axe_head: direction_tip is on background"
+      ]
+    },
+    {
+      "view": 3,
+      "objects": {
+        "grip_lower_haft": {
+          "visible": true,
+          "box_2d": [
+            430,
+            730,
+            510,
+            950
+          ],
+          "confidence": 0.9,
+          "evidence": "The lower section of the handle wrapped in distinct reddish-brown leather material, bounded by a metal ring at the top (y~730) and the physical end of the handle at the bottom."
+        },
+        "grip_upper_haft": {
+          "visible": true,
+          "box_2d": [
+            420,
+            360,
+            490,
+            730
+          ],
+          "confidence": 0.9,
+          "evidence": "The bare wooden shaft section located between the axe head assembly and the upper metal band of the lower grip. It shows vertical wood grain texture and is clear of the blade."
+        },
+        "axe_head": {
+          "visible": true,
+          "box_2d": [
+            560,
+            220,
+            710,
+            440
+          ],
+          "confidence": 0.9,
+          "evidence": "The curved, sharpened metallic cutting edge of the axe blade. The region covers the outer arc of the metal head where the bevel meets the edge.",
+          "origin": [
+            560,
+            280
+          ],
+          "direction_tip": [
+            700,
+            330
+          ]
+        }
+      },
+      "issues": []
+    }
+  ],
+  "annotation_receipts": [
+    "annotation-view-0-354cf7671acff57adf51202e5116a73c4881938f5a85642e1fc15ce1d97da192.json",
+    "annotation-view-1-0232b9916c17bccc8627ca073a9d43d93a2552077572df1789a863ab81bf77ed.json",
+    "annotation-view-2-cc2c9806b5865b89a1fee9eafd23eda67c518d3b1c527b5ddc48097ce9c01248.json",
+    "annotation-view-3-2bc46c749a26609b439c091174fcbb6b7f5a9b0903ba184013243ec6a0d39027.json"
+  ],
+  "review": {
+    "views": [
+      {
+        "view": 0,
+        "objects": {
+          "grip_lower_haft": {
+            "verdict": "confirmed",
+            "reason": "The blue box correctly bounds the dark reddish-brown leather-wrapped section at the bottom of the shaft, clear of the blade."
+          },
+          "grip_upper_haft": {
+            "verdict": "confirmed",
+            "reason": "The blue box correctly bounds the bare dark wooden shaft in the middle section, distinct from the leather wrap and the head."
+          },
+          "axe_head": {
+            "verdict": "rejected",
+            "reason": "The red box is placed on the top spike/finial of the weapon. The signed arrow points downward along the handle, which is the opposite of the required outward direction toward a blade edge. This is not the sharpened cutting edge."
+          }
+        }
+      },
+      {
+        "view": 1,
+        "objects": {
+          "grip_lower_haft": {
+            "verdict": "confirmed",
+            "reason": "The box correctly identifies the leather-wrapped lower shaft."
+          },
+          "grip_upper_haft": {
+            "verdict": "confirmed",
+            "reason": "The box correctly identifies the bare wooden shaft section."
+          },
+          "axe_head": {
+            "verdict": "rejected",
+            "reason": "The box is on the top spike. The arrow points downward and to the left, away from the object's active surface and toward the handle, violating the direction semantics."
+          }
+        }
+      },
+      {
+        "view": 2,
+        "objects": {
+          "grip_lower_haft": {
+            "verdict": "rejected",
+            "reason": "The box is shifted to the left and extends significantly beyond the physical width of the handle into the empty background."
+          },
+          "grip_upper_haft": {
+            "verdict": "rejected",
+            "reason": "The box is shifted to the left, extending beyond the object's boundary into the background."
+          },
+          "axe_head": {
+            "verdict": "confirmed",
+            "reason": "The box correctly bounds the metal axe head. The arrow originates at the body and points outward to the sharp curved blade edge on the left, matching the required direction."
+          }
+        }
+      },
+      {
+        "view": 3,
+        "objects": {
+          "grip_lower_haft": {
+            "verdict": "rejected",
+            "reason": "The box is shifted to the left and extends beyond the physical width of the handle."
+          },
+          "grip_upper_haft": {
+            "verdict": "rejected",
+            "reason": "The box is shifted to the left, extending beyond the object's boundary."
+          },
+          "axe_head": {
+            "verdict": "confirmed",
+            "reason": "The box correctly bounds the metal axe head. The arrow points from the body outward to the sharp curved blade edge on the right, matching the required direction."
+          }
+        }
+      }
+    ],
+    "cross_view": {
+      "grip_lower_haft": {
+        "verdict": "unresolved",
+        "reason": "The region is correctly identified in Views 0 and 1, but the boxes in Views 2 and 3 are misaligned and extend beyond the object. At least two consistent, accurate views are required for confirmation.",
+        "additional_views": [
+          "A corrected side view (View 2 or 3) with the box tightly bounding the handle."
+        ]
+      },
+      "grip_upper_haft": {
+        "verdict": "unresolved",
+        "reason": "The region is correctly identified in Views 0 and 1, but the boxes in Views 2 and 3 are misaligned and extend beyond the object.",
+        "additional_views": [
+          "A corrected side view (View 2 or 3) with the box tightly bounding the handle."
+        ]
+      },
+      "axe_head": {
+        "verdict": "unresolved",
+        "reason": "The region is correctly identified and directed in Views 2 and 3. However, Views 0 and 1 incorrectly label the top spike as the axe head with reversed directions. The contradiction prevents a global confirmation.",
+        "additional_views": [
+          "A top-down view to clearly distinguish the spike from the blade edge."
+        ]
+      }
+    }
+  },
+  "review_receipt": "review-22d368bb840c595aa6f06c7a47ed8e7896b2cfcf12c90c787bd7bcc1930a20b3.json",
+  "confirmed_views": {
+    "grip_lower_haft": [
+      0,
+      1
+    ],
+    "grip_upper_haft": [
+      0,
+      1
+    ],
+    "axe_head": [
+      3
+    ]
+  }
+}
