@@ -12,7 +12,6 @@ agreement; geometry NEVER assigns semantic roles by length, axes or silhouette.
 from __future__ import annotations
 
 import argparse
-import copy
 import hashlib
 import importlib.util
 import io
@@ -177,44 +176,41 @@ def remap_crop_boxes(boxes,crops,panel_size):
     return mapped
 
 
-def reconcile_physical_regions(plan,meshes,view,boxes):
-    """Use a SECOND model's labeled region to ground exact 3D surface points.
 
-    Nothing here decides WHICH side is a blade, which axis is a shaft, or where
-    a hand belongs: those roles come from two independent visual labels.
-    The mesh only locates the nearest real vertex to the *named* bbox center.
-    Grip positions on visually continuous surfaces are left to Mixamo/IK QA.
+def visible_glb_region_issues(boxes, view):
+    """Reject labeled boxes containing no actually rasterized GLB surface.
+
+    Uses the same depth buffer as the exact textured view submitted to vision.
+    This is only a geometric visibility gate: a different model must still
+    verify the region's semantic identity and the correct side of the mesh.
     """
-    original=projected_landmarks(plan,meshes,view)
-    altered={}
-    points=plan["mesh_landmarks"]["points"]
-    features=plan["mesh_landmarks"].get("features",{})
-    for name in ("handle_butt","working_head","functional_edge"):
-        item=boxes[name]
-        if not item["visible"]:continue
-        x0,y0,x1,y1=item["box_2d"]
-        x,y=original[name]
-        if x0<=x<=x1 and y0<=y<=y1:continue
-        old=points[name]
-        center=[(x0+x1)/2000,(y0+y1)/2000]
-        try:
-            grounded=mesh_vision.project_labelled_vertex(meshes,view,center)
-        except ValueError:
+    mask = view.get("surface_mask")
+    if not isinstance(mask, np.ndarray) or mask.shape != (
+            mesh_vision.VIEW_SIZE, mesh_vision.VIEW_SIZE):
+        raise ValueError("Rendered GLB surface visibility mask is missing")
+    size = mesh_vision.VIEW_SIZE
+    issues = []
+    for label, entry in boxes.items():
+        if not entry["visible"]:
             continue
-        projected=project_confirmed_point(grounded,meshes,view)
-        if not (x0<=projected[0]<=x1 and y0<=projected[1]<=y1):
-            continue
-        points[name]=grounded
-        altered[name]={"old_1000":[x,y],"new_1000":projected,
-            "native_labeled_region_1000":item["box_2d"],
-            "method":"second-vision-labeled-bbox-to-real-mesh-surface"}
-        # The named feature's origin/tip may be the SAME reviewed GLB point
-        # as the historical head/edge; keep them synchronized when so.
-        for feature in features.values():
-            for field in ("origin","direction_tip"):
-                if feature[field]==old:
-                    feature[field]=grounded
-    return altered
+        x0, y0, x1, y1 = entry["box_2d"]
+        left = max(0, min(size, math.floor(x0 * size / 1000)))
+        top = max(0, min(size, math.floor(y0 * size / 1000)))
+        right = max(0, min(size, math.ceil(x1 * size / 1000)))
+        bottom = max(0, min(size, math.ceil(y1 * size / 1000)))
+        if (right <= left or bottom <= top or
+                not np.any(mask[top:bottom, left:right])):
+            issues.append(label + ": labeled bbox has no visible GLB surface pixels")
+    return issues
+
+
+
+def reconcile_physical_regions(plan, meshes, view, boxes):
+    """Historical vertex snapping is forbidden until triangle patches exist."""
+    raise ValueError(
+        "Automatic bbox-center/nearest-vertex repair is disabled; "
+        "B5 requires a vision-labeled visible triangle surface")
+
 
 
 def render_overlay(panel,boxes,points):
@@ -309,11 +305,10 @@ def audit(plan_path,pass_id,model):
             "answer":answer},ensure_ascii=False,indent=2)+"\n")
     crop_boxes=validate_boxes(answer,labels,order)
     boxes=remap_crop_boxes(crop_boxes,crops,width)
-    original_landmarks=copy.deepcopy(plan["mesh_landmarks"])
-    reconciliations=reconcile_physical_regions(plan,meshes,views[selected],boxes)
+    # Do not silently shift any semantic contact to make a rectangle pass.
+    # Historic vertex anchors are diagnostic only until B5 triangles exist.
     existing_points,issues=qa_points(plan,meshes,views[selected],boxes)
-    contact_labels={"grip_center",*(g["id"] for g in semantic["grips"])}
-    issues=[issue for issue in issues if issue.split(":",1)[0] not in contact_labels]
+    issues.extend(visible_glb_region_issues(boxes,views[selected]))
     for label,entry in boxes.items():
         if entry["visible"] and entry["confidence"]<.75:
             issues.append(label+": independent bounding box has low vision confidence")
@@ -326,15 +321,12 @@ def audit(plan_path,pass_id,model):
         "receipt":str(receipt.relative_to(ROOT)),
         "overlay":str(overlay.relative_to(ROOT)),"boxes":boxes,
         "boxes_within_labeled_crops_1000":crop_boxes,
-        "physical_region_reconciliations":reconciliations,
+        "physical_region_reconciliations":{},
+        "landmark_repair":"disabled_pending_visible_triangle_patches",
         "original_point_positions_1000":existing_points,
         "status":"confirmed" if not issues else "rejected","issues":issues}
     report_path=plan_path.parent/("vision-region-review-"+base+".json")
     report_path.write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n")
-    if issues:
-        # A rejected independent check is evidence, NEVER a partially
-        # accepted mutation of the canonical GLB contact coordinates.
-        plan["mesh_landmarks"]=original_landmarks
     plan["mesh_region_review"]={"schema":1,"status":report["status"],
         "glb_sha256":landmark["glb_sha256"],
         "interaction_sha256":semantic_hash,"model":model,
