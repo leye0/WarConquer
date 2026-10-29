@@ -1,0 +1,121 @@
+{
+  "schema": 3,
+  "stage": "review",
+  "model": "xiaomi/mimo-v2.6-pro",
+  "prompt": "Independently review the SAME physical part IDs across four actual GLB views. For each VIEW you receive the untouched image and an overlay. Inspect every rectangle against visible pixels and the supplied role description, NOT merely its label. The annotations may be WRONG even when confident and neatly drawn. Explicitly reject a box on the wrong end, a copied position on a mirrored view, a floating arrow or a box extending beyond the object. Explain the actual pixels you see; never repeat the annotation as evidence. Distinct grasp portions must not be swapped or merged. Inspect signed arrows: origin -> tip must follow the supplied physical meaning; an active surface is not the entire body. Compare the SAME ID across views and report contradictions, occlusion, depth ambiguity or missing surfaces. Do not endorse unseen surfaces. Return JSON {\"views\":[{\"view\":0,\"objects\":{\"<id>\":{\"verdict\":\"confirmed|rejected|unresolved\",\"reason\":\"visual evidence\"}}}, ...],\"cross_view\":{\"<id>\":{\"verdict\":\"confirmed|rejected|unresolved\",\"reason\":\"identity and direction across views\",\"additional_views\":[\"needed camera or detail, if any\"]}}}. Exactly four views and every ID in each view and cross_view are required. Return confirmed across views only with at least TWO useful views of the same region and consistent signed directions. ROLES:\n{\"grip_lower_haft\": {\"role\": \"grasp_region\", \"description\": \"Leather-wrapped lower wooden shaft, clear of the blade\"}, \"grip_upper_haft\": {\"role\": \"grasp_region\", \"description\": \"Bare upper-middle wooden shaft, clear of the head and its sharp edge\"}, \"axe_head\": {\"role\": \"functional_region\", \"description\": \"Sharpened outward-facing cutting edge of the axe head\", \"direction_semantics\": \"From the body of the metal head outward toward its visible sharp curved blade edge, not toward the flat poll or down the handle.\"}}",
+  "images": [
+    {
+      "label": "VIEW 0 unannotated full image",
+      "sha256": "d3d4a212dede83b753d4f589fc3b60e7c7c3e3afc57eeb649b24e23c1a8d49d4"
+    },
+    {
+      "label": "VIEW 0 labeled regions and signed directions",
+      "sha256": "bf72600e172e15da0d846293e61116e6b4bd66994714487936a089b5c7fda419"
+    },
+    {
+      "label": "VIEW 1 unannotated full image",
+      "sha256": "ffc7db0c7147af50260e8233f9fbf05a0e8bc94caa95a649eda72afc586b503f"
+    },
+    {
+      "label": "VIEW 1 labeled regions and signed directions",
+      "sha256": "97d1046c26d30fd9951f528f91fc0148a3a2c5a616da5bc75737cbd730137ae8"
+    },
+    {
+      "label": "VIEW 2 unannotated full image",
+      "sha256": "c7efb3e09615f8c0688ba898c027e855ed4634896c873608d8b57c3eead23d87"
+    },
+    {
+      "label": "VIEW 2 labeled regions and signed directions",
+      "sha256": "d9eda2597b44d3ccb1459883b82c42021c5062b00177dfe3d8eb8e791ed1cb19"
+    },
+    {
+      "label": "VIEW 3 unannotated full image",
+      "sha256": "69118bda0c488f14a01d679bbda3c0731eca9b3d1444d1fee51daa43c2664e21"
+    },
+    {
+      "label": "VIEW 3 labeled regions and signed directions",
+      "sha256": "9a6096836b9e849b5a2490640da86223d53cbcd03825d12d94e98f77dbdb028d"
+    }
+  ],
+  "provenance": {
+    "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+    "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
+    "prompt_version": 3
+  },
+  "request_options": {
+    "reasoning": {
+      "enabled": false
+    }
+  },
+  "signature": "b0aedf42142b034b38d7e18e0dc8d13d6c70a498db5b656f268e0171628e82be",
+  "status": "received",
+  "response": {
+    "id": "gen-1793296232-zlAMmY5Dr8dmGdm0HvmN",
+    "object": "chat.completion",
+    "created": 1793296232,
+    "model": "xiaomi/mimo-v2.6-pro",
+    "provider": "Novita",
+    "system_fingerprint": null,
+    "service_tier": null,
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "```json\n{\n  \"views\": [\n    {\n      \"view\": 0,\n      \"objects\": {\n        \"grip_lower_haft\": {\n          \"verdict\": \"confirmed\",\n          \"reason\": \"The blue box correctly bounds the lower section of the shaft, which shows the dark reddish-brown leather wrapping texture, distinct from the bare wood above.\"\n        },\n        \"grip_upper_haft\": {\n          \"verdict\": \"confirmed\",\n          \"reason\": \"The box correctly isolates the middle section of the shaft, showing the bare wooden texture with metal bands, clear of the head and the leather wrap.\"\n        },\n        \"axe_head\": {\n          \"verdict\": \"rejected\",\n          \"reason\": \"The box is placed on the top spike of the weapon. The arrow points vertically upward along the spike. This is not the sharpened curved blade edge, and the direction is not outward from the head body.\"\n        }\n      }\n    },\n    {\n      \"view\": 1,\n      \"objects\": {\n        \"grip_lower_haft\": {\n          \"verdict\": \"confirmed\",\n          \"reason\": \"The box correctly bounds the lower leather-wrapped section of the shaft.\"\n        },\n        \"grip_upper_haft\": {\n          \"verdict\": \"confirmed\",\n          \"reason\": \"The box correctly bounds the bare wooden middle section of the shaft.\"\n        },\n        \"axe_head\": {\n          \"verdict\": \"rejected\",\n          \"reason\": \"The box is on the top spike. The arrow points vertically upward. This does not represent the outward-facing cutting edge of the axe head.\"\n        }\n      }\n    },\n    {\n      \"view\": 2,\n      \"objects\": {\n        \"grip_lower_haft\": {\n          \"verdict\": \"confirmed\",\n          \"reason\": \"The box correctly bounds the lower leather-wrapped section of the shaft.\"\n        },\n        \"grip_upper_haft\": {\n          \"verdict\": \"confirmed\",\n          \"reason\": \"The box correctly bounds the bare wooden middle section of the shaft.\"\n        },\n        \"axe_head\": {\n          \"verdict\": \"confirmed\",\n          \"reason\": \"The box correctly bounds the metal axe head. The arrow originates at the eye/body and points outward to the left, terminating at the sharp curved blade edge.\"\n        }\n      }\n    },\n    {\n      \"view\": 3,\n      \"objects\": {\n        \"grip_lower_haft\": {\n          \"verdict\": \"confirmed\",\n          \"reason\": \"The box correctly bounds the lower leather-wrapped section of the shaft.\"\n        },\n        \"grip_upper_haft\": {\n          \"verdict\": \"confirmed\",\n          \"reason\": \"The box correctly bounds the bare wooden middle section of the shaft.\"\n        },\n        \"axe_head\": {\n          \"verdict\": \"confirmed\",\n          \"reason\": \"The box correctly bounds the metal axe head. The arrow originates at the eye/body and points outward to the right, terminating at the sharp curved blade edge.\"\n        }\n      }\n    }\n  ],\n  \"cross_view\": {\n    \"grip_lower_haft\": {\n      \"verdict\": \"confirmed\",\n      \"reason\": \"The lower leather-wrapped shaft is consistently identified in all four views. The texture and position relative to the handle end are consistent.\",\n      \"additional_views\": []\n    },\n    \"grip_upper_haft\": {\n      \"verdict\": \"confirmed\",\n      \"reason\": \"The bare wooden middle shaft is consistently identified in all four views, clearly separated from the leather wrap and the head.\",\n      \"additional_views\": []\n    },\n    \"axe_head\": {\n      \"verdict\": \"rejected\",\n      \"reason\": \"There is a critical contradiction. In Views 2 and 3, the annotation correctly identifies the curved blade edge with outward arrows. However, in Views 0 and 1, the annotation is placed on the top spike with vertical arrows. The spike is not the cutting edge. The annotation in Views 0 and 1 is incorrect.\",\n      \"additional_views\": []\n    }\n  }\n}\n```",
+          "refusal": null,
+          "reasoning": null
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2535,
+      "completion_tokens": 858,
+      "total_tokens": 3393,
+      "cost": 0.0008000202,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 2432,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.0008000202,
+        "upstream_inference_prompt_cost": 5.35602e-05,
+        "upstream_inference_completions_cost": 0.00074646
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  "usage": {
+    "prompt_tokens": 2535,
+    "completion_tokens": 858,
+    "total_tokens": 3393,
+    "cost": 0.0008000202,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 2432,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.0008000202,
+      "upstream_inference_prompt_cost": 5.35602e-05,
+      "upstream_inference_completions_cost": 0.00074646
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  }
+}
