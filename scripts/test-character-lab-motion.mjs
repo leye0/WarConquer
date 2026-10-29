@@ -216,8 +216,13 @@ try {
   assert(Math.abs(equipped.weaponScale-physical.estimated_length_cm/190)<.005,
     "110 percent legacy scaling leaked into physical units");
   assert.equal(equipped.equipmentAction,"axe_chop", "axe should use the axe-specific motion profile");
-  assert.equal(equipped.equipmentReady,"true", "genuine attack animation must match equipped axe");
-  console.log("AUTO_GRIP_AND_EQUIPMENT_ACTION_PASS",JSON.stringify(equipped));
+  // The Mixamo role and geometric anchors are only provisional. A numerical
+  // pose fit must never make this object fully ready after VISUAL_NO_GO.
+  assert.equal(equipped.equipmentReady,"pending_visual_qa",
+    "provisional axe anchors must await independent rendered-pose approval");
+  assert.equal(await js("document.getElementById('world').dataset.equipmentMissing"),
+    "independent_vision_review", "visual acceptance gate must stay explicit");
+  console.log("AUTO_GRIP_AND_EQUIPMENT_ACTION_PENDING_VISUAL_QA",JSON.stringify(equipped));
   await sleep(400);
   await screenshot("fal-animated-auto-grip-idle-live");
   await screenshot("fal-animated-idle-initial-live");
