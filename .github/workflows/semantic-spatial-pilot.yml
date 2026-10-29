@@ -43,7 +43,7 @@ jobs:
           python scripts/audit-prop-vision-regions.py \
             --plan assets/experiments/props/marches_hache/trellis-v1/grip-plan.json \
             --pass-id full_views_v2 \
-            --model qwen/qwen3-vl-32b-instruct \
+            --model qwen/qwen3-vl-30b-a3b-instruct \
             --reviewer qwen/qwen3-vl-235b-a22b-instruct --allow-paid
       - name: Preserve the GLB source-matched vision receipts and the canonical plan on the feature branch
         if: always()

@@ -24,6 +24,7 @@ import os
 import re
 from pathlib import Path
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 
 import numpy as np
 from PIL import Image, ImageDraw
@@ -522,8 +523,14 @@ def region_request(folder, stage, model, prompt, images, provenance, allow_paid)
         receipt.write_text(json.dumps(document, indent=2) + '\n')
         request = Request(ENDPOINT, data=json.dumps(payload).encode(), method='POST',
             headers={'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json'})
-        with urlopen(request, timeout=150) as response_stream:
-            response = json.loads(response_stream.read(400000))
+        try:
+            with urlopen(request, timeout=150) as response_stream:
+                response = json.loads(response_stream.read(400000))
+        except HTTPError as error:
+            document.update(status='http_error', http_status=error.code,
+                            error_body=error.read(400000).decode('utf-8', errors='replace'))
+            receipt.write_text(json.dumps(document, ensure_ascii=False, indent=2) + '\n')
+            raise
         document.update(status='received', response=response, usage=response.get('usage'))
         receipt.write_text(json.dumps(document, ensure_ascii=False, indent=2) + '\n')
     return parse_response(response['choices'][0]['message']['content']), receipt.name
@@ -619,7 +626,7 @@ if __name__=="__main__":
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plan",required=True)
     parser.add_argument("--pass-id",default="studio_flash_audit")
-    parser.add_argument("--model",default="qwen/qwen3-vl-32b-instruct")
+    parser.add_argument("--model",default="qwen/qwen3-vl-30b-a3b-instruct")
     parser.add_argument("--reviewer",default="qwen/qwen3-vl-235b-a22b-instruct")
     parser.add_argument("--legacy-crops",action="store_true")
     parser.add_argument("--allow-paid",action="store_true")
