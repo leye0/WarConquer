@@ -1,0 +1,767 @@
+{
+  "schema": 2,
+  "signature": "6b36eb15829ec5f53e6a09d550b472df524751547ca32cc3c3302728b99a85b6",
+  "pass_id": "independent",
+  "vision_model": "qwen/qwen3-vl-8b-instruct",
+  "raw_review": {
+    "go": false,
+    "confidence": 0.95,
+    "issues": [
+      "In all carry-mode frames (front, side, back, walk, run), the character is holding the axe with only one hand visible on the haft. The specified grip regions (grip_lower_haft and grip_upper_haft) are not simultaneously visible or contactable. The character appears to be holding the axe in a one-handed manner, possibly with the axe resting on the shoulder or back, which violates the two-handed carry_mode specification.",
+      "In the action_mode frames (action, action_mid, action_mid_1, etc.), the character is shown holding the axe with only one hand visible on the haft. The specified grip regions are not simultaneously visible or contactable. The character appears to be holding the axe in a one-handed manner, which violates the two-handed use_mode_chop specification.",
+      "In the action_mid_2_grip, action_mid_6_grip, action_mid_grip, and action_grip frames, the character is shown holding the axe with only one hand visible on the haft. The specified grip regions are not simultaneously visible or contactable. The character appears to be holding the axe in a one-handed manner, which violates the two-handed use_mode_chop specification.",
+      "In the grip-specific frames (front_grip, back_grip, side_grip, run_grip, walk_grip), the character is shown holding the axe with only one hand visible on the haft. The specified grip regions are not simultaneously visible or contactable. The character appears to be holding the axe in a one-handed manner, which violates the two-handed carry_mode specification."
+    ],
+    "explanation": "The Babylon renders consistently show the character holding the axe with only one hand, even in frames that are explicitly labeled as requiring two-handed grips (grip_lower_haft and grip_upper_haft). The specified functional feature (axe_head) is visible in the action frames, but the required hand contacts are not present. The character's posture and the position of the axe suggest a one-handed carry or use, which contradicts the authoritative semantics provided. The contract requires two visible hand contacts on the haft for both carry and use modes, which is not met in any of the provided frames.",
+    "frames": [
+      {
+        "id": "front",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "side",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "back",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "walk",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "run",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "action",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "action_mid",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "action_mid_1",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "action_mid_2",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "action_mid_2_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "action_mid_3",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "action_mid_5",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "action_mid_6",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "action_mid_6_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "action_mid_7",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "action_mid_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "action_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "back_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "front_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "run_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "side_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      },
+      {
+        "id": "walk_grip",
+        "hands_contact": false,
+        "action_feature_correct": false,
+        "orientation_constraints_met": false,
+        "collision_free": false,
+        "confidence": 0.95,
+        "issues": [
+          "Only one hand is visible on the axe haft. The specified grip regions are not simultaneously visible or contactable."
+        ],
+        "regions": [
+          {
+            "label": "held_object",
+            "ymin": 200,
+            "xmin": 250,
+            "ymax": 500,
+            "xmax": 400
+          },
+          {
+            "label": "primary_hand",
+            "ymin": 250,
+            "xmin": 300,
+            "ymax": 350,
+            "xmax": 400
+          },
+          {
+            "label": "secondary_hand",
+            "ymin": 300,
+            "xmin": 350,
+            "ymax": 400,
+            "xmax": 450
+          }
+        ]
+      }
+    ]
+  }
+}
