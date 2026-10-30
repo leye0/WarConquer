@@ -1,0 +1,23 @@
+{
+  "alpha": 1.5707963267948966,
+  "beta": 1.4818833271649967,
+  "radius": 4.5,
+  "target": [
+    0.29064179618130537,
+    1.1902951696413413,
+    0.05712594159089916
+  ],
+  "contact": {
+    "mode": "idle",
+    "balanceY": 0.48,
+    "headY": 0.754,
+    "gripError": 0,
+    "expectedHands": 2,
+    "semanticStatus": "confirmed",
+    "edgeOutward": 0.899,
+    "edgeForward": 0.013,
+    "secondaryGripError": 0.009,
+    "clearance": 0.051,
+    "ikReachable": true
+  }
+}

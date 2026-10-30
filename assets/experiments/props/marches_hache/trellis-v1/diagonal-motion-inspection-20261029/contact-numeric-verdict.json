@@ -1,0 +1,17 @@
+{
+  "status": "approved",
+  "issues": [],
+  "checked_frames": [
+    "idle",
+    "walk",
+    "run",
+    "action",
+    "action_mid_1",
+    "action_mid_2",
+    "action_mid_3",
+    "action_mid",
+    "action_mid_5",
+    "action_mid_6",
+    "action_mid_7"
+  ]
+}

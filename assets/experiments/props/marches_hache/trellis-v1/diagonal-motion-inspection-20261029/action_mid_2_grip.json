@@ -1,0 +1,21 @@
+{
+  "alpha": 0,
+  "beta": 1.4818833271649967,
+  "radius": 2.45,
+  "target": [
+    -2.311010777144447,
+    1.3163525304495525,
+    0.3054328293536447
+  ],
+  "contact": {
+    "mode": "action",
+    "semanticStatus": "confirmed",
+    "expectedHands": 2,
+    "actualGripMode": "use_mode_chop",
+    "gripError": 0,
+    "secondaryGripError": 0.016,
+    "ikReachable": true,
+    "actionForwardError": 0.201,
+    "visualQaStatus": "pending_independent_vision_review"
+  }
+}

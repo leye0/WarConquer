@@ -1,0 +1,12 @@
+{
+  "walk": {
+    "clip": "Walk_Mixamo_WithAxe",
+    "frame": 37.00000047683716,
+    "fraction": 0.5
+  },
+  "run": {
+    "clip": "Run_Mixamo_WithAxe",
+    "frame": 24.00000035762787,
+    "fraction": 0.5
+  }
+}
