@@ -65,6 +65,8 @@ jobs:
         run: |
           node scripts/capture-prop-contact.mjs marches_hache axe \
             assets/experiments/props/marches_hache/trellis-v1/diagonal-search-inspection-20261029 --still
+          node scripts/capture-prop-contact.mjs marches_hache axe \
+            assets/experiments/props/marches_hache/trellis-v1/diagonal-motion-inspection-20261029
       - name: Deterministic real Mixamo poses, two-palm geometry and independent vision
         if: github.ref_name != 'fix/held-prop-multiview-regions'
         run: |

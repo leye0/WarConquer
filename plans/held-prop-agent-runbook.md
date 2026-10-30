@@ -287,3 +287,18 @@ repositionnées. Il faut encore corriger/valider l'orientation des poignets et
 le contact des doigts : le prototype n'est pas une préhension de surface.
 Les repères 3D historiques restent contestés; aucun statut B2–B8 n'a été promu.
 La marche, la course et l'action ne sont pas validées par ce correctif au repos.
+
+Le contrôle caméra a également révélé que la marche continuait pendant la
+capture et modifiait le cadrage entre mesure et PNG. Pour marche/course, le
+captureur arrête maintenant la boucle de déplacement, échantillonne la frame
+médiane du vrai groupe, rend la scène avec ses callbacks de contact, puis
+reprend la boucle. `locomotion-samples.json` conserve clip, frame et fraction.
+Le cadrage général cible les vraies prises plutôt que l'origine du monde.
+
+Rejeu local étendu : repos, marche médiane, course médiane et huit frames de
+frappe passent les contrôles numériques existants. Cette observation ne valide
+pas les contacts de surface, les doigts, les collisions complètes en frappe,
+ni toutes les phases de marche/course. Les vues de profil restent nécessaires.
+WebSuite 40995800232 a été ouvert : rendu statique sans modèle chargé, donc
+non probant pour le placement. Le véritable rejeu Babylon 40995794109 passe
+et fournit les PNG avec personnage/objet. Unit pipeline 40995800234 passe.

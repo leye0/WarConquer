@@ -61,6 +61,9 @@ async function capture(name,{worldOnly=false}={}){
     options.clip=box;
     options.captureBeyondViewport=false;
   }
+  await js(`(()=>{if(!window.__wcCaptureFreeze)return;
+    const e=BABYLON.EngineStore.LastCreatedEngine,s=e.scenes[0];
+    WCArena.refreshCameraScale(s.activeCamera,e);s.render();})()`);
   const result=await request("Page.captureScreenshot",options);
   const file=join(output,name+".png");
   writeFileSync(file,Buffer.from(result.data,"base64"));
@@ -73,12 +76,30 @@ async function capture(name,{worldOnly=false}={}){
     throw Error("Capture camera drift: "+name+" "+JSON.stringify({expectedCamera,evidence}));
   console.log("CONTACT_CAPTURE",name,file);
 }
+async function freezeLocomotion(fraction){
+  const sample=await js(`(()=>{const e=BABYLON.EngineStore.LastCreatedEngine,s=e.scenes[0];
+    const name=document.getElementById('activeMotionMetric').textContent;
+    const group=s.animationGroups.find(g=>g.name===name);
+    if(!group)throw Error('No locomotion group');
+    window.__wcCaptureFreeze={loops:[...e.activeRenderLoops],group};
+    e.stopRenderLoop();group.pause();
+    const frame=group.from+(group.to-group.from)*${fraction};group.goToFrame(frame);
+    s.render();return {clip:name,frame,fraction:${fraction}};})()`);
+  return sample;
+}
+async function resumeLocomotion(){
+  await js(`(()=>{const e=BABYLON.EngineStore.LastCreatedEngine;
+    const frozen=window.__wcCaptureFreeze;if(!frozen)return;
+    frozen.group.play(true);for(const loop of frozen.loops)e.runRenderLoop(loop);
+    delete window.__wcCaptureFreeze;})()`);
+}
 async function camera(angle){
   expectedCamera={alpha:angle,beta:Math.PI/2.12,radius:4.5};
   await js(`(()=>{const e=BABYLON.EngineStore.LastCreatedEngine;
     const c=e?.scenes?.[0]?.activeCamera;if(!c)throw Error('camera');
     // setTarget rebuilds ArcRotateCamera spherical coordinates. Set it FIRST.
-    c.setTarget(new BABYLON.Vector3(0,1.1,0));
+    c.setTarget(BABYLON.Vector3.FromArray(
+      window.WCPropContactFocus?.()||[0,1.1,0]));
     c.upperBetaLimit=Math.PI;
     c.alpha=${angle};c.beta=Math.PI/2.12;
     c.lowerRadiusLimit=2.8;c.radius=4.5;
@@ -206,11 +227,17 @@ try{
       type:"keyUp",key,code,windowsVirtualKeyCode:virtualKey});
     await camera(0);
     await down("w","KeyW",87);await sleep(500);
+    const walkSample=await freezeLocomotion(.5);await camera(0);
     await checkFrame("walk");await capture("walk");await closeView("walk_grip");
+    await resumeLocomotion();
     await down("Shift","ShiftLeft",16);await sleep(500);
+    const runSample=await freezeLocomotion(.5);await camera(0);
     await checkFrame("run");await capture("run");await closeView("run_grip");
+    writeFileSync(join(output,"locomotion-samples.json"),JSON.stringify({walk:walkSample,run:runSample},null,2)+"\n");
+    await resumeLocomotion();
     await up("Shift","ShiftLeft",16);await up("w","KeyW",87);
     await sleep(280);
+    await camera(0);
     if(await js("!document.getElementById('attackButton').disabled")){
       await js("document.getElementById('attackButton').click()");
       // The real Mixamo group is paused and sampled by exact normalized
