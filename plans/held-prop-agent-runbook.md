@@ -231,3 +231,35 @@ Commit / PR / chemins des artefacts :
 - Le modèle de relecture 235B confirme à tort toutes les régions/directions. Le contrôle des pixels refuse néanmoins le résultat : la partie fonctionnelle n'a qu'une vue admissible, pas deux. Les quatre confirmations de prises dans `confirmed_views` décrivent ce contrôle partiel, **pas une acceptation humaine de leurs limites**. B2–B4 demeurent ouverts; aucune surface B5 ni prise anatomique n'est validée.
 - [CI Unit pipeline 40858739170](https://github.com/leye0/WarConquer/actions/runs/40858739170) réussie après adaptation de la régression : un audit de régions schéma 2 ne doit jamais certifier les anciens sommets comme surfaces 3D validées.
 - Prochaine tâche précise : corriger l'annotation générique par vues indépendantes (éviter la copie de coordonnées entre vues opposées), resserrer les limites des prises et obtenir une vraie localisation du tranchant. Rejouer les contrôles des pixels et une relecture qui détecte effectivement ces contre-exemples avant B5. Ne pas déplacer les régions pour faire passer le contrôle et ne pas cocher B2–B4 sur les verdicts positifs erronés du 235B.
+
+### 2026-10-29 — revenir à l'essai visuel concret
+
+À la demande du propriétaire, inspecter un cas réel avant de développer davantage
+l'automatisation. Aucun nouvel appel payant n'a été fait pour cet essai.
+
+- Le renderer CPU inversait V dans l'atlas glTF : corrigé et couvert par une
+  texture asymétrique et un test de rasterisation. Les reçus antérieurs restent
+  archivés, mais leurs textures ne constituent pas une référence visuelle fiable.
+- Le dernier essai Qwen 3.7 (`multiview-qwen37_texture_v3-c3575ae167dc9e29`)
+  reste `needs_review` : les pointes de fonction des vues 0/1 sont dans le fond.
+  Les vues 2/3 sont meilleures. Ne pas cocher B2–B4.
+- Défaut de caméra reproduit dans Babylon : appeler `setTarget` APRÈS les angles
+  recalcule alpha, beta et rayon. La vue demandée à alpha=pi/2 et rayon=3 revenait
+  à alpha=-0.80949 et rayon=12.67165. Corriger l'ordre cible → angles → rayon,
+  préserver aussi les angles et la limite de rayon autour des gros plans.
+- `capture-prop-contact.mjs … --still` capture désormais la frame médiane exacte
+  du clip de repos, sous trois angles avec gros plans. Chaque image a un JSON
+  de caméra effective et de diagnostic; `inspection-pose.json` donne clip/frame.
+  Commande locale/CI sans modèle :
+  `node scripts/capture-prop-contact.mjs marches_hache axe assets/experiments/props/marches_hache/trellis-v1/manual-inspection-20261029 --still`.
+- Inspection locale ouverte : frame 90 de `Idle_Mixamo_WithAxe`, arme horizontale
+  au niveau du ventre et mains hors des prises. Le solveur refuse la pose pour
+  pénétration du torse (~0.15 m). Ceci est une reproduction d'échec, PAS un
+  placement manuel de référence réussi. Le script conserve les images avant
+  de sortir en échec. Le contrôle des caméras, lui, retrouve les angles demandés.
+
+Prochaine tâche concrète : utiliser ces gros plans pour établir une prise de
+référence sur le vrai mesh et les vraies paumes, puis comparer le résultat
+automatique à cette référence. Aucun déplacement manuel ne doit être déguisé
+ en annotation de modèle ni devenir une règle spéciale d'arme. B5–B8 et les
+poignets/doigts restent ouverts. Statut global : **VISUAL_NO_GO**.

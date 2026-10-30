@@ -2,7 +2,7 @@ name: Equipment · pilot real Mixamo hand contact and vision QA
 
 on:
   push:
-    branches: [feat/semantic-prop-contact-contract]
+    branches: [feat/semantic-prop-contact-contract, fix/held-prop-multiview-regions]
     paths:
       - '.github/workflows/feature-held-prop-pose-qa.yml'
       - 'scripts/character-lab-client.js'
@@ -60,7 +60,13 @@ jobs:
           page.write_text(html)
           PY
           node scripts/serve-character-lab.mjs > "$RUNNER_TEMP/contact-server.log" 2>&1 &
+      - name: Inspect one real pose without paid model calls
+        if: github.ref_name == 'fix/held-prop-multiview-regions'
+        run: |
+          node scripts/capture-prop-contact.mjs marches_hache axe \
+            assets/experiments/props/marches_hache/trellis-v1/manual-inspection-20261029 --still
       - name: Deterministic real Mixamo poses, two-palm geometry and independent vision
+        if: github.ref_name != 'fix/held-prop-multiview-regions'
         run: |
           set -euo pipefail
           # Regression replay of the real 0.506 / 0.451 / 0.936 m gaps.
@@ -79,15 +85,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          branch="${{ github.ref_name }}"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git restore -- character-lab.html
           git add -A -- assets/experiments/props/marches_hache/trellis-v1/
           if ! git diff --cached --quiet; then
             git commit -m 'qa: preserve real Mixamo pose, hand-contact and independent vision verdict'
-            git fetch origin feat/semantic-prop-contact-contract
-            git rebase origin/feat/semantic-prop-contact-contract
-            git push origin HEAD:feat/semantic-prop-contact-contract
+            git fetch origin "$branch"
+            git rebase "origin/$branch"
+            git push origin "HEAD:$branch"
           fi
       - name: Preserve exact rendered pose evidence, including rejected frames
         uses: actions/upload-artifact@v4

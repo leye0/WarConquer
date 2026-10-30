@@ -9,7 +9,8 @@ import {tmpdir} from "node:os";
 
 const [unit,prop,out]=process.argv.slice(2);
 if(!/^[a-z][a-z0-9_]*$/.test(unit||"") || !/^[a-z][a-z0-9_]*$/.test(prop||"")||!out)
-  throw Error("Usage: node scripts/capture-prop-contact.mjs <unit> <prop> <output-directory>");
+  throw Error("Usage: node scripts/capture-prop-contact.mjs <unit> <prop> <output-directory> [--still]");
+const still=process.argv.includes("--still");
 const output=resolve(out);
 mkdirSync(output,{recursive:true});
 const profile=mkdtempSync(join(tmpdir(),"wc-contact-chrome-"));
@@ -19,7 +20,7 @@ const browser=spawn(process.env.CHROME_BIN||"google-chrome",[
   "--remote-debugging-port=0","--user-data-dir="+profile,"about:blank"
 ],{stdio:"ignore"});
 const sleep=ms=>new Promise(done=>setTimeout(done,ms));
-let socket,serial=0;
+let socket,serial=0,expectedCamera=null;
 const pending=new Map();
 const request=(method,params={})=>new Promise((done,fail)=>{
   const id=++serial;
@@ -63,12 +64,23 @@ async function capture(name,{worldOnly=false}={}){
   const result=await request("Page.captureScreenshot",options);
   const file=join(output,name+".png");
   writeFileSync(file,Buffer.from(result.data,"base64"));
+  const evidence=await js(`(()=>{const c=BABYLON.EngineStore.LastCreatedEngine.scenes[0].activeCamera;
+    return {alpha:c.alpha,beta:c.beta,radius:c.radius,target:c.getTarget().asArray(),
+      contact:window.WCPropContactDiagnostic?.()||null}})()`);
+  writeFileSync(join(output,name+".json"),JSON.stringify(evidence,null,2)+"\n");
+  if(expectedCamera && Object.entries(expectedCamera).some(([key,value])=>
+    !Number.isFinite(evidence[key])||Math.abs(evidence[key]-value)>1e-6))
+    throw Error("Capture camera drift: "+name+" "+JSON.stringify({expectedCamera,evidence}));
   console.log("CONTACT_CAPTURE",name,file);
 }
 async function camera(angle){
+  expectedCamera={alpha:angle,beta:Math.PI/2.12,radius:4.5};
   await js(`(()=>{const e=BABYLON.EngineStore.LastCreatedEngine;
     const c=e?.scenes?.[0]?.activeCamera;if(!c)throw Error('camera');
-    c.alpha=${angle};c.beta=Math.PI/2.12;c.setTarget(new BABYLON.Vector3(0,1.1,0));
+    // setTarget rebuilds ArcRotateCamera spherical coordinates. Set it FIRST.
+    c.setTarget(new BABYLON.Vector3(0,1.1,0));
+    c.upperBetaLimit=Math.PI;
+    c.alpha=${angle};c.beta=Math.PI/2.12;
     c.lowerRadiusLimit=2.8;c.radius=4.5;
     document.getElementById('world').scrollIntoView({block:'center'});
     return true})()`);
@@ -81,15 +93,21 @@ async function closeView(name){
     const c=e.scenes[0].activeCamera;
     const focus=window.WCPropContactFocus?.();
     if(!focus||focus.length!==3)throw Error('No real GLB grip focus');
-    const saved={target:c.getTarget().asArray(),radius:c.radius};
+    const saved={target:c.getTarget().asArray(),radius:c.radius,
+      alpha:c.alpha,beta:c.beta,lowerRadiusLimit:c.lowerRadiusLimit};
     c.lowerRadiusLimit=1.7;
     c.setTarget(BABYLON.Vector3.FromArray(focus));
+    c.alpha=saved.alpha;c.beta=saved.beta;
     c.radius=2.45;return saved})()`);
+  expectedCamera={alpha:saved.alpha,beta:saved.beta,radius:2.45};
   await capture(name,{worldOnly:true});
   await js(`(()=>{const e=BABYLON.EngineStore.LastCreatedEngine;
     const c=e.scenes[0].activeCamera;
     c.setTarget(BABYLON.Vector3.FromArray(${JSON.stringify(saved.target)}));
+    c.alpha=${saved.alpha};c.beta=${saved.beta};
+    c.lowerRadiusLimit=${saved.lowerRadiusLimit};
     c.radius=${saved.radius};return true})()`);
+  expectedCamera={alpha:saved.alpha,beta:saved.beta,radius:saved.radius};
 }
 try{
   socket=new WebSocket(await debuggerSocket());
@@ -123,6 +141,16 @@ try{
     if(state.weapon.startsWith("Prise refusée"))throw Error(state.weapon);
   }
   if(!ready)throw Error("Rig not ready with generic prop contact: "+last);
+  if(still){
+    const pose=await js(`(()=>{const s=BABYLON.EngineStore.LastCreatedEngine.scenes[0];
+      const name=document.getElementById('activeMotionMetric').textContent;
+      const g=s.animationGroups.find(g=>g.name===name);
+      if(!g)throw Error('No active pose to inspect');
+      g.pause();const frame=g.from+(g.to-g.from)*.5;g.goToFrame(frame);
+      return {clip:name,frame,fraction:.5};})()`);
+    writeFileSync(join(output,"inspection-pose.json"),JSON.stringify(pose,null,2)+"\n");
+    await sleep(250);
+  }
   const diagnostics=await js(`(()=>{const d=document.getElementById('world').dataset;
     return {carry:d.weaponCarry||'unknown',tilt:Number(d.weaponCarryTilt||0),
       clearance:Number(d.weaponCarryClearance||0),
@@ -171,41 +199,43 @@ try{
   await camera(Math.PI/2);await capture("front");await closeView("front_grip");
   await camera(0);await capture("side");await closeView("side_grip");
   await camera(-Math.PI/2);await capture("back");await closeView("back_grip");
-  const down=(key,code,virtualKey)=>request("Input.dispatchKeyEvent",{
-    type:"rawKeyDown",key,code,windowsVirtualKeyCode:virtualKey});
-  const up=(key,code,virtualKey)=>request("Input.dispatchKeyEvent",{
-    type:"keyUp",key,code,windowsVirtualKeyCode:virtualKey});
-  await camera(0);
-  await down("w","KeyW",87);await sleep(500);
-  await checkFrame("walk");await capture("walk");await closeView("walk_grip");
-  await down("Shift","ShiftLeft",16);await sleep(500);
-  await checkFrame("run");await capture("run");await closeView("run_grip");
-  await up("Shift","ShiftLeft",16);await up("w","KeyW",87);
-  await sleep(280);
-  if(await js("!document.getElementById('attackButton').disabled")){
-    await js("document.getElementById('attackButton').click()");
-    // The real Mixamo group is paused and sampled by exact normalized
-    // animation frames. Neither snapshots nor verdicts depend on wall-clock
-    // timing or an exported video.
-    const actionGroup=await js(`(()=>{const e=BABYLON.EngineStore.LastCreatedEngine;
-      const name=document.getElementById('activeMotionMetric')?.textContent;
-      const g=e?.scenes?.[0]?.animationGroups?.find(x=>x.name===name);
-      if(!g)throw Error('Cannot identify live action animation group');
-      g.pause();return {name,from:g.from,to:g.to};})()`);
-    const frames=[0,.15,.3,.45,.6,.75,.9,1];
-    for(let i=0;i<frames.length;i++){
-      const fraction=frames[i];
-      await js(`(()=>{const e=BABYLON.EngineStore.LastCreatedEngine;
-        const g=e.scenes[0].animationGroups.find(x=>x.name===${JSON.stringify(actionGroup.name)});
-        if(!g)throw Error('Sampled Mixamo animation disappeared');
-        g.goToFrame(g.from+(g.to-g.from)*${fraction});return true})()`);
-      await sleep(180);
-      const name=i===0?"action":i===4?"action_mid":"action_mid_"+i;
-      await checkFrame(name);
-      await capture(name);
-      if([0,2,4,6].includes(i))await closeView(name+"_grip");
+  if(!still){
+    const down=(key,code,virtualKey)=>request("Input.dispatchKeyEvent",{
+      type:"rawKeyDown",key,code,windowsVirtualKeyCode:virtualKey});
+    const up=(key,code,virtualKey)=>request("Input.dispatchKeyEvent",{
+      type:"keyUp",key,code,windowsVirtualKeyCode:virtualKey});
+    await camera(0);
+    await down("w","KeyW",87);await sleep(500);
+    await checkFrame("walk");await capture("walk");await closeView("walk_grip");
+    await down("Shift","ShiftLeft",16);await sleep(500);
+    await checkFrame("run");await capture("run");await closeView("run_grip");
+    await up("Shift","ShiftLeft",16);await up("w","KeyW",87);
+    await sleep(280);
+    if(await js("!document.getElementById('attackButton').disabled")){
+      await js("document.getElementById('attackButton').click()");
+      // The real Mixamo group is paused and sampled by exact normalized
+      // animation frames. Neither snapshots nor verdicts depend on wall-clock
+      // timing or an exported video.
+      const actionGroup=await js(`(()=>{const e=BABYLON.EngineStore.LastCreatedEngine;
+        const name=document.getElementById('activeMotionMetric')?.textContent;
+        const g=e?.scenes?.[0]?.animationGroups?.find(x=>x.name===name);
+        if(!g)throw Error('Cannot identify live action animation group');
+        g.pause();return {name,from:g.from,to:g.to};})()`);
+      const frames=[0,.15,.3,.45,.6,.75,.9,1];
+      for(let i=0;i<frames.length;i++){
+        const fraction=frames[i];
+        await js(`(()=>{const e=BABYLON.EngineStore.LastCreatedEngine;
+          const g=e.scenes[0].animationGroups.find(x=>x.name===${JSON.stringify(actionGroup.name)});
+          if(!g)throw Error('Sampled Mixamo animation disappeared');
+          g.goToFrame(g.from+(g.to-g.from)*${fraction});return true})()`);
+        await sleep(180);
+        const name=i===0?"action":i===4?"action_mid":"action_mid_"+i;
+        await checkFrame(name);
+        await capture(name);
+        if([0,2,4,6].includes(i))await closeView(name+"_grip");
+      }
+      console.log("CONTACT_ACTION_SAMPLES",JSON.stringify({clip:actionGroup,normalizedFrames:frames}));
     }
-    console.log("CONTACT_ACTION_SAMPLES",JSON.stringify({clip:actionGroup,normalizedFrames:frames}));
   }
   writeFileSync(join(output,"contact-motions.json"),JSON.stringify(motionStates,null,2)+"\n");
   writeFileSync(join(output,"contact-numeric-verdict.json"),JSON.stringify({
