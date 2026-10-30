@@ -243,7 +243,7 @@ try{
     checked_frames:motionStates.map(x=>x.name)},null,2)+"\n");
   if(numericFailures.length)throw Error("Real Mixamo contact/clearance NO-GO: "+
     numericFailures.join("; "));
-  console.log("PASS: real animated humanoid holds requested prop in three browser views");
+  console.log("PASS: numeric contact checks passed; anatomical grasp still requires visual review");
 }finally{
   try{socket?.close();}catch{}
   browser.kill("SIGTERM");

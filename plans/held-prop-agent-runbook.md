@@ -263,3 +263,27 @@ référence sur le vrai mesh et les vraies paumes, puis comparer le résultat
 automatique à cette référence. Aucun déplacement manuel ne doit être déguisé
  en annotation de modèle ni devenir une règle spéciale d'arme. B5–B8 et les
 poignets/doigts restent ouverts. Statut global : **VISUAL_NO_GO**.
+
+### 2026-10-29 — correction de la recherche de pose, frame 90
+
+Cause reproduite : les déplacements candidats de la paume principale ne
+combinaient pas levée, avance et mouvement latéral. La recherche concluait à
+une collision inévitable alors qu'une pose accessible existait. Ajout de
+combinaisons dans le repère anatomique mesuré (haut/avant/droite), sans nom
+ d'arme, coordonnées propres à la hache ni changement des seuils de refus.
+
+Comparaison du même clip et de la même frame :
+- avant : pénétration du torse de 0.14972 m, contacts rejetés;
+- après : dégagement mesuré de 0.020 m, résidu principal arrondi à 0.000 m,
+  secondaire de 0.012 m, deux bras accessibles;
+- cinq instants de repos locaux (0, .25, .5, .75, 1) : résidu secondaire
+  0.007–0.012 m, dégagement 0.001–0.051 m. Ce sont des métriques de proximité,
+  pas une preuve de fermeture correcte des doigts ni de continuité animée.
+
+Preuves avant conservées dans `manual-inspection-20261029/`; nouvelles captures
+réelles dans `diagonal-search-inspection-20261029/`, à côté du même grip-plan.
+Les gros plans montrent maintenant l'objet devant le corps et les mains
+repositionnées. Il faut encore corriger/valider l'orientation des poignets et
+le contact des doigts : le prototype n'est pas une préhension de surface.
+Les repères 3D historiques restent contestés; aucun statut B2–B8 n'a été promu.
+La marche, la course et l'action ne sont pas validées par ce correctif au repos.
