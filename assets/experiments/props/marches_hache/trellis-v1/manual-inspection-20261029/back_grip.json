@@ -1,0 +1,18 @@
+{
+  "alpha": -1.5707963267948966,
+  "beta": 1.4818833271649967,
+  "radius": 2.45,
+  "target": [
+    0.11280881159692692,
+    1.1230489673573398,
+    0.004623396735039689
+  ],
+  "contact": {
+    "mode": "idle",
+    "semanticStatus": "rejected",
+    "reason": "Deux prises Mixamo : aucune orientation anatomiquement atteignable ne laisse le vrai GLB hors du torse : {\"clearance\":-0.14972050797371284,\"face\":0.6059765293030744}",
+    "expectedHands": 2,
+    "secondaryGripError": null,
+    "gripError": null
+  }
+}
