@@ -1,0 +1,121 @@
+{
+  "schema": 3,
+  "stage": "review",
+  "model": "xiaomi/mimo-v2.6-pro",
+  "prompt": "Independently review the SAME physical part IDs across four actual GLB views. For each VIEW you receive the untouched image and an overlay. Inspect every rectangle against visible pixels and the supplied role description, NOT merely its label. The annotations may be WRONG even when confident and neatly drawn. Explicitly reject a box on the wrong end, a copied position on a mirrored view, a floating arrow or a box extending beyond the object. Explain the actual pixels you see; never repeat the annotation as evidence. Distinct grasp portions must not be swapped or merged. Inspect signed arrows: origin -> tip must follow the supplied physical meaning; an active surface is not the entire body. Compare the SAME ID across views and report contradictions, occlusion, depth ambiguity or missing surfaces. Do not endorse unseen surfaces. Return JSON {\"views\":[{\"view\":0,\"objects\":{\"<id>\":{\"verdict\":\"confirmed|rejected|unresolved\",\"reason\":\"visual evidence\"}}}, ...],\"cross_view\":{\"<id>\":{\"verdict\":\"confirmed|rejected|unresolved\",\"reason\":\"identity and direction across views\",\"additional_views\":[\"needed camera or detail, if any\"]}}}. Exactly four views and every ID in each view and cross_view are required. Return confirmed across views only with at least TWO useful views of the same region and consistent signed directions. ROLES:\n{\"grip_lower_haft\": {\"role\": \"grasp_region\", \"description\": \"Leather-wrapped lower wooden shaft, clear of the blade\"}, \"grip_upper_haft\": {\"role\": \"grasp_region\", \"description\": \"Bare upper-middle wooden shaft, clear of the head and its sharp edge\"}, \"axe_head\": {\"role\": \"functional_region\", \"description\": \"Sharpened outward-facing cutting edge of the axe head\", \"direction_semantics\": \"From the body of the metal head outward toward its visible sharp curved blade edge, not toward the flat poll or down the handle.\"}}",
+  "images": [
+    {
+      "label": "VIEW 0 unannotated full image",
+      "sha256": "d3d4a212dede83b753d4f589fc3b60e7c7c3e3afc57eeb649b24e23c1a8d49d4"
+    },
+    {
+      "label": "VIEW 0 labeled regions and signed directions",
+      "sha256": "9ccf6ea51269964bc8b1c3dd4d9c649b5c23b02d317dc534746da373b60ec273"
+    },
+    {
+      "label": "VIEW 1 unannotated full image",
+      "sha256": "ffc7db0c7147af50260e8233f9fbf05a0e8bc94caa95a649eda72afc586b503f"
+    },
+    {
+      "label": "VIEW 1 labeled regions and signed directions",
+      "sha256": "0ae30f8cd8cb8f43434c5911212119d298917f71fec7a07377f6288538c4af28"
+    },
+    {
+      "label": "VIEW 2 unannotated full image",
+      "sha256": "c7efb3e09615f8c0688ba898c027e855ed4634896c873608d8b57c3eead23d87"
+    },
+    {
+      "label": "VIEW 2 labeled regions and signed directions",
+      "sha256": "6c0b24513cd70a97839140ff7c907d6e76290901780c46ad0aee825572b41087"
+    },
+    {
+      "label": "VIEW 3 unannotated full image",
+      "sha256": "69118bda0c488f14a01d679bbda3c0731eca9b3d1444d1fee51daa43c2664e21"
+    },
+    {
+      "label": "VIEW 3 labeled regions and signed directions",
+      "sha256": "419d06f91425f9de2b224b000f88ac34c73fdafaed81d650dc010c9c1e79186a"
+    }
+  ],
+  "provenance": {
+    "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+    "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
+    "prompt_version": 3
+  },
+  "request_options": {
+    "reasoning": {
+      "enabled": false
+    }
+  },
+  "signature": "22d368bb840c595aa6f06c7a47ed8e7896b2cfcf12c90c787bd7bcc1930a20b3",
+  "status": "received",
+  "response": {
+    "id": "gen-1793296510-9iiIpRNnxsTbNmsUvdIE",
+    "object": "chat.completion",
+    "created": 1793296510,
+    "model": "xiaomi/mimo-v2.6-pro",
+    "provider": "Novita",
+    "system_fingerprint": null,
+    "service_tier": null,
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "```json\n{\n  \"views\": [\n    {\n      \"view\": 0,\n      \"objects\": {\n        \"grip_lower_haft\": {\n          \"verdict\": \"confirmed\",\n          \"reason\": \"The blue box correctly bounds the dark reddish-brown leather-wrapped section at the bottom of the shaft, clear of the blade.\"\n        },\n        \"grip_upper_haft\": {\n          \"verdict\": \"confirmed\",\n          \"reason\": \"The blue box correctly bounds the bare dark wooden shaft in the middle section, distinct from the leather wrap and the head.\"\n        },\n        \"axe_head\": {\n          \"verdict\": \"rejected\",\n          \"reason\": \"The red box is placed on the top spike/finial of the weapon. The signed arrow points downward along the handle, which is the opposite of the required outward direction toward a blade edge. This is not the sharpened cutting edge.\"\n        }\n      }\n    },\n    {\n      \"view\": 1,\n      \"objects\": {\n        \"grip_lower_haft\": {\n          \"verdict\": \"confirmed\",\n          \"reason\": \"The box correctly identifies the leather-wrapped lower shaft.\"\n        },\n        \"grip_upper_haft\": {\n          \"verdict\": \"confirmed\",\n          \"reason\": \"The box correctly identifies the bare wooden shaft section.\"\n        },\n        \"axe_head\": {\n          \"verdict\": \"rejected\",\n          \"reason\": \"The box is on the top spike. The arrow points downward and to the left, away from the object's active surface and toward the handle, violating the direction semantics.\"\n        }\n      }\n    },\n    {\n      \"view\": 2,\n      \"objects\": {\n        \"grip_lower_haft\": {\n          \"verdict\": \"rejected\",\n          \"reason\": \"The box is shifted to the left and extends significantly beyond the physical width of the handle into the empty background.\"\n        },\n        \"grip_upper_haft\": {\n          \"verdict\": \"rejected\",\n          \"reason\": \"The box is shifted to the left, extending beyond the object's boundary into the background.\"\n        },\n        \"axe_head\": {\n          \"verdict\": \"confirmed\",\n          \"reason\": \"The box correctly bounds the metal axe head. The arrow originates at the body and points outward to the sharp curved blade edge on the left, matching the required direction.\"\n        }\n      }\n    },\n    {\n      \"view\": 3,\n      \"objects\": {\n        \"grip_lower_haft\": {\n          \"verdict\": \"rejected\",\n          \"reason\": \"The box is shifted to the left and extends beyond the physical width of the handle.\"\n        },\n        \"grip_upper_haft\": {\n          \"verdict\": \"rejected\",\n          \"reason\": \"The box is shifted to the left, extending beyond the object's boundary.\"\n        },\n        \"axe_head\": {\n          \"verdict\": \"confirmed\",\n          \"reason\": \"The box correctly bounds the metal axe head. The arrow points from the body outward to the sharp curved blade edge on the right, matching the required direction.\"\n        }\n      }\n    }\n  ],\n  \"cross_view\": {\n    \"grip_lower_haft\": {\n      \"verdict\": \"unresolved\",\n      \"reason\": \"The region is correctly identified in Views 0 and 1, but the boxes in Views 2 and 3 are misaligned and extend beyond the object. At least two consistent, accurate views are required for confirmation.\",\n      \"additional_views\": [\n        \"A corrected side view (View 2 or 3) with the box tightly bounding the handle.\"\n      ]\n    },\n    \"grip_upper_haft\": {\n      \"verdict\": \"unresolved\",\n      \"reason\": \"The region is correctly identified in Views 0 and 1, but the boxes in Views 2 and 3 are misaligned and extend beyond the object.\",\n      \"additional_views\": [\n        \"A corrected side view (View 2 or 3) with the box tightly bounding the handle.\"\n      ]\n    },\n    \"axe_head\": {\n      \"verdict\": \"unresolved\",\n      \"reason\": \"The region is correctly identified and directed in Views 2 and 3. However, Views 0 and 1 incorrectly label the top spike as the axe head with reversed directions. The contradiction prevents a global confirmation.\",\n      \"additional_views\": [\n        \"A top-down view to clearly distinguish the spike from the blade edge.\"\n      ]\n    }\n  }\n}\n```",
+          "refusal": null,
+          "reasoning": null
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2535,
+      "completion_tokens": 945,
+      "total_tokens": 3480,
+      "cost": 0.001924875,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.001924875,
+        "upstream_inference_prompt_cost": 0.001102725,
+        "upstream_inference_completions_cost": 0.00082215
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  "usage": {
+    "prompt_tokens": 2535,
+    "completion_tokens": 945,
+    "total_tokens": 3480,
+    "cost": 0.001924875,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.001924875,
+      "upstream_inference_prompt_cost": 0.001102725,
+      "upstream_inference_completions_cost": 0.00082215
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  }
+}

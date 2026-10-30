@@ -1,0 +1,326 @@
+{
+  "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+  "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
+  "prompt_version": 3,
+  "schema": 2,
+  "status": "needs_review",
+  "glb_surface_status": "unresolved_pending_B5",
+  "issues": [
+    "view 0: axe_head: direction_tip is on background",
+    "view 1: axe_head: direction_tip is on background",
+    "view 0: axe_head: The box is positioned on the upper shaft/collar area and does not enclose the actual metal head or blade. Furthermore, the signed arrow points diagonally up-left into the empty background, failing to indicate the outward cutting edge.",
+    "view 1: axe_head: The box is placed too high, covering the top spike and background rather than the metal head assembly. The arrow points horizontally into the background, not toward a visible sharp edge."
+  ],
+  "views": [
+    {
+      "view": 0,
+      "objects": {
+        "grip_lower_haft": {
+          "visible": true,
+          "box_2d": [
+            465,
+            730,
+            535,
+            950
+          ],
+          "confidence": 0.95,
+          "evidence": "The lower section of the handle featuring a distinct reddish-brown leather wrapping texture with horizontal ridges, clearly separated from the bare dark wood shaft above and the flared pommel base below."
+        },
+        "grip_upper_haft": {
+          "visible": true,
+          "box_2d": [
+            485,
+            480,
+            515,
+            730
+          ],
+          "confidence": 0.95,
+          "evidence": "The long, straight central shaft made of dark bare wood, located between the metal head assembly/collar above and the start of the leather-wrapped grip below."
+        },
+        "axe_head": {
+          "visible": true,
+          "box_2d": [
+            460,
+            230,
+            540,
+            350
+          ],
+          "confidence": 0.9,
+          "evidence": "The metallic head at the top of the weapon. The box encloses the functional cutting blade which curves outward from the central spine.",
+          "origin": [
+            500,
+            290
+          ],
+          "direction_tip": [
+            465,
+            260
+          ]
+        }
+      },
+      "issues": [
+        "axe_head: direction_tip is on background"
+      ]
+    },
+    {
+      "view": 1,
+      "objects": {
+        "grip_lower_haft": {
+          "visible": true,
+          "box_2d": [
+            462,
+            735,
+            538,
+            960
+          ],
+          "confidence": 0.95,
+          "evidence": "The lower section of the handle wrapped in distinct reddish-brown leather material, situated below the lower metal ring at y=0.735 and extending to the flared base."
+        },
+        "grip_upper_haft": {
+          "visible": true,
+          "box_2d": [
+            468,
+            365,
+            532,
+            685
+          ],
+          "confidence": 0.95,
+          "evidence": "The long, bare dark wooden shaft segment located between the lower head assembly (ending approx y=0.365) and the lower grip rings (starting approx y=0.685)."
+        },
+        "axe_head": {
+          "visible": true,
+          "box_2d": [
+            455,
+            230,
+            545,
+            360
+          ],
+          "confidence": 0.9,
+          "evidence": "The metallic head assembly featuring the sharpened curved blade edge on the left side.",
+          "origin": [
+            510,
+            290
+          ],
+          "direction_tip": [
+            460,
+            290
+          ]
+        }
+      },
+      "issues": [
+        "axe_head: direction_tip is on background"
+      ]
+    },
+    {
+      "view": 2,
+      "objects": {
+        "grip_lower_haft": {
+          "visible": true,
+          "box_2d": [
+            435,
+            760,
+            515,
+            950
+          ],
+          "confidence": 0.95,
+          "evidence": "The lower section of the handle wrapped in distinct reddish-brown leather material. The box is tightly bounded by the metal ring at the top (y~760) and the physical end of the handle at the bottom (y~950), with horizontal limits strictly following the leather wrap width (x~435 to x~515)."
+        },
+        "grip_upper_haft": {
+          "visible": true,
+          "box_2d": [
+            455,
+            360,
+            535,
+            760
+          ],
+          "confidence": 0.95,
+          "evidence": "The bare wooden shaft section located between the axe head assembly and the upper metal ring of the leather grip. The box captures the vertical wood grain texture and is constrained horizontally to the shaft's width, avoiding the background."
+        },
+        "axe_head": {
+          "visible": true,
+          "box_2d": [
+            280,
+            220,
+            480,
+            450
+          ],
+          "confidence": 0.95,
+          "evidence": "The dark metal blade of the axe, featuring a curved sharpened outer edge facing left. The box encloses the entire metal head structure including the poll and the blade.",
+          "origin": [
+            420,
+            300
+          ],
+          "direction_tip": [
+            300,
+            380
+          ]
+        }
+      },
+      "issues": []
+    },
+    {
+      "view": 3,
+      "objects": {
+        "grip_lower_haft": {
+          "visible": true,
+          "box_2d": [
+            435,
+            760,
+            515,
+            950
+          ],
+          "confidence": 0.95,
+          "evidence": "The lower section of the handle wrapped in distinct reddish-brown leather material. It is bounded at the top by a thin metal ring (approx y=760) and extends to the physical bottom end of the handle (approx y=950). The horizontal bounds [435, 515] tightly enclose the visible width of the wrapped grip."
+        },
+        "grip_upper_haft": {
+          "visible": true,
+          "box_2d": [
+            425,
+            360,
+            495,
+            760
+          ],
+          "confidence": 0.95,
+          "evidence": "The bare wooden shaft section located between the axe head assembly and the upper metal band of the lower grip. It displays vertical wood grain texture and is clear of the blade. The box spans from just below the head (y=360) to the start of the leather wrap (y=760), with x-coordinates [425, 495] matching the shaft's width."
+        },
+        "axe_head": {
+          "visible": true,
+          "box_2d": [
+            560,
+            220,
+            710,
+            440
+          ],
+          "confidence": 0.95,
+          "evidence": "The curved, sharpened metallic cutting edge of the axe blade. This region covers the outer arc of the metal head where the bevel meets the edge, distinct from the flat poll or the handle.",
+          "origin": [
+            560,
+            280
+          ],
+          "direction_tip": [
+            700,
+            330
+          ]
+        }
+      },
+      "issues": []
+    }
+  ],
+  "annotation_receipts": [
+    "annotation-view-0-354cf7671acff57adf51202e5116a73c4881938f5a85642e1fc15ce1d97da192.json",
+    "annotation-view-1-0232b9916c17bccc8627ca073a9d43d93a2552077572df1789a863ab81bf77ed.json",
+    "annotation-view-2-cc2c9806b5865b89a1fee9eafd23eda67c518d3b1c527b5ddc48097ce9c01248.json",
+    "annotation-view-3-2bc46c749a26609b439c091174fcbb6b7f5a9b0903ba184013243ec6a0d39027.json",
+    "revision-1-view-0-fa943223fe6ccbc15c6013c78b9d3b6799349f1dfaa86746297abe51cb59d565.json",
+    "revision-1-view-1-d4c3c28b0055afa1217ccc3d783b55a624b6543a5479cebb9525793c63fcaa58.json",
+    "revision-1-view-2-c30ba94cfb6fb288d9026624766abf54410c4597761d8058a8a162b41430c0cf.json",
+    "revision-1-view-3-379b24e3e08c0ddeef6406cd8892ca431922406893fb09fe9babf8018f40d6fd.json"
+  ],
+  "review": {
+    "views": [
+      {
+        "view": 0,
+        "objects": {
+          "grip_lower_haft": {
+            "verdict": "confirmed",
+            "reason": "The box tightly encloses the reddish-brown leather-wrapped section of the shaft, which is visually distinct from the bare dark wood above and the flared pommel below."
+          },
+          "grip_upper_haft": {
+            "verdict": "confirmed",
+            "reason": "The box correctly bounds the bare dark wooden shaft segment located between the metal collar of the head assembly and the start of the leather grip."
+          },
+          "axe_head": {
+            "verdict": "rejected",
+            "reason": "The box is positioned on the upper shaft/collar area and does not enclose the actual metal head or blade. Furthermore, the signed arrow points diagonally up-left into the empty background, failing to indicate the outward cutting edge."
+          }
+        }
+      },
+      {
+        "view": 1,
+        "objects": {
+          "grip_lower_haft": {
+            "verdict": "confirmed",
+            "reason": "The box correctly identifies the leather-wrapped lower grip, bounded by the metal ring at the top and the flared base at the bottom."
+          },
+          "grip_upper_haft": {
+            "verdict": "confirmed",
+            "reason": "The box accurately captures the bare wooden shaft section between the lower head assembly and the upper grip rings."
+          },
+          "axe_head": {
+            "verdict": "rejected",
+            "reason": "The box is placed too high, covering the top spike and background rather than the metal head assembly. The arrow points horizontally into the background, not toward a visible sharp edge."
+          }
+        }
+      },
+      {
+        "view": 2,
+        "objects": {
+          "grip_lower_haft": {
+            "verdict": "confirmed",
+            "reason": "The box correctly bounds the reddish leather-wrapped grip at the bottom of the handle."
+          },
+          "grip_upper_haft": {
+            "verdict": "confirmed",
+            "reason": "The box accurately encloses the bare wooden shaft section between the head and the grip."
+          },
+          "axe_head": {
+            "verdict": "confirmed",
+            "reason": "The box encloses the metal head, and the arrow correctly originates at the body and points outward toward the curved sharp blade edge on the left."
+          }
+        }
+      },
+      {
+        "view": 3,
+        "objects": {
+          "grip_lower_haft": {
+            "verdict": "confirmed",
+            "reason": "The box correctly bounds the leather-wrapped grip at the bottom of the handle."
+          },
+          "grip_upper_haft": {
+            "verdict": "confirmed",
+            "reason": "The box accurately encloses the bare wooden shaft section between the head and the grip."
+          },
+          "axe_head": {
+            "verdict": "confirmed",
+            "reason": "The box encloses the metal head, and the arrow correctly originates at the body and points outward toward the curved sharp blade edge on the right."
+          }
+        }
+      }
+    ],
+    "cross_view": {
+      "grip_lower_haft": {
+        "verdict": "confirmed",
+        "reason": "The leather-wrapped lower grip is consistently identified and correctly bounded in all four views, with no contradictions in position or texture.",
+        "additional_views": []
+      },
+      "grip_upper_haft": {
+        "verdict": "confirmed",
+        "reason": "The bare wooden shaft segment is consistently identified and correctly bounded in all four views, clearly separated from the head and the lower grip.",
+        "additional_views": []
+      },
+      "axe_head": {
+        "verdict": "confirmed",
+        "reason": "While the annotations in views 0 and 1 are rejected for being on the wrong end and pointing to background, views 2 and 3 provide two useful, consistent views of the actual metal head. The signed directions in views 2 and 3 correctly follow the physical meaning (body to sharp edge) and are consistent with the mirrored geometry of the object.",
+        "additional_views": []
+      }
+    }
+  },
+  "review_receipt": "review-r1-77024704abea58049c89d21e61460447e5a7ad80464df6ca365e8434ea88da02.json",
+  "confirmed_views": {
+    "grip_lower_haft": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "grip_upper_haft": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "axe_head": [
+      2,
+      3
+    ]
+  }
+}

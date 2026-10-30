@@ -1,0 +1,88 @@
+{
+  "schema": 3,
+  "stage": "annotation-view-0",
+  "model": "qwen/qwen3-vl-235b-a22b-instruct",
+  "prompt": "You are a precise visual grounding annotator. Inspect the ONE supplied image of an actual textured 3D object. Locate only the physical regions described below. The image includes a coordinate grid with 0.1 increments. Read x horizontally from left to right and y vertically from top to bottom. Return coordinates normalized 0..1000 over this ENTIRE image, margins included. Do not use the textual role name as a location hint: inspect the pixels. First identify the material and visible boundary, then place a TIGHT box. For a grasp interval choose the described distinct material/segment only; never the entire shaft and never beyond its physical end. For a functional surface choose the actual narrow effect-producing surface described, not its supporting body. A body, a face and its outer edge are different regions. State what you actually see. For functional regions additionally mark origin on the supporting material and direction_tip ON the effect-producing surface. Both points must land on visible object pixels; the origin may be outside the functional region. Do not point into empty space to illustrate a direction. For an edge-on, hidden or ambiguous surface use visible=false with a concrete reason; do not invent coordinates to complete the answer. Return ONE JSON object with an objects map keyed by exactly the supplied IDs. Each entry: {\"visible\":true,\"box_2d\":[xmin,ymin,xmax,ymax],\"confidence\":0.9,\"evidence\":\"specific visible boundary/material\"}. Only functional regions add \"origin\":[x,y],\"direction_tip\":[x,y]. Invisible entries: {\"visible\":false,\"confidence\":0,\"evidence\":\"why hidden\"}. box_2d order: xmin_ymin_xmax_ymax. Points are always [x,y]. Before returning, visually check every coordinate against the grid and the object boundary. Do not claim visibility from an assumed shape. ROLES:\n{\"grip_lower_haft\": {\"role\": \"grasp_region\", \"description\": \"Leather-wrapped lower wooden shaft, clear of the blade\"}, \"grip_upper_haft\": {\"role\": \"grasp_region\", \"description\": \"Bare upper-middle wooden shaft, clear of the head and its sharp edge\"}, \"axe_head\": {\"role\": \"functional_region\", \"description\": \"Sharpened outward-facing cutting edge of the axe head\", \"direction_semantics\": \"From the body of the metal head outward toward its visible sharp curved blade edge, not toward the flat poll or down the handle.\"}}",
+  "images": [
+    {
+      "label": "VIEW 0 unannotated full image",
+      "sha256": "d3d4a212dede83b753d4f589fc3b60e7c7c3e3afc57eeb649b24e23c1a8d49d4"
+    }
+  ],
+  "provenance": {
+    "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+    "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
+    "prompt_version": 3
+  },
+  "signature": "ce891de95cb411fbb85af8fd7fa61917a3178582959afe11b210f6acbdd39e30",
+  "status": "received",
+  "response": {
+    "id": "gen-1793295871-nwqQyvz7zX6nlGJOegEH",
+    "object": "chat.completion",
+    "created": 1793295871,
+    "model": "qwen/qwen3-vl-235b-a22b-instruct",
+    "provider": "Venice",
+    "system_fingerprint": null,
+    "service_tier": null,
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"objects\": {\n    \"grip_lower_haft\": {\n      \"visible\": true,\n      \"box_2d\": [480, 700, 520, 950],\n      \"confidence\": 0.9,\n      \"evidence\": \"Dark brown leather-wrapped texture visible on lower shaft, distinct from upper wood and separated from blade by metal collar at y=0.7.\"\n    },\n    \"grip_upper_haft\": {\n      \"visible\": true,\n      \"box_2d\": [480, 350, 520, 650],\n      \"confidence\": 0.9,\n      \"evidence\": \"Smooth, bare wood texture visible between metal head collar at y=0.35 and leather wrap start at y=0.7, clear of blade.\"\n    },\n    \"axe_head\": {\n      \"visible\": true,\n      \"box_2d\": [470, 250, 530, 350],\n      \"confidence\": 0.9,\n      \"evidence\": \"Metal head with visible sharpened curved cutting edge on right side; origin on head body, direction_tip on the curved blade edge.\",\n      \"origin\": [490, 300],\n      \"direction_tip\": [520, 310]\n    }\n  }\n}",
+          "refusal": null,
+          "reasoning": null
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 782,
+      "completion_tokens": 302,
+      "total_tokens": 1084,
+      "cost": 0.00073802,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.00073802,
+        "upstream_inference_prompt_cost": 0.00016422,
+        "upstream_inference_completions_cost": 0.0005738
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  "usage": {
+    "prompt_tokens": 782,
+    "completion_tokens": 302,
+    "total_tokens": 1084,
+    "cost": 0.00073802,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.00073802,
+      "upstream_inference_prompt_cost": 0.00016422,
+      "upstream_inference_completions_cost": 0.0005738
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  }
+}

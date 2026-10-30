@@ -1,0 +1,31 @@
+{
+  "schema": 2,
+  "stage": "annotation",
+  "model": "qwen/qwen3-vl-32b-instruct",
+  "prompt": "Locate the supplied semantic regions on FOUR complete views of the SAME actual textured GLB. Each image is a separate VIEW 0..3. Use ONLY the supplied IDs and descriptions; ID spelling does not redefine its function. Identify each region anew from visible material, boundaries and function, not from its screen position or length. Distinct grasp regions must bound their distinct usable portions, not the entire shared shaft or body. A functional region encloses the named EFFECT-producing surface, not the whole supporting body. For a signed direction, locate origin on its supporting material and direction_tip on the named functional surface; the origin may be outside the functional region. Both points must touch visible object pixels. Do not copy coordinates between views. Return JSON {\"views\":[{\"view\":0,\"objects\":{\"<id>\":{\"visible\":true,\"box_2d\":[a,b,c,d],\"confidence\":0.9,\"evidence\":\"visible physical identity and boundaries\",\"origin\":[x,y],\"direction_tip\":[x,y]}}}, ...]}. Include each ID in EVERY view. box_2d order is xmin_ymin_xmax_ymax; all coordinates are normalized 0..1000 WITHIN that single full image, including margins. Points ALWAYS use [x,y]. Only functional regions need origin/direction_tip. For occluded, absent or ambiguous parts return visible=false, confidence=0 and evidence explaining which additional view would resolve it; omit box and points. Never invent a hidden location. Grasp intervals on a uniform material can remain ambiguous: report it. REQUESTED ROLES:\n{\"grip_lower_haft\": {\"role\": \"grasp_region\", \"description\": \"Leather-wrapped lower wooden shaft, clear of the blade\"}, \"grip_upper_haft\": {\"role\": \"grasp_region\", \"description\": \"Bare upper-middle wooden shaft, clear of the head and its sharp edge\"}, \"axe_head\": {\"role\": \"functional_region\", \"description\": \"Sharpened outward-facing cutting edge of the axe head\", \"direction_semantics\": \"From the body of the metal head outward toward its visible sharp curved blade edge, not toward the flat poll or down the handle.\"}}",
+  "images": [
+    {
+      "label": "VIEW 0 unannotated full image",
+      "sha256": "cb24fbb387f1878981cac68293bd01932b22c6d27c5394da3e4f94d3c70279ef"
+    },
+    {
+      "label": "VIEW 1 unannotated full image",
+      "sha256": "55f9ed37f5d844a8af172d4e920891ee9d0bc1d6cacedf6bfb14886dc019593e"
+    },
+    {
+      "label": "VIEW 2 unannotated full image",
+      "sha256": "2f8a9415bb9acc5241ec12d84013a035c0fedfa971dcec0ba036af1dbc6fad2c"
+    },
+    {
+      "label": "VIEW 3 unannotated full image",
+      "sha256": "da41a0b1059125831498891af655251f31c1950bbefa49a822b37226a0ae9b52"
+    }
+  ],
+  "provenance": {
+    "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+    "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
+    "prompt_version": 2
+  },
+  "signature": "8abbfaa189850f414808db40f1608a895365844cde0ed27fee1048361c31f863",
+  "status": "submission-outcome-unknown"
+}

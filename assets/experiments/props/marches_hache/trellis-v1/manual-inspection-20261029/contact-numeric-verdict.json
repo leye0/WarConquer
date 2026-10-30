@@ -1,0 +1,11 @@
+{
+  "status": "rejected",
+  "issues": [
+    "idle: Deux prises Mixamo : aucune orientation anatomiquement atteignable ne laisse le vrai GLB hors du torse : {\"clearance\":-0.14972050797371284,\"face\":0.6059765293030744}",
+    "idle: primary vision grip does not touch animated palm",
+    "idle: secondary labelled grip not held by real Mixamo arm"
+  ],
+  "checked_frames": [
+    "idle"
+  ]
+}

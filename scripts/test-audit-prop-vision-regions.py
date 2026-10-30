@@ -113,3 +113,148 @@ assert any("functional_edge" in issue for issue in issues),issues
 assert (real_plan["mesh_landmarks"]["features"]["axe_head"]["direction_tip"]==
     real_plan["mesh_landmarks"]["points"]["functional_edge"])
 print("PASS: real GLB pixels gate 2D regions and legacy anchors are never auto-repaired")
+
+# Schema 2: all named parts in every full view, no historic anchor/crop input.
+import copy
+import tempfile
+labels=module.region_labels(semantic)
+assert set(labels)=={'grip_lower_haft','grip_upper_haft','axe_head'}
+assert 'point' not in json.dumps(labels)
+prompt=module.region_prompt(labels,'xmin_ymin_xmax_ymax')
+assert 'entire shared shaft' in prompt and 'origin may be outside' in prompt
+synthetic_views=[{'surface_mask':np.ones((510,510),dtype=bool)} for _ in range(4)]
+proposal={'views':[{'view':i,'objects':{name:{'visible':True,
+    'box_2d':[100,100,300,300],'confidence':.95,
+    'evidence':'Distinct visible physical surface',
+    **({'origin':[80,200],'direction_tip':[200,200]} if item['role']=='functional_region' else {})}
+    for name,item in labels.items()}} for i in range(4)]}
+records=module.validate_multiview(proposal,labels,synthetic_views,'xmin_ymin_xmax_ymax')
+assert not any(r['issues'] for r in records) # Origin outside effect region is legitimate.
+assert module.validate_multiview(proposal['views'],labels,synthetic_views,
+    'xmin_ymin_xmax_ymax')==records # Provider may omit the outer envelope only.
+review={'views':[{'view':i,'objects':{name:{'verdict':'confirmed',
+    'reason':'Visible identity and signed direction agree'} for name in labels}} for i in range(4)],
+    'cross_view':{name:{'verdict':'confirmed','reason':'Same region visible from distinct cameras',
+    'additional_views':[]} for name in labels}}
+coverage,issues=module.reviewed_regions(records,review,labels)
+assert not issues and all(len(v)==4 for v in coverage.values())
+
+for broken in ('duplicate_view','missing_id','bad_point','missing_evidence'):
+    bad=copy.deepcopy(proposal)
+    if broken=='duplicate_view':bad['views'][3]['view']=0
+    if broken=='missing_id':del bad['views'][2]['objects']['grip_upper_haft']
+    if broken=='bad_point':bad['views'][0]['objects']['axe_head']['origin']=[True,200]
+    if broken=='missing_evidence':bad['views'][0]['objects']['axe_head']['evidence']=''
+    try: module.validate_multiview(bad,labels,synthetic_views,'xmin_ymin_xmax_ymax')
+    except ValueError:pass
+    else:raise AssertionError('Accepted '+broken)
+
+bad_views=copy.deepcopy(synthetic_views)
+bad_views[0]['surface_mask'][:]=False
+bad_records=module.validate_multiview(proposal,labels,bad_views,'xmin_ymin_xmax_ymax')
+_,issues=module.reviewed_regions(bad_records,review,labels)
+assert any('on background' in x for x in issues)
+assert any('no visible GLB surface' in x for x in issues)
+
+hidden=copy.deepcopy(proposal)
+for row in hidden['views'][1:]:
+    row['objects']['grip_upper_haft']={'visible':False,'confidence':0,
+        'evidence':'Occluded: another camera is necessary'}
+hidden_records=module.validate_multiview(hidden,labels,synthetic_views,'xmin_ymin_xmax_ymax')
+_,issues=module.reviewed_regions(hidden_records,review,labels)
+assert any('fewer than two' in x for x in issues) # Optimistic reviewer cannot override missing pixels.
+conflict=copy.deepcopy(review)
+conflict['cross_view']['grip_upper_haft'].update(verdict='rejected',reason='IDs swapped between opposite views')
+_,issues=module.reviewed_regions(records,conflict,labels)
+assert any('swapped' in x for x in issues)
+conflict=copy.deepcopy(review)
+conflict['views'][1]['objects']['axe_head']['verdict']='rejected'
+assert module.reviewed_regions(records,conflict,labels)[1] # Two good views cannot erase a rejected view.
+
+# Malformed raw replies remain in immutable receipts and are never paid twice.
+with tempfile.TemporaryDirectory() as tmp:
+    folder=Path(tmp);calls=[]
+    class Reply:
+        def __enter__(self):return self
+        def __exit__(self,*args):pass
+        def read(self,n):return json.dumps({'choices':[{'message':{'content':'not JSON'}}],
+                                          'usage':{'cost':.001}}).encode()
+    original_urlopen=module.urlopen
+    original_key=module.os.environ.get('OPENROUTER_API_KEY')
+    module.os.environ['OPENROUTER_API_KEY']='test-placeholder'
+    module.urlopen=lambda *args,**kwargs:(calls.append(1) or Reply())
+    try:
+        for _ in range(2):
+            try: module.region_request(folder,'annotation','test','prompt',[],{},True)
+            except ValueError:pass
+            else:raise AssertionError('Accepted malformed paid reply')
+        assert len(calls)==1
+        receipt=json.loads(next(folder.glob('*.json')).read_text())
+        assert receipt['response']['choices'][0]['message']['content']=='not JSON'
+        assert receipt['usage']['cost']==.001
+    finally:
+        module.urlopen=original_urlopen
+        if original_key is None:module.os.environ.pop('OPENROUTER_API_KEY',None)
+        else:module.os.environ['OPENROUTER_API_KEY']=original_key
+print('PASS: multi-view IDs, visibility, signed directions, independent conflicts and immutable raw receipts')
+
+# Independent requests prevent answer leakage between opposite camera views.
+from unittest.mock import patch
+requests=[]
+def fake_region_request(folder, stage, model, prompt, images, provenance, allow_paid):
+    requests.append((stage,images))
+    return {'objects':proposal['views'][len(requests)-1]['objects']},stage+'.json'
+images=[('VIEW '+str(i),bytes([i])) for i in range(4)]
+with patch.object(module,'region_request',side_effect=fake_region_request):
+    per_view,receipts=module.annotate_individual_views(Path('/tmp'), 'test', labels,
+        'xmin_ymin_xmax_ymax',images,{},False)
+assert [r['view'] for r in per_view['views']]==[0,1,2,3]
+assert all(requests[i][1]==[images[i]] for i in range(4))
+assert len(set(receipts))==4
+print('PASS: each annotator receives exactly one camera image and no other view response')
+
+requests.clear()
+def unwrapped_request(folder, stage, model, prompt, images, provenance, allow_paid):
+    wrapped, receipt=fake_region_request(folder,stage,model,prompt,images,provenance,allow_paid)
+    return wrapped['objects'],receipt
+with patch.object(module,'region_request',side_effect=unwrapped_request):
+    unwrapped,_=module.annotate_individual_views(Path('/tmp'),'test',labels,
+        'xmin_ymin_xmax_ymax',images,{},False)
+assert unwrapped==per_view
+
+# Replay the actual paid false-positive review: the second model approved a
+# copied edge on the opposite camera even though its tip is on background.
+receipt_folder=module.ROOT/'assets/experiments/props/marches_hache/trellis-v1/vision-region-receipts/multiview-full_views_v2-c1162a3241ae0a17'
+annotation=json.loads(next(receipt_folder.glob('annotation-*.json')).read_text())
+review_receipt=json.loads(next(receipt_folder.glob('review-*.json')).read_text())
+raw=module.parse_response(annotation['response']['choices'][0]['message']['content'])
+verdict=module.parse_response(review_receipt['response']['choices'][0]['message']['content'])
+recorded=module.validate_multiview(raw,labels,views,'xmin_ymin_xmax_ymax')
+coverage,issues=module.reviewed_regions(recorded,verdict,labels)
+assert any('view 3: axe_head: direction_tip is on background' in issue for issue in issues)
+assert coverage['axe_head']==[2],coverage
+print('PASS: actual Qwen false-positive review cannot approve the mirrored-view edge in empty space')
+
+# A revision receives ONLY its disputed camera and cannot alter the other views.
+clean=module.validate_multiview(proposal,labels,synthetic_views,'xmin_ymin_xmax_ymax')
+clean[3]['issues']=['axe_head: direction_tip is on background']
+requests=[]
+def repair_request(folder,stage,model,prompt,images,provenance,allow_paid):
+    requests.append((stage,images,prompt))
+    return {'objects':proposal['views'][3]['objects']},'revision.json'
+with patch.object(module,'region_request',side_effect=repair_request):
+    repaired,receipts=module.refine_region_views(Path('/tmp'),1,'test',labels,
+        'xmin_ymin_xmax_ymax',clean,review,images,{},False)
+assert len(requests)==1 and requests[0][1]==[images[3]]
+assert 'direction_tip is on background' in requests[0][2]
+assert receipts==['revision.json']
+assert repaired['views'][:3]==[{'view':r['view'],'objects':r['objects']} for r in clean[:3]]
+try:module.audit_multiview(Path('/tmp/nonexistent'), 'test', 'test', 'review', max_revisions=3)
+except ValueError as e:assert 'At most two' in str(e)
+else:raise AssertionError('Unbounded revision loop')
+print('PASS: bounded revisions target only disputed cameras without geometric annotation edits')
+
+assert module.native_box_order('qwen/qwen3.7-plus')=='xmin_ymin_xmax_ymax'
+try:module.native_box_order('future/unverified-model')
+except ValueError:pass
+else:raise AssertionError('Unverified model coordinate convention silently accepted')

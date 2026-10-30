@@ -10,7 +10,7 @@
 - **Pilote obligatoire :** unité `marches_hache`, objet `axe`, GLB réel `assets/experiments/props/marches_hache/trellis-v1/axe.glb`.
 - **Contrat source :** `assets/experiments/props/marches_hache/trellis-v1/interaction-contract.json`. La vision a nommé `grip_lower_haft` (main droite principale), `grip_upper_haft` (main gauche secondaire), `axe_head` (tranchant), et les modes `carry_mode` / `use_mode_chop`. Le rôle Mixamo `axe_chop` est un **candidat**, pas une compatibilité prouvée.
 - **Plan de repères actuel :** `assets/experiments/props/marches_hache/trellis-v1/grip-plan.json`. `mesh_landmarks.schema = 1`; les prises `local` portent la méthode `vision-nearest-surface` (un **sommet proche**, pas une surface de saisie). Le champ `visual_qa.status` est **`rejected`**; les deux juges visuels refusent la prise à deux mains même quand `numeric_issues` est vide.
-- **Raison diagnostiquée :** `scripts/prop-mesh-landmarks.py::project_labelled_vertex` et `scripts/audit-prop-vision-regions.py::reconcile_physical_regions` réduisent la délimitation vision à un sommet; `scripts/character-lab-client.js::importedPropLandmarks` remappe sur un sommet importé. Le `palmFrame` calcule déjà une orientation, mais `temporarySecondaryIK` ne résout que bras/avant-bras, **ni le poignet ni les doigts**.
+- **Raison diagnostiquée :** `scripts/prop-mesh-landmarks.py::project_labelled_vertex` et `scripts/audit-prop-vision-regions.py::reconcile_physical_regions` réduisaient la délimitation vision à un sommet; la réparation automatique est maintenant interdite; `scripts/character-lab-client.js::importedPropLandmarks` remappe sur un sommet importé. Le `palmFrame` calcule déjà une orientation, mais `temporarySecondaryIK` ne résout que bras/avant-bras, **ni le poignet ni les doigts**.
 - **Autre lacune observée :** `scripts/capture-prop-contact.mjs` échantillonne les **huit poses de frappe** par fractions explicites de la timeline Mixamo, mais la marche/course sont capturées après des `sleep(500)` : ce n'est **pas encore** un échantillonnage déterministe de leurs phases animées.
 - **Statut honnête :** sémantique source **documentée**; rendu GLB et captures **existants**; surface de contact 3D **non confirmée**; prise orientée et doigts **non résolus**; action **VISUAL_NO_GO**; généricité **non démontrée**.
 
@@ -35,7 +35,7 @@
 | `assets/experiments/props/marches_hache/trellis-v1/interaction-contract.json` | IDs de parties et de prises, modes, côtés des mains, signification de l'action; **ne pas réinventer ces rôles** |
 | `assets/experiments/props/marches_hache/trellis-v1/grip-plan.json` | Repères GLB `mesh_landmarks` historiques et reçus/rejets de QA; **ne pas le traiter comme un schéma de surface déjà valide** |
 | `scripts/prop-mesh-landmarks.py` | `glb_geometry`, `make_views`, `validate_answer`, `project_labelled_vertex`, `lift_named_landmarks` : génération de vues du GLB texturé, réponse vision et projection actuelle **sommet le plus proche** |
-| `scripts/audit-prop-vision-regions.py` | `validate_boxes`, `reconcile_physical_regions`, `render_overlay` : régions labellisées par un deuxième modèle; la réconciliation actuelle retombe aussi sur **un sommet** |
+| `scripts/audit-prop-vision-regions.py` | `audit_multiview`, `validate_multiview`, `reviewed_regions` : quatre vues complètes, IDs sémantiques, directions et contrôle indépendant des surimpressions; ancien audit disponible seulement avec `--legacy-crops`; réparation par sommet interdite |
 | `scripts/test-prop-mesh-landmarks.py` | Tests de projection et de sens signé. **Attention : certains tests exigent encore `vision-nearest-surface`**; les remplacer par des assertions sur de vrais triangles, pas seulement supprimer l'assertion gênante |
 | `scripts/test-audit-prop-vision-regions.py` | Tests des boîtes natives/coordonnées normalisées, re-projection et interdiction d'inventer un label |
 | `scripts/rig-contact-landmarks.js` | `palmFrame` : paume, normale, direction des doigts, axe transversal; **valider les signes anatomiques** |
@@ -204,3 +204,101 @@ Commit / PR / chemins des artefacts :
 ```
 
 **Exemple d'entrée honnête, avant correction :** `B5–B8 [ ]`; sémantique hache documentée; sommets `vision-nearest-surface` encore utilisés; erreurs de paume ponctuelles mesurées, mais les deux modèles OpenRouter ont retourné `VISUAL_NO_GO` à la prise. **Prochaine tâche : vérifier B2–B4 puis reconstruire la projection sur triangles, sans modifier le rôle des deux prises.**
+
+
+### Reprise du 2026-10-29 — B2–B4, régions sur vues complètes
+
+- Branche : `fix/held-prop-multiview-regions`, base `53a831c`, implémentation `ffeb82b`.
+- Défaillance reproduite : l’ancien audit utilise une seule vue et des crops centrés sur des sommets contestés; son reçu `studio_flash_native3` annonçait `confirmed` malgré `grip_upper_haft.visible=false`. Ce reçu historique est conservé, pas considéré comme une preuve B2–B4.
+- Correction : le chemin par défaut de `audit-prop-vision-regions.py` demande chaque ID du contrat sur quatre images complètes; aucune ancienne coordonnée ne sélectionne une région. Le prompt sépare la surface fonctionnelle de son support et permet à l’origine de direction de se trouver hors de la boîte de l’effet. Les deux points restent obligatoirement sur des pixels du GLB.
+- Relecture : modèle distinct sur les images brutes et leurs surimpressions; deux vues visibles confirmées au minimum par ID, contradictions conservées et demandes de vues supplémentaires bloquantes. Deux requêtes au maximum par exécution, sans retry automatique, cache par empreinte et réponses fournisseur brutes/coûts sauvegardés avant parsing.
+- Migration : `mesh_region_review.schema=2`, `status=confirmed_2d|needs_review`. Aucun changement des sommets `mesh_landmarks`, du solveur ou du verdict de pose. `confirmed_2d` n’est pas une surface B5 ni une prise validée. Le dossier dépend des empreintes des images, sources, prompts et modèles.
+- Preuves locales : `assets/experiments/props/marches_hache/trellis-v1/vision-region-receipts/multiview-full_views_v2-d7e94524c56a4d25/` : quatre PNG réellement rendus du GLB, tous ouverts, `inputs.json` avec empreintes et projection/caméras. Vues 0/1 étroites; vues 2/3 montrent les deux faces. Aucune annotation modèle nouvelle à ce stade.
+- Tests réussis : `test-prop-interaction-contract.py`, `test-prop-mesh-landmarks.py`, `test-audit-prop-vision-regions.py`, `test-prop-visual-qa.py`, `test-verify-prop-visual-qa.py`, `test-prop-motion-contact.mjs`. Régressions ajoutées : IDs/vues absents ou dupliqués, région/direction sur fond, moins de deux vues utiles, contradiction indépendante, sortie malformée conservée sans second paiement.
+- Blocage : publication GitHub refusée par la revue automatique d’autorisation; aucun essai OpenRouter/CI nouveau, aucune PR créée. Le workflow spatial est préparé pour cette branche et le marqueur `[spatial-pilot:marches_hache]`.
+- Cases : B2–B4 restent ouvertes, B5–B8 inchangées; pilote toujours `VISUAL_NO_GO`. La vérification multi-vues est sémantique en 2D : l’ambiguïté de profondeur devra aussi être mesurée en B5.
+- Prochaine action : après autorisation de publier cette branche, lancer le workflow spatial, ouvrir les quatre overlays et lire les deux reçus. Corriger les régions contestées ou demander les vues manquantes avant de commencer B5; ne pas réutiliser `confirmed` du reçu historique.
+
+
+### Résultats CI du 2026-10-29 — PR #5
+
+- Publication autorisée explicitement par le propriétaire et effectuée : [PR #5](https://github.com/leye0/WarConquer/pull/5), branche `fix/held-prop-multiview-regions`. Le blocage de publication décrit plus haut est levé.
+- Le premier modèle configuré (`qwen3-vl-32b-instruct`) a répondu HTTP 404; le catalogue OpenRouter a été vérifié et le modèle remplacé par `qwen/qwen3-vl-30b-a3b-instruct`. Les erreurs HTTP sont désormais conservées dans les reçus. L'ancien échec reste archivé.
+- Le modèle 30B renvoie quatre entrées dans un tableau JSON sans enveloppe `views`. Le lecteur accepte cette variation structurelle, conserve les reçus bruts et applique exactement les mêmes contrôles aux IDs, coordonnées, pixels et directions. Aucun point déplacé. Annotation réutilisée depuis le cache lors du troisième lancement.
+- [CI spatial 40858727775](https://github.com/leye0/WarConquer/actions/runs/40858727775) : six suites de tests réussies; annotation 30B et relecture 235B réellement exécutées. Coût reçu : 0,00105645 + 0,00227999 USD = 0,00333644 USD. Résultat final `needs_review`, workflow rouge attendu pour ce refus.
+- Preuves : `assets/experiments/props/marches_hache/trellis-v1/vision-region-receipts/multiview-full_views_v2-c1162a3241ae0a17/` contient les quatre vues brutes, les quatre overlays, les deux réponses fournisseur, leurs coûts et `report.json`. Les quatre overlays ont été ouverts et inspectés.
+- Échec observé : l'origine de direction tombe sur fond en vues 0/1; la pointe en vue 3 tombe sur fond, à gauche, alors que la tête s'étend vers la droite. Les coordonnées du tranchant sont recopiées entre les vues 2/3. Les boîtes de prise s'étendent aussi excessivement, notamment au-delà du bout visible du manche.
+- Le modèle de relecture 235B confirme à tort toutes les régions/directions. Le contrôle des pixels refuse néanmoins le résultat : la partie fonctionnelle n'a qu'une vue admissible, pas deux. Les quatre confirmations de prises dans `confirmed_views` décrivent ce contrôle partiel, **pas une acceptation humaine de leurs limites**. B2–B4 demeurent ouverts; aucune surface B5 ni prise anatomique n'est validée.
+- [CI Unit pipeline 40858739170](https://github.com/leye0/WarConquer/actions/runs/40858739170) réussie après adaptation de la régression : un audit de régions schéma 2 ne doit jamais certifier les anciens sommets comme surfaces 3D validées.
+- Prochaine tâche précise : corriger l'annotation générique par vues indépendantes (éviter la copie de coordonnées entre vues opposées), resserrer les limites des prises et obtenir une vraie localisation du tranchant. Rejouer les contrôles des pixels et une relecture qui détecte effectivement ces contre-exemples avant B5. Ne pas déplacer les régions pour faire passer le contrôle et ne pas cocher B2–B4 sur les verdicts positifs erronés du 235B.
+
+### 2026-10-29 — revenir à l'essai visuel concret
+
+À la demande du propriétaire, inspecter un cas réel avant de développer davantage
+l'automatisation. Aucun nouvel appel payant n'a été fait pour cet essai.
+
+- Le renderer CPU inversait V dans l'atlas glTF : corrigé et couvert par une
+  texture asymétrique et un test de rasterisation. Les reçus antérieurs restent
+  archivés, mais leurs textures ne constituent pas une référence visuelle fiable.
+- Le dernier essai Qwen 3.7 (`multiview-qwen37_texture_v3-c3575ae167dc9e29`)
+  reste `needs_review` : les pointes de fonction des vues 0/1 sont dans le fond.
+  Les vues 2/3 sont meilleures. Ne pas cocher B2–B4.
+- Défaut de caméra reproduit dans Babylon : appeler `setTarget` APRÈS les angles
+  recalcule alpha, beta et rayon. La vue demandée à alpha=pi/2 et rayon=3 revenait
+  à alpha=-0.80949 et rayon=12.67165. Corriger l'ordre cible → angles → rayon,
+  préserver aussi les angles et la limite de rayon autour des gros plans.
+- `capture-prop-contact.mjs … --still` capture désormais la frame médiane exacte
+  du clip de repos, sous trois angles avec gros plans. Chaque image a un JSON
+  de caméra effective et de diagnostic; `inspection-pose.json` donne clip/frame.
+  Commande locale/CI sans modèle :
+  `node scripts/capture-prop-contact.mjs marches_hache axe assets/experiments/props/marches_hache/trellis-v1/manual-inspection-20261029 --still`.
+- Inspection locale ouverte : frame 90 de `Idle_Mixamo_WithAxe`, arme horizontale
+  au niveau du ventre et mains hors des prises. Le solveur refuse la pose pour
+  pénétration du torse (~0.15 m). Ceci est une reproduction d'échec, PAS un
+  placement manuel de référence réussi. Le script conserve les images avant
+  de sortir en échec. Le contrôle des caméras, lui, retrouve les angles demandés.
+
+Prochaine tâche concrète : utiliser ces gros plans pour établir une prise de
+référence sur le vrai mesh et les vraies paumes, puis comparer le résultat
+automatique à cette référence. Aucun déplacement manuel ne doit être déguisé
+ en annotation de modèle ni devenir une règle spéciale d'arme. B5–B8 et les
+poignets/doigts restent ouverts. Statut global : **VISUAL_NO_GO**.
+
+### 2026-10-29 — correction de la recherche de pose, frame 90
+
+Cause reproduite : les déplacements candidats de la paume principale ne
+combinaient pas levée, avance et mouvement latéral. La recherche concluait à
+une collision inévitable alors qu'une pose accessible existait. Ajout de
+combinaisons dans le repère anatomique mesuré (haut/avant/droite), sans nom
+ d'arme, coordonnées propres à la hache ni changement des seuils de refus.
+
+Comparaison du même clip et de la même frame :
+- avant : pénétration du torse de 0.14972 m, contacts rejetés;
+- après : dégagement mesuré de 0.020 m, résidu principal arrondi à 0.000 m,
+  secondaire de 0.012 m, deux bras accessibles;
+- cinq instants de repos locaux (0, .25, .5, .75, 1) : résidu secondaire
+  0.007–0.012 m, dégagement 0.001–0.051 m. Ce sont des métriques de proximité,
+  pas une preuve de fermeture correcte des doigts ni de continuité animée.
+
+Preuves avant conservées dans `manual-inspection-20261029/`; nouvelles captures
+réelles dans `diagonal-search-inspection-20261029/`, à côté du même grip-plan.
+Les gros plans montrent maintenant l'objet devant le corps et les mains
+repositionnées. Il faut encore corriger/valider l'orientation des poignets et
+le contact des doigts : le prototype n'est pas une préhension de surface.
+Les repères 3D historiques restent contestés; aucun statut B2–B8 n'a été promu.
+La marche, la course et l'action ne sont pas validées par ce correctif au repos.
+
+Le contrôle caméra a également révélé que la marche continuait pendant la
+capture et modifiait le cadrage entre mesure et PNG. Pour marche/course, le
+captureur arrête maintenant la boucle de déplacement, échantillonne la frame
+médiane du vrai groupe, rend la scène avec ses callbacks de contact, puis
+reprend la boucle. `locomotion-samples.json` conserve clip, frame et fraction.
+Le cadrage général cible les vraies prises plutôt que l'origine du monde.
+
+Rejeu local étendu : repos, marche médiane, course médiane et huit frames de
+frappe passent les contrôles numériques existants. Cette observation ne valide
+pas les contacts de surface, les doigts, les collisions complètes en frappe,
+ni toutes les phases de marche/course. Les vues de profil restent nécessaires.
+WebSuite 40995800232 a été ouvert : rendu statique sans modèle chargé, donc
+non probant pour le placement. Le véritable rejeu Babylon 40995794109 passe
+et fournit les PNG avec personnage/objet. Unit pipeline 40995800234 passe.

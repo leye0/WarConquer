@@ -1,0 +1,77 @@
+{
+  "source": "actual local Chromium/Babylon WCPropContactDiagnostic",
+  "clip": "Idle_Mixamo_WithAxe",
+  "client_sha256": "b2fc08c8f8e00d61614017db11561c95fd4eb48bb62e85c7eee8a7e9e50b5d55",
+  "samples": [
+    {
+      "fraction": 0,
+      "mode": "idle",
+      "balanceY": 0.48,
+      "headY": 0.754,
+      "gripError": 0,
+      "expectedHands": 2,
+      "semanticStatus": "confirmed",
+      "edgeOutward": 0.899,
+      "edgeForward": 0.013,
+      "secondaryGripError": 0.01,
+      "clearance": 0.051,
+      "ikReachable": true
+    },
+    {
+      "fraction": 0.25,
+      "mode": "idle",
+      "balanceY": 0.48,
+      "headY": 0.754,
+      "gripError": 0,
+      "expectedHands": 2,
+      "semanticStatus": "confirmed",
+      "edgeOutward": 0.899,
+      "edgeForward": 0.013,
+      "secondaryGripError": 0.009,
+      "clearance": 0.001,
+      "ikReachable": true
+    },
+    {
+      "fraction": 0.5,
+      "mode": "idle",
+      "balanceY": 0.48,
+      "headY": 0.754,
+      "gripError": 0,
+      "expectedHands": 2,
+      "semanticStatus": "confirmed",
+      "edgeOutward": 0.899,
+      "edgeForward": 0.013,
+      "secondaryGripError": 0.012,
+      "clearance": 0.02,
+      "ikReachable": true
+    },
+    {
+      "fraction": 0.75,
+      "mode": "idle",
+      "balanceY": 0.48,
+      "headY": 0.754,
+      "gripError": 0,
+      "expectedHands": 2,
+      "semanticStatus": "confirmed",
+      "edgeOutward": 0.899,
+      "edgeForward": 0.013,
+      "secondaryGripError": 0.007,
+      "clearance": 0.049,
+      "ikReachable": true
+    },
+    {
+      "fraction": 1,
+      "mode": "idle",
+      "balanceY": 0.48,
+      "headY": 0.754,
+      "gripError": 0,
+      "expectedHands": 2,
+      "semanticStatus": "confirmed",
+      "edgeOutward": 0.899,
+      "edgeForward": 0.013,
+      "secondaryGripError": 0.009,
+      "clearance": 0.051,
+      "ikReachable": true
+    }
+  ]
+}

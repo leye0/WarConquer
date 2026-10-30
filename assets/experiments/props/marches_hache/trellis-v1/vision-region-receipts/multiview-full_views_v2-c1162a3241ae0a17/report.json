@@ -1,0 +1,318 @@
+{
+  "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+  "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
+  "prompt_version": 2,
+  "schema": 2,
+  "status": "needs_review",
+  "glb_surface_status": "unresolved_pending_B5",
+  "issues": [
+    "view 0: axe_head: origin is on background",
+    "view 1: axe_head: origin is on background",
+    "view 3: axe_head: direction_tip is on background",
+    "axe_head: fewer than two independently confirmed visible views"
+  ],
+  "views": [
+    {
+      "view": 0,
+      "objects": {
+        "grip_lower_haft": {
+          "visible": true,
+          "box_2d": [
+            487,
+            750,
+            512,
+            1000
+          ],
+          "confidence": 0.9,
+          "evidence": "Leather-wrapped lower shaft visible, distinct from the blade and upper handle, with clear boundaries."
+        },
+        "grip_upper_haft": {
+          "visible": true,
+          "box_2d": [
+            487,
+            300,
+            512,
+            600
+          ],
+          "confidence": 0.9,
+          "evidence": "Bare wooden shaft above the leather grip, clearly separated from the blade and the lower grip."
+        },
+        "axe_head": {
+          "visible": true,
+          "box_2d": [
+            487,
+            200,
+            512,
+            300
+          ],
+          "confidence": 0.9,
+          "evidence": "Metal head with a visible sharp, curved cutting edge facing outward, distinct from the flat poll and handle.",
+          "origin": [
+            500,
+            200
+          ],
+          "direction_tip": [
+            500,
+            300
+          ]
+        }
+      },
+      "issues": [
+        "axe_head: origin is on background"
+      ]
+    },
+    {
+      "view": 1,
+      "objects": {
+        "grip_lower_haft": {
+          "visible": true,
+          "box_2d": [
+            487,
+            750,
+            512,
+            1000
+          ],
+          "confidence": 0.9,
+          "evidence": "Leather-wrapped lower shaft visible, distinct from the blade and upper handle, with clear boundaries."
+        },
+        "grip_upper_haft": {
+          "visible": true,
+          "box_2d": [
+            487,
+            300,
+            512,
+            600
+          ],
+          "confidence": 0.9,
+          "evidence": "Bare wooden shaft above the leather grip, clearly separated from the blade and the lower grip."
+        },
+        "axe_head": {
+          "visible": true,
+          "box_2d": [
+            487,
+            200,
+            512,
+            300
+          ],
+          "confidence": 0.9,
+          "evidence": "Metal head with a visible sharp, curved cutting edge facing outward, distinct from the flat poll and handle.",
+          "origin": [
+            500,
+            200
+          ],
+          "direction_tip": [
+            500,
+            300
+          ]
+        }
+      },
+      "issues": [
+        "axe_head: origin is on background"
+      ]
+    },
+    {
+      "view": 2,
+      "objects": {
+        "grip_lower_haft": {
+          "visible": true,
+          "box_2d": [
+            487,
+            750,
+            512,
+            1000
+          ],
+          "confidence": 0.9,
+          "evidence": "Leather-wrapped lower shaft visible, distinct from the blade and upper handle, with clear boundaries."
+        },
+        "grip_upper_haft": {
+          "visible": true,
+          "box_2d": [
+            487,
+            300,
+            512,
+            600
+          ],
+          "confidence": 0.9,
+          "evidence": "Bare wooden shaft above the leather grip, clearly separated from the blade and the lower grip."
+        },
+        "axe_head": {
+          "visible": true,
+          "box_2d": [
+            300,
+            250,
+            487,
+            400
+          ],
+          "confidence": 0.9,
+          "evidence": "Sharpened outward-facing cutting edge of the axe head is clearly visible, with the metal surface extending outward.",
+          "origin": [
+            487,
+            300
+          ],
+          "direction_tip": [
+            300,
+            300
+          ]
+        }
+      },
+      "issues": []
+    },
+    {
+      "view": 3,
+      "objects": {
+        "grip_lower_haft": {
+          "visible": true,
+          "box_2d": [
+            487,
+            750,
+            512,
+            1000
+          ],
+          "confidence": 0.9,
+          "evidence": "Leather-wrapped lower shaft visible, distinct from the blade and upper handle, with clear boundaries."
+        },
+        "grip_upper_haft": {
+          "visible": true,
+          "box_2d": [
+            487,
+            300,
+            512,
+            600
+          ],
+          "confidence": 0.9,
+          "evidence": "Bare wooden shaft above the leather grip, clearly separated from the blade and the lower grip."
+        },
+        "axe_head": {
+          "visible": true,
+          "box_2d": [
+            300,
+            250,
+            487,
+            400
+          ],
+          "confidence": 0.9,
+          "evidence": "Sharpened outward-facing cutting edge of the axe head is clearly visible, with the metal surface extending outward.",
+          "origin": [
+            487,
+            300
+          ],
+          "direction_tip": [
+            300,
+            300
+          ]
+        }
+      },
+      "issues": [
+        "axe_head: direction_tip is on background"
+      ]
+    }
+  ],
+  "annotation_receipt": "annotation-ac7da523689ca8395de8369066457f17e722645b18e572fca6ea3bf156355908.json",
+  "review": {
+    "views": [
+      {
+        "view": 0,
+        "objects": {
+          "axe_head": {
+            "verdict": "confirmed",
+            "reason": "Red rectangle encloses the sharpened outward-facing cutting edge; signed arrow points from metal body outward along the curved blade edge, consistent with direction_semantics."
+          },
+          "grip_upper_haft": {
+            "verdict": "confirmed",
+            "reason": "Blue rectangle covers bare upper-middle wooden shaft, clearly distinct from axe head and lower grip; no conflicting surfaces or merged regions."
+          },
+          "grip_lower_haft": {
+            "verdict": "confirmed",
+            "reason": "Blue rectangle covers leather-wrapped lower shaft, visually distinct from upper haft and blade; no merging or swapping with other grasp regions."
+          }
+        }
+      },
+      {
+        "view": 1,
+        "objects": {
+          "axe_head": {
+            "verdict": "confirmed",
+            "reason": "Red rectangle and arrow correctly identify and direct outward along the visible sharp curved blade edge; consistent with role description."
+          },
+          "grip_upper_haft": {
+            "verdict": "confirmed",
+            "reason": "Blue rectangle isolates bare upper-middle wooden shaft; no overlap with blade or lower grip; visually distinct."
+          },
+          "grip_lower_haft": {
+            "verdict": "confirmed",
+            "reason": "Blue rectangle covers leather-wrapped lower shaft; clear separation from upper haft and blade; no merging."
+          }
+        }
+      },
+      {
+        "view": 2,
+        "objects": {
+          "axe_head": {
+            "verdict": "confirmed",
+            "reason": "Red rectangle encloses the outward-facing cutting edge; orange arrow originates from metal body and points outward along the blade edge, matching direction_semantics."
+          },
+          "grip_upper_haft": {
+            "verdict": "confirmed",
+            "reason": "Blue rectangle covers bare upper-middle wooden shaft; visually distinct from axe head and lower grip; no merging."
+          },
+          "grip_lower_haft": {
+            "verdict": "confirmed",
+            "reason": "Blue rectangle covers leather-wrapped lower shaft; clear separation from upper haft and blade; no occlusion or ambiguity."
+          }
+        }
+      },
+      {
+        "view": 3,
+        "objects": {
+          "axe_head": {
+            "verdict": "confirmed",
+            "reason": "Red rectangle and orange arrow correctly identify and direct outward along the visible sharp curved blade edge; consistent with role description."
+          },
+          "grip_upper_haft": {
+            "verdict": "confirmed",
+            "reason": "Blue rectangle isolates bare upper-middle wooden shaft; no overlap with blade or lower grip; visually distinct."
+          },
+          "grip_lower_haft": {
+            "verdict": "confirmed",
+            "reason": "Blue rectangle covers leather-wrapped lower shaft; clear separation from upper haft and blade; no merging or occlusion."
+          }
+        }
+      }
+    ],
+    "cross_view": {
+      "axe_head": {
+        "verdict": "confirmed",
+        "reason": "Identity and direction consistent across all four views: red rectangles consistently enclose the outward-facing cutting edge; signed arrows originate from metal body and point outward along the blade edge in all views. At least two useful views (e.g., View 0 and View 2) show the same region with consistent direction.",
+        "additional_views": []
+      },
+      "grip_upper_haft": {
+        "verdict": "confirmed",
+        "reason": "Identity consistent across all four views: blue rectangles consistently isolate the bare upper-middle wooden shaft, clear of head and lower grip. No swapping or merging observed. At least two useful views (e.g., View 0 and View 2) show the same region with consistent boundaries.",
+        "additional_views": []
+      },
+      "grip_lower_haft": {
+        "verdict": "confirmed",
+        "reason": "Identity consistent across all four views: blue rectangles consistently cover the leather-wrapped lower shaft, clear of blade and upper haft. No merging or swapping. At least two useful views (e.g., View 0 and View 2) show the same region with consistent boundaries.",
+        "additional_views": []
+      }
+    }
+  },
+  "review_receipt": "review-ca631bf3e9eb3a3abc11331c62f3f441badc45c2cea46dbee1e7ac419db9affe.json",
+  "confirmed_views": {
+    "grip_lower_haft": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "grip_upper_haft": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "axe_head": [
+      2
+    ]
+  }
+}

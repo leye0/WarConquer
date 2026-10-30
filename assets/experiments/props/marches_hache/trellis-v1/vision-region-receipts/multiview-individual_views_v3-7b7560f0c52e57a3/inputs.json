@@ -1,0 +1,148 @@
+{
+  "glb_sha256": "d0cadefdaf310e099cdcc5ebf69ff5222f0a76a2764afbfd745b07d2a21f944b",
+  "interaction_sha256": "1a9d420b3ded5084a5cad5095a5d21682d80ea9b0238c91597675699c4060cbb",
+  "prompt_version": 3,
+  "roles": {
+    "grip_lower_haft": {
+      "role": "grasp_region",
+      "description": "Leather-wrapped lower wooden shaft, clear of the blade"
+    },
+    "grip_upper_haft": {
+      "role": "grasp_region",
+      "description": "Bare upper-middle wooden shaft, clear of the head and its sharp edge"
+    },
+    "axe_head": {
+      "role": "functional_region",
+      "description": "Sharpened outward-facing cutting edge of the axe head",
+      "direction_semantics": "From the body of the metal head outward toward its visible sharp curved blade edge, not toward the flat poll or down the handle."
+    }
+  },
+  "coordinate_frame": "full_view_xyxy_normalized_1000",
+  "image_size": [
+    510,
+    510
+  ],
+  "crop": [
+    0,
+    0,
+    510,
+    510
+  ],
+  "projection": "orthographic: x=size/2+(world-center).right*scale; y=size/2-(world-center).up*scale",
+  "cameras": [
+    {
+      "right": [
+        -0.0031796766039021585,
+        0.0035261558685054104,
+        -0.9999887278772125
+      ],
+      "up": [
+        -0.5844307607585287,
+        0.8114298561326122,
+        0.004719582165376819
+      ],
+      "camera": [
+        -0.8114373515779899,
+        -0.5844391797282241,
+        0.0005192905724687942
+      ],
+      "center": [
+        0.012920356812965604,
+        0.11675624282262072,
+        -0.0007708681978313418
+      ],
+      "scale": 322.4843452682546,
+      "view": 0
+    },
+    {
+      "right": [
+        0.0031796766039021585,
+        -0.0035261558685054104,
+        0.9999887278772125
+      ],
+      "up": [
+        -0.5844307607585287,
+        0.8114298561326122,
+        0.004719582165376819
+      ],
+      "camera": [
+        0.8114373515779899,
+        0.5844391797282241,
+        -0.0005192905724687942
+      ],
+      "center": [
+        0.012920356812965604,
+        0.11675624282262072,
+        -0.0007708681978313418
+      ],
+      "scale": 322.4843452682546,
+      "view": 1
+    },
+    {
+      "right": [
+        0.8114373515779896,
+        0.584439179728224,
+        -0.0005192905724687953
+      ],
+      "up": [
+        -0.5844307607585287,
+        0.8114298561326122,
+        0.004719582165376819
+      ],
+      "camera": [
+        -0.00317967660390216,
+        0.00352615586850541,
+        -0.9999887278772126
+      ],
+      "center": [
+        0.012920356812965604,
+        0.11675624282262072,
+        -0.0007708681978313418
+      ],
+      "scale": 322.4843452682546,
+      "view": 2
+    },
+    {
+      "right": [
+        -0.8114373515779896,
+        -0.584439179728224,
+        0.0005192905724687953
+      ],
+      "up": [
+        -0.5844307607585287,
+        0.8114298561326122,
+        0.004719582165376819
+      ],
+      "camera": [
+        0.00317967660390216,
+        -0.00352615586850541,
+        0.9999887278772126
+      ],
+      "center": [
+        0.012920356812965604,
+        0.11675624282262072,
+        -0.0007708681978313418
+      ],
+      "scale": 322.4843452682546,
+      "view": 3
+    }
+  ],
+  "images": [
+    {
+      "file": "view-0.png",
+      "sha256": "cb24fbb387f1878981cac68293bd01932b22c6d27c5394da3e4f94d3c70279ef"
+    },
+    {
+      "file": "view-1.png",
+      "sha256": "55f9ed37f5d844a8af172d4e920891ee9d0bc1d6cacedf6bfb14886dc019593e"
+    },
+    {
+      "file": "view-2.png",
+      "sha256": "2f8a9415bb9acc5241ec12d84013a035c0fedfa971dcec0ba036af1dbc6fad2c"
+    },
+    {
+      "file": "view-3.png",
+      "sha256": "da41a0b1059125831498891af655251f31c1950bbefa49a822b37226a0ae9b52"
+    }
+  ]
+}

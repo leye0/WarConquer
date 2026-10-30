@@ -946,6 +946,17 @@
           const primaryOffsets=[fromTorso,body.forward,
             v.mul(body.forward,-1),v.add(fromTorso,body.forward),
             v.add(fromTorso,v.mul(body.forward,-1)),body.up];
+          // Reachable, collision-free poses can require simultaneous lift,
+          // forward motion and lateral motion. Axis-only displacements miss
+          // these even when both real arms can reach the labelled grips.
+          // Sample in the measured BODY frame, independent of prop identity.
+          for(const vertical of [0,1])
+            for(const forward of [-1,0,1])
+              for(const lateral of [-1,0,1]){
+                if(!vertical&&!forward&&!lateral)continue;
+                primaryOffsets.push(v.add(v.mul(body.up,vertical),
+                  v.add(v.mul(body.forward,forward),v.mul(body.right,lateral))));
+              }
           for(const direction of primaryOffsets){
             const unit=v.unit(direction);
             if(!unit)continue;
