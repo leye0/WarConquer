@@ -1,0 +1,16 @@
+[
+  {
+    "name": "idle",
+    "mode": "idle",
+    "balanceY": 0.48,
+    "headY": 0.754,
+    "gripError": 0,
+    "expectedHands": 2,
+    "semanticStatus": "confirmed",
+    "edgeOutward": 0.899,
+    "edgeForward": 0.013,
+    "secondaryGripError": 0.012,
+    "clearance": 0.02,
+    "ikReachable": true
+  }
+]
